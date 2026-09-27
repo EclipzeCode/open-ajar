@@ -121,37 +121,27 @@ never role names, so the future organization and counselor portals only need new
 
 ## Deploying to a real URL
 
-The app is packaged for [Fly.io](https://fly.io), which gives a free `https://<your-app>.fly.dev` address with no domain purchase.
-`Dockerfile` and `fly.toml` are included. You run these steps (they need your own Fly account; a card is required even on the free allowance):
+The app is packaged for [Render](https://render.com), which gives a `https://<your-app>.onrender.com` address with no domain purchase.
+`Dockerfile` and `render.yaml` (a Render Blueprint) are included.
 
-```bash
-# 1. Install the Fly CLI, then sign in
-brew install flyctl        # or: curl -L https://fly.io/install.sh | sh
-fly auth signup            # or: fly auth login
+1. Push this folder to a GitHub repo.
+2. In Render: **New > Blueprint**, pick the repo. It reads `render.yaml` and creates the web service plus a 1 GB disk at `/data`.
+   The disk needs the **Starter** plan (~$7/mo). On the free plan there is no disk, so the SQLite database (accounts, listings)
+   is wiped on every deploy and restart, and the app sleeps after 15 min idle.
+3. When prompted, fill in the secret env vars:
+   - `APP_URL` = `https://<your-app>.onrender.com` (the exact URL Render shows you; used in email links)
+   - `RESEND_API_KEY` = a key from https://resend.com/api-keys (required: the app refuses to start in production without one)
+   - `EMAIL_FROM` = `Open Ajar <hello@yourdomain>` once you verify a domain in Resend (leave blank until then; the default
+     sender only emails your own Resend address)
+4. Deploy. Every push to the repo's default branch redeploys.
+5. Create your admin account: service page > **Shell** tab, then run `node server/scripts/create-admin.js you@example.com`.
 
-# 2. Pick a globally-unique app name and set it in fly.toml (the "app =" line and APP_URL).
-#    Then create the app + its persistent disk for the database:
-fly launch --no-deploy --copy-config --name <your-app>
-fly volumes create openajar_data --size 1 --region iad
+Your listings and accounts live on the disk, so they survive deploys. To load listings, open the **Shell** tab and run
+`node server/scripts/import.js sheet <file>` (CSVs under `data/` are excluded from the image by `.dockerignore`, so upload
+the file first, e.g. via `curl` from a URL, or remove that line from `.dockerignore`).
 
-# 3. Give it a Resend API key (required: the app refuses to start in production without one).
-#    Free from https://resend.com/api-keys. The default sender only emails your own Resend address
-#    until you verify a domain in Resend (then also: fly secrets set EMAIL_FROM="Open Ajar <hello@yourdomain>").
-fly secrets set RESEND_API_KEY=your_key_here
-
-# 4. Deploy
-fly deploy
-
-# 5. Create your admin account on the live server (there is no default admin)
-fly ssh console -C "node server/scripts/create-admin.js you@example.com"
-```
-
-Your listings and accounts live on the `openajar_data` volume, so they survive deploys. Load listings with
-`fly ssh console` then `node server/scripts/import.js sheet <file>` after copying a CSV up, or import locally and
-deploy is not enough (the volume is separate). Custom domain later: `fly certs add yourdomain.org` and point DNS.
-
-**A real domain (optional):** buy one from any registrar (~$12/yr), then `fly certs add openajar.org` and set
-`APP_URL=https://openajar.org`. Until then the `.fly.dev` URL is a fully working public address.
+**A real domain (optional):** buy one from any registrar (~$12/yr), add it under the service's **Settings > Custom Domains**,
+point DNS as shown, and set `APP_URL=https://yourdomain.org`.
 
 ## Before going live
 

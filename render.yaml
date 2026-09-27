@@ -1,0 +1,33 @@
+# Render Blueprint for Open Ajar. In Render: New > Blueprint, pick this repo.
+services:
+  - type: web
+    name: open-ajar            # becomes https://<name>.onrender.com if the name is free
+    runtime: docker
+    plan: starter              # persistent disks need a paid plan; on free, the SQLite DB is wiped on every deploy/restart
+    region: virginia
+    healthCheckPath: /api/meta
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "4173"
+      - key: DB_PATH
+        value: /data/openajar.db
+      - key: TRUST_PROXY       # Render sits in front of the app; needed for per-IP rate limits
+        value: "1"
+      - key: SEED_DEMO
+        value: "0"
+      - key: DEMO_MODE
+        value: "0"
+      - key: APP_URL           # set to https://<name>.onrender.com (or your custom domain)
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+    disk:
+      name: openajar-data
+      mountPath: /data
+      sizeGB: 1

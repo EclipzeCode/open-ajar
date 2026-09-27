@@ -7,12 +7,11 @@ COPY package.json ./
 COPY server ./server
 COPY public ./public
 
-# The SQLite database lives on a mounted volume so it survives deploys and restarts.
+# The SQLite database lives on a mounted disk at /data (see render.yaml) so it survives deploys.
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=4173 \
     DB_PATH=/data/openajar.db
-VOLUME ["/data"]
 EXPOSE 4173
 
 # Never seed fictional demo data into production.
