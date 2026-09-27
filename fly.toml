@@ -1,0 +1,34 @@
+# Fly.io deployment for Open Ajar. Rename "app" to something globally unique (this becomes <app>.fly.dev).
+app = "open-ajar"
+primary_region = "iad"   # change to a region near your users; run `fly platform regions` to list them
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  HOST = "0.0.0.0"
+  PORT = "4173"
+  DB_PATH = "/data/openajar.db"
+  SEED_DEMO = "0"
+  DEMO_MODE = "0"
+  # APP_URL must match your real address. Set it to https://<app>.fly.dev (or your custom domain).
+  APP_URL = "https://open-ajar.fly.dev"
+
+# Persistent disk for the SQLite database. Without this, accounts and listings are wiped on every deploy.
+[[mounts]]
+  source = "openajar_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 4173
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[http_service.checks]]
+  method = "GET"
+  path = "/api/meta"
+  interval = "30s"
+  timeout = "5s"

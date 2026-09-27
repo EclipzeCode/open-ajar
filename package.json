@@ -1,0 +1,19 @@
+{
+  "name": "open-ajar",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Open Ajar: opportunity discovery and tracking for high-school students.",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test server/test/*.test.js",
+    "seed:demo": "node server/scripts/seed-demo.js",
+    "purge:demo": "node server/scripts/seed-demo.js --purge",
+    "import:sheet": "node server/scripts/import.js sheet",
+    "check:links": "node server/scripts/check-links.js",
+    "email:test": "node server/scripts/test-email.js",
+    "create-admin": "node server/scripts/create-admin.js"
+  }
+}
