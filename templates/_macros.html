@@ -96,12 +96,10 @@
   </div>
   <h3 class="card__title"><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></h3>
   <p class="card__org">{{ o.org }}</p>
-  <p class="card__summary">{{ o.summary|truncate(170) }}</p>
-  <ul class="card__meta">
-    <li>{{ grade_label(o.grades) }}</li>
-    <li>{{ D.COSTS[o.cost] }}</li>
-    <li>{{ o.format }}{% if o.format != 'Online' and o.location %} · {{ o.location|truncate(40) }}{% endif %}</li>
-    <li class="{% if dl[1] %}is-soon{% endif %}">{{ dl[0] }}</li>
-  </ul>
+  <p class="card__summary">{{ o.summary }}</p>
+  <div class="card__foot">
+    <p class="card__facts"><span>{{ grade_label(o.grades) }}</span><span>{{ D.COSTS[o.cost] }}</span><span>{% if o.format == 'Online' or not o.location %}{{ o.format }}{% else %}{{ o.location|truncate(30, True) }}{% endif %}</span></p>
+    <p class="card__deadline{% if dl[1] %} is-soon{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>{{ dl[0]|truncate(44, True) }}</span></p>
+  </div>
 </article>
 {% endmacro %}

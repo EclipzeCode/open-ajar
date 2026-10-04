@@ -116,7 +116,7 @@ def create_app(test_config=None):
 
     @app.context_processor
     def globals_():
-        return {'user': current_user(), 'csrf_token': session.get('csrf', ''), 'D': data,
+        return {'user': current_user(), 'csrf_token': session.get('csrf', ''), 'D': data, 'production': app.config['PRODUCTION'],
                 'dev_inbox': not app.config['PRODUCTION'] and not app.config['RESEND_API_KEY'],
                 'contact_email': app.config['CONTACT_EMAIL']}
 

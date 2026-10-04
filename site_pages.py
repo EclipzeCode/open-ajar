@@ -1,5 +1,6 @@
 """Public pages: home, browsing, listing detail, submitting, intern applications and the static content pages."""
 import json
+from urllib.parse import urlencode
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
@@ -9,7 +10,7 @@ from core import (add_event, all_, client_ip, current_user, facets, get_db, get_
                   limited, login_required, new_id, one, run, safe_next, search_public, update_opp)
 
 bp = Blueprint('site', __name__)
-PAGE = 20
+PAGE = 24  # divides evenly into 1, 2, 3 or 4 columns, so full pages never leave a ragged last row
 
 
 @bp.get('/healthz')
@@ -35,9 +36,17 @@ SECTORS = {
 }
 
 
-@bp.get('/opportunities', defaults={'sector': 'opportunities'})
-@bp.get('/jobs', defaults={'sector': 'jobs'})
-def browse(sector):
+@bp.get('/opportunities')
+def browse():
+    return _browse('opportunities')
+
+
+@bp.get('/jobs')
+def jobs():
+    return _browse('jobs')
+
+
+def _browse(sector):
     a = request.args
     grade = a.get('grade', '')
     f = {
@@ -55,7 +64,26 @@ def browse(sector):
     items, total = search_public(f, PAGE, (page - 1) * PAGE)
     active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest')) + bool(f['grade']) + bool(f['state'])
     return render_template('browse.html', sector=sector, copy=SECTORS[sector], f=f, items=items, total=total, page=page,
-                           pages=max(1, -(-total // PAGE)), facets=facets(sector), active=active, saved=_saved_ids())
+                           pages=max(1, -(-total // PAGE)), facets=facets(sector), active=active, saved=_saved_ids(),
+                           chips=_chips(f))
+
+
+def _chips(f):
+    """(label, link that removes just that filter) for each active filter."""
+    def without(key, value):
+        args = [(k, v) for k, v in request.args.items(multi=True) if k != 'page' and not (k == key and v == str(value))]
+        return request.path + ('?' + urlencode(args) if args else '')
+    chips = []
+    if f['q']:
+        chips.append((f'“{f["q"]}”', without('q', f['q'])))
+    if f['grade']:
+        chips.append((f'Grade {f["grade"]}', without('grade', f['grade'])))
+    if f['state']:
+        chips.append((data.STATES[f['state']], without('state', request.args.get('state'))))
+    for key in ('type', 'cost', 'format', 'commitment', 'interest'):
+        for v in f[key]:
+            chips.append((data.COSTS[v] if key == 'cost' else v, without(key, v)))
+    return chips
 
 
 def _saved_ids():

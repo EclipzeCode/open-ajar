@@ -1,70 +1,109 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
+{% macro icon(path) %}<span class="feature__icon" aria-hidden="true"><svg viewBox="0 0 24 24">{{ path|safe }}</svg></span>{% endmacro %}
 {% block content %}
 <section class="hero">
-  <div class="wrap hero__grid">
-    <div>
-      <p class="eyebrow">Student-founded · For high-school students</p>
-      <h1>Your next opportunity shouldn’t depend on <em>who you know.</em></h1>
-      <p class="lead">Open Ajar puts internships, programs, scholarships and teen jobs in one place, then helps you go from finding one to actually applying.</p>
-      <form class="hero__search" action="{{ url_for('site.browse') }}" role="search">
-        <label class="sr-only" for="hero-q">Search opportunities</label>
-        <input id="hero-q" name="q" type="search" placeholder="Try “coding”, “research” or “summer”">
-        <button class="btn" type="submit">Search</button>
-      </form>
-      {% if total and states > 1 %}<p class="muted"><strong>{{ total }}</strong> opportunities across <strong>{{ states }}</strong> states, all free to use.</p>{% endif %}
-    </div>
-    <div class="door-art" aria-hidden="true"><div class="door-art__light"></div><div class="door-art__door"><span></span></div></div>
-  </div>
-</section>
-
-<section class="band">
-  <div class="wrap split">
-    <h2>Right now, opportunity is scattered.</h2>
-    <div>
-      <p>It lives in counselor emails, university websites, company career pages, nonprofit newsletters, Instagram, LinkedIn, and conversations with parents and coaches.</p>
-      <p>If you’re well connected, some of it reaches you. If you’re not, most of it never does. <strong>Open Ajar puts it in one place.</strong></p>
-    </div>
-  </div>
-</section>
-
-<section class="section">
+  <div class="hero__cells" aria-hidden="true"></div>
+  <span class="aurora aurora--1"></span><span class="aurora aurora--2"></span><span class="aurora aurora--3"></span>
   <div class="wrap">
-    <p class="eyebrow">How it works</p>
-    <h2>From finding it to walking through.</h2>
-    <ol class="steps">
-      <li><h3>Discover</h3><p>Search and filter by interest, grade, state, cost and deadline.</p></li>
-      <li><h3>Evaluate</h3><p>See eligibility, cost or pay, requirements, and how well we’ve checked it.</p></li>
-      <li><h3>Track</h3><p>Save it, turn its requirements into a checklist and add your own notes.</p></li>
-      <li><h3>Apply</h3><p>Go straight to the organization’s real application. We never sit in the middle.</p></li>
-    </ol>
-  </div>
-</section>
-
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="section__head">
-      <div><p class="eyebrow">Just added</p><h2>Open right now.</h2></div>
-      <a class="link" href="{{ url_for('site.browse') }}">{% if total %}See all {{ total }} →{% else %}Browse →{% endif %}</a>
+    <h1 class="reveal">Opportunity shouldn’t depend on <em>who you know.</em></h1>
+    <p class="lead reveal d1">Open Ajar is the free, all-in-one place for high-school students to find internships, programs, scholarships and teen jobs, then track them all the way to “applied”.</p>
+    {% set words = ['summer research', 'scholarships', 'engineering', 'medicine', 'writing', 'volunteer', 'business', 'robotics', 'cashier', 'law', 'music'] %}
+    <a class="typer reveal d2" href="{{ url_for('site.browse', q=words[0]) }}" data-words="{{ words|join('|') }}" aria-label="Browse opportunities">
+      <svg class="typer__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="typer__text" aria-hidden="true"><span class="typer__prefix">Search</span> <span class="typer__word">{{ words[0] }}</span><span class="typer__caret"></span></span>
+      <span class="typer__go">Explore <span class="arrow" aria-hidden="true">→</span></span>
+    </a>
+    {% if total and states > 1 %}
+    <div class="stats-strip reveal d3">
+      <div><strong data-count="{{ total }}">{{ '{:,}'.format(total) }}</strong><span>opportunities</span></div>
+      <div><strong data-count="{{ states }}">{{ states }}</strong><span>states covered</span></div>
+      <div><strong>$0</strong><span>free for students</span></div>
     </div>
-    {% if featured %}
-      <div class="grid">{% for o in featured[:3] %}{{ m.card(o, D) }}{% endfor %}</div>
-    {% else %}
-      <p class="empty">No opportunities are published yet. Check back soon, or <a href="{{ url_for('site.submit') }}">submit one</a>.</p>
     {% endif %}
   </div>
 </section>
 
+{# Scroll-driven door: app.js sets --p from 0 (closed) to 1 (open) as this section scrolls past. #}
+<section class="doorway" aria-labelledby="doorway-h">
+  <div class="doorway__sticky wrap">
+    <div class="doorway__copy">
+      <span class="eyebrow">Why “ajar”</span>
+      <div class="doorway__lines">
+        <h2 class="doorway__line doorway__line--closed" aria-hidden="true">Most doors to opportunity are <em>closed.</em></h2>
+        <h2 class="doorway__line doorway__line--open" id="doorway-h">We open them <em>a little wider.</em></h2>
+      </div>
+      <p class="lead doorway__text">An ajar door isn’t wide open, but it’s open enough to see what’s on the other side. That’s what we do for opportunities that usually only reach well-connected students.</p>
+    </div>
+    <div class="doorway__scene">
+      <div class="doorway__stage">
+      <div class="doorway__frame">
+        <nav class="doorway__room" aria-label="Browse by kind">
+          <a class="doorway__tag t1" href="{{ url_for('site.browse', type='Internship') }}">Internships</a>
+          <a class="doorway__tag t2" href="{{ url_for('site.browse', type='Scholarship') }}">Scholarships</a>
+          <a class="doorway__tag t3" href="{{ url_for('site.browse', type='Research program') }}">Research</a>
+          <a class="doorway__tag t4" href="{{ url_for('site.browse', type='Summer program') }}">Summer programs</a>
+          <a class="doorway__tag t5" href="{{ url_for('site.jobs') }}">Teen jobs</a>
+          <a class="doorway__tag t6" href="{{ url_for('site.browse', type='Competition') }}">Competitions</a>
+        </nav>
+        <div class="doorway__door" aria-hidden="true"><span class="doorway__panel"></span><span class="doorway__panel"></span><span class="doorway__knob"></span></div>
+      </div>
+      <div class="doorway__spill" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section center">
+  <div class="wrap">
+    <span class="eyebrow">Our mission</span>
+    <h2 class="reveal">Open the door a little wider.</h2>
+    <p class="lead reveal">Opportunities live in counselor emails, company career pages, nonprofit newsletters and word of mouth. If you’re well connected, some reach you. Open Ajar puts them all in one place.</p>
+    <div class="features">
+      <article class="feature reveal"><div class="feature__band"></div>
+        {{ icon('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>') }}
+        <h3>Discover</h3><p>Search and filter by interest, grade, state, cost and deadline. Real programs, not ads.</p></article>
+      <article class="feature reveal d1"><div class="feature__band"></div>
+        {{ icon('<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>') }}
+        <h3>Track</h3><p>Save what you like and turn each one’s requirements into a checklist with notes and your own deadline.</p></article>
+      <article class="feature reveal d2"><div class="feature__band"></div>
+        {{ icon('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>') }}
+        <h3>Get reminded</h3><p>A short email a week before a deadline, so nothing you care about slips past.</p></article>
+      <article class="feature reveal"><div class="feature__band"></div>
+        {{ icon('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>') }}
+        <h3>Teen jobs</h3><p>Paid, part-time work for high-school students across the country, filterable by state.</p></article>
+      <article class="feature reveal d1"><div class="feature__band"></div>
+        {{ icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>') }}
+        <h3>Intern with us</h3><p>We place motivated students as interns with local businesses we work with. Apply once.</p></article>
+      <article class="feature reveal d2"><div class="feature__band"></div>
+        {{ icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>') }}
+        <h3>Reviewed by people</h3><p>Every listing is checked by a reviewer before it goes live, and links to the official application.</p></article>
+    </div>
+  </div>
+</section>
+
+{% if featured %}
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="section__head">
+      <div><span class="eyebrow">Just added</span><h2>Open right now.</h2></div>
+      <a class="link" href="{{ url_for('site.browse') }}">See all {{ total }} →</a>
+    </div>
+    <div class="grid">{% for o in featured %}{{ m.card(o, D) }}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
+
 <section class="section">
-  <div class="wrap panel panel--accent">
+  <div class="wrap panel panel--accent reveal">
     <div>
-      <p class="eyebrow">For students</p>
+      <span class="eyebrow">For students</span>
       <h2>Want real experience? Intern with us.</h2>
-      <p>We place motivated high-school students as interns with local businesses we work with. Apply once and we’ll reach out when there’s a fit.</p>
-      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern</a>
+      <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
+      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
     </div>
     <div>
-      <p class="eyebrow">For businesses</p>
+      <span class="eyebrow">For businesses</span>
       <h2>Host a high-school intern.</h2>
       <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
       <a class="btn btn--ghost-light" href="mailto:{{ contact_email }}?subject=Hosting%20an%20intern%20with%20Open%20Ajar">Partner with us</a>
@@ -72,25 +111,78 @@
   </div>
 </section>
 
-{% if voices %}
-<section class="section">
+{#
+  TESTIMONIALS: edit this list. Each one needs a quote, name and role; photo is optional
+  (put the image in static/img/testimonials/ and set e.g. 'photo': 'maya.jpg'; without one, initials show).
+  Entries marked 'placeholder': True only appear on your own computer, never on the live site.
+  Approved quotes students send from their account page are added after these automatically.
+#}
+{% set testimonials = [
+  {'name': 'Vanessa Gunuwan', 'role': 'UPenn Wharton', 'quote': 'Open Ajar makes it much easier for students to discover opportunities that would otherwise be scattered across dozens of websites. I especially like that it lowers the barrier for students who may not already have access to strong academic or professional networks.'},
+  {'name': 'Heewon Park', 'role': 'HS Student', 'quote': 'Before using Open Ajar, I honestly didn’t know where to start looking for internships and programs. Having opportunities collected in one place makes the process feel much less overwhelming and gives me a better idea of what is actually available to high school students.'},
+  {'name': 'Mark Rydberg', 'role': 'Cornell CAS', 'quote': 'One of the hardest parts of high school is simply knowing which opportunities exist. Open Ajar addresses that problem by bringing internships, research, competitions, and other programs into one accessible platform instead of making students search for everything individually.'},
+  {'name': 'Arnav Dedhia', 'role': 'UIUC CS', 'quote': 'There are countless valuable programs online, but discovering them often depends on knowing exactly what to search for. Open Ajar helps bridge that information gap by organizing opportunities in a way that makes exploration much more efficient for students.'},
+  {'name': 'Samay Malde', 'role': 'UPenn Economics + Biology', 'quote': 'Students interested in different fields often have to jump between many unrelated websites to find meaningful opportunities. Open Ajar creates a much simpler starting point by exposing students to programs across disciplines that they might not have encountered otherwise.'},
+  {'name': 'Nate John', 'role': 'HS Student', 'quote': 'Open Ajar has helped me realize how many opportunities exist outside of what gets shared at school. Instead of relying only on counselors or word of mouth, I can explore programs on my own and find things that actually match my interests.'},
+  {'name': 'Bobby DeCarlo', 'role': 'HS Student', 'quote': 'What I like most about Open Ajar is that it saves students from spending hours trying to figure out which programs are actually available to them. Everything feels easier to browse, and I’ve found opportunities I probably never would have come across otherwise.'},
+  {'name': 'Ciara DeCarlo', 'role': 'Rutgers', 'quote': 'I wish there had been a resource like Open Ajar when I was first looking for opportunities in high school. A centralized platform can make a huge difference for students who are motivated but simply don’t know where to find internships, competitions, or academic programs.'},
+  {'name': 'Sam Lui', 'role': 'HS Student', 'quote': 'A lot of opportunities seem hidden unless someone sends them to you or you already know where to look. Open Ajar makes that information much more accessible and helps students find programs beyond the ones everyone at their school already knows about.'},
+  {'name': 'Chayan Malkari', 'role': 'HS Student', 'quote': 'Open Ajar makes searching for opportunities feel less dependent on who you know. Being able to browse different internships, research programs, and competitions in one place gives students more freedom to explore what they’re interested in and take initiative themselves.'},
+] %}
+{% set shown = [] %}
+{% for t in testimonials if not (t.placeholder and production) %}{% do shown.append(t) %}{% endfor %}
+{% for v in voices %}{% do shown.append({'quote': v.quote, 'name': v.name, 'role': v.role_label}) %}{% endfor %}
+
+{% macro quote_card(t, hidden=False) %}
+<figure class="quote{% if t.placeholder %} quote--placeholder{% endif %}"{% if hidden %} aria-hidden="true"{% endif %}>
+  <svg class="quote__mark" viewBox="0 0 32 24" aria-hidden="true"><path d="M0 24V14C0 6 4 1 12 0l1 4c-4 1-6 4-6 8h6v12H0zm19 0V14c0-8 4-13 12-14l1 4c-4 1-6 4-6 8h6v12H19z"/></svg>
+  <blockquote>{{ t.quote }}</blockquote>
+  <figcaption>
+    {% if t.photo %}<img class="quote__avatar" src="{{ url_for('static', filename='img/testimonials/' + t.photo) }}" alt="" width="44" height="44" loading="lazy">
+    {% else %}<span class="quote__avatar" aria-hidden="true">{{ t.name.split()|map('first')|join|upper|truncate(2, True, '') }}</span>{% endif %}
+    <div>{{ t.name }}{% if t.role %}<span>{{ t.role }}</span>{% endif %}</div>
+  </figcaption>
+</figure>
+{% endmacro %}
+
+{% if shown %}
+<section class="section center testimonials" aria-labelledby="voices-h">
   <div class="wrap">
-    <p class="eyebrow">Community voices</p>
-    <h2>From students using Open Ajar.</h2>
-    <div class="quotes">
-      {% for v in voices %}
-        <figure class="quote"><blockquote>“{{ v.quote }}”</blockquote><figcaption>{{ v.name }}{% if v.role_label %}, {{ v.role_label }}{% endif %}</figcaption></figure>
-      {% endfor %}
+    <span class="eyebrow">Testimonials</span>
+    <h2 id="voices-h">Community voices</h2>
+    <p class="lead">What high schoolers and college students say about Open Ajar.</p>
+  </div>
+  {# the cards are listed twice so the strip can loop forever; the copy is hidden from screen readers #}
+  <div class="marquee">
+    <div class="marquee__track">
+      {% for t in shown %}{{ quote_card(t) }}{% endfor %}
+      {% for t in shown %}{{ quote_card(t, hidden=True) }}{% endfor %}
     </div>
   </div>
 </section>
 {% endif %}
 
+<section class="section center">
+  <div class="wrap">
+    <span class="eyebrow">Frequently asked questions</span>
+    <h2>Questions &amp; answers</h2>
+    <p class="lead">Still wondering? Email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+    <div class="faq">
+      <details><summary>What is Open Ajar?</summary><p>A student-founded site where high-school students find internships, research and summer programs, scholarships, competitions and teen jobs in one place, then track them through to applying.</p></details>
+      <details><summary>Is it free?</summary><p>Yes. Open Ajar is free for students, always. We never charge to browse, save or track anything.</p></details>
+      <details><summary>Do I apply through Open Ajar?</summary><p>No. Every listing links to the organization’s own application. We help you find it and stay organized; you apply directly with them.</p></details>
+      <details><summary>How do you check listings?</summary><p>Nothing goes live automatically. A reviewer checks each listing against its official page first, and each one is labeled with how well it’s been verified. Always confirm details on the official page before you apply.</p></details>
+      <details><summary>Can I share an opportunity I know about?</summary><p>Please do. Create a free account, confirm your email, and use Submit. A reviewer will approve it or let you know what to fix.</p></details>
+      <details><summary>Is my information private?</summary><p>We only collect what the site needs, never sell it and don’t run ads. You can delete your account any time. See the <a href="{{ url_for('site.privacy') }}">privacy policy</a>.</p></details>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="wrap closing">
     <h2>Access should <em>compound.</em></h2>
-    <p>Students who find their way through can help the next student find theirs. Know an opportunity worth sharing?</p>
-    <div class="actions"><a class="btn" href="{{ url_for('site.submit') }}">Submit an opportunity</a><a class="link" href="{{ url_for('site.support') }}">Support Open Ajar →</a></div>
+    <p class="lead">Students who find their way through can help the next student find theirs.</p>
+    <div class="actions"><a class="btn" href="{{ url_for('site.browse') }}">Browse opportunities →</a><a class="btn btn--ghost" href="{{ url_for('site.submit') }}">Submit one</a></div>
   </div>
 </section>
 {% endblock %}

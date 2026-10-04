@@ -50,6 +50,18 @@ class Flows(unittest.TestCase):
         self.post('/login', {'email': 'admin@example.org', 'password': PW}, admin)
         return admin
 
+    def test_nav_links_go_to_the_right_pages(self):
+        page = self.c.get('/').data
+        self.assertIn(b'href="/opportunities"', page)
+        self.assertIn(b'href="/jobs"', page)
+
+    def test_placeholder_testimonials_never_reach_the_live_site(self):
+        live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',
+                           'APP_URL': 'https://example.org', 'DB_PATH': self.app.config['DB_PATH']})
+        page = live.test_client().get('/').data
+        self.assertIn(b'Vanessa Gunuwan', page)
+        self.assertNotIn(b'Testimonial goes here', page)
+
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
 
