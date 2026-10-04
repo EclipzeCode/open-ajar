@@ -23,16 +23,125 @@ document.addEventListener('submit', (e) => {
   if (e.target.dataset.confirm && !confirm(e.target.dataset.confirm)) e.preventDefault();
 });
 
-// Browse: apply filters as soon as a checkbox or dropdown changes
+// Browse filter bar: one panel open at a time; radios apply at once, checkboxes apply when the panel closes
 document.querySelectorAll('form[data-autosubmit]').forEach((form) => {
+  const pops = [...form.querySelectorAll('details.fpop')];
+  let dirty = false;
+  const closeAll = (except) => pops.forEach((d) => { if (d !== except) d.open = false; });
+  form.querySelectorAll('.fpop__done').forEach((b) => b.addEventListener('click', () => { b.closest('details').open = false; }));
+  pops.forEach((d) => d.addEventListener('toggle', () => {
+    if (d.open) closeAll(d);
+    else if (dirty) form.requestSubmit();
+  }));
+  document.addEventListener('click', (e) => { if (!e.target.closest('details.fpop')) closeAll(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') pops.filter((d) => d.open).forEach((d) => { d.open = false; d.querySelector('summary').focus(); }); });
+  form.addEventListener('formdata', (e) => { // keep URLs tidy: no empty q=, grade=, state=
+    for (const [k, v] of [...e.formData]) if (v === '' || (k === 'sort' && v === 'featured')) e.formData.delete(k);
+  });
   form.addEventListener('change', (e) => {
-    if (e.target.matches('input[type=checkbox], select')) form.requestSubmit();
+    if (e.target.matches('input[type=checkbox]')) dirty = true;
+    else if (e.target.matches('input[type=radio], select')) form.requestSubmit();
   });
 });
 
-// Browse: filters start open on wide screens, collapsed on phones
-const filters = document.querySelector('details.filters');
-if (filters && matchMedia('(min-width: 861px)').matches) filters.open = true;
+// Styled dropdowns. Each <select> gets a button + list; the real select stays (hidden) so forms submit exactly as before.
+let ddCount = 0;
+function enhanceSelect(sel) {
+  const id = sel.id || `dd-${++ddCount}`;
+  const label = document.querySelector(`label[for="${id}"]`);
+  const wrap = document.createElement('div');
+  wrap.className = 'dd' + (sel.classList.contains('select--pill') ? ' dd--pill' : '');
+  sel.replaceWith(wrap);
+  sel.id = `${id}-native`;
+  sel.classList.add('dd__native');
+  sel.tabIndex = -1;
+  sel.setAttribute('aria-hidden', 'true');
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = id;
+  btn.className = 'dd__btn';
+  btn.setAttribute('aria-haspopup', 'listbox');
+  btn.setAttribute('aria-expanded', 'false');
+  const value = document.createElement('span');
+  value.className = 'dd__value';
+  value.id = `${id}-value`;
+  btn.append(value);
+  if (label) { label.id ||= `${id}-label`; btn.setAttribute('aria-labelledby', `${label.id} ${value.id}`); }
+  else if (sel.getAttribute('aria-label')) btn.setAttribute('aria-label', sel.getAttribute('aria-label'));
+  ['aria-invalid', 'aria-describedby'].forEach((a) => { if (sel.hasAttribute(a)) btn.setAttribute(a, sel.getAttribute(a)); });
+
+  const list = document.createElement('ul');
+  list.className = 'dd__list';
+  list.setAttribute('role', 'listbox');
+  list.tabIndex = -1;
+  list.hidden = true;
+  const opts = [...sel.options].map((o, i) => {
+    const li = document.createElement('li');
+    li.className = 'dd__opt' + (o.value === '' ? ' dd__opt--empty' : '');
+    li.id = `${id}-opt-${i}`;
+    li.setAttribute('role', 'option');
+    li.textContent = o.textContent;
+    li.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the list
+    li.addEventListener('click', () => { choose(i); close(true); });
+    li.addEventListener('mousemove', () => highlight(i));
+    list.append(li);
+    return li;
+  });
+  wrap.append(sel, btn, list);
+
+  let active = sel.selectedIndex;
+  const sync = () => {
+    const o = sel.options[sel.selectedIndex];
+    value.textContent = o ? o.textContent : '';
+    btn.classList.toggle('is-placeholder', !o || o.value === '');
+    opts.forEach((li, i) => li.setAttribute('aria-selected', i === sel.selectedIndex));
+  };
+  const highlight = (i) => {
+    active = Math.max(0, Math.min(opts.length - 1, i));
+    opts.forEach((li, j) => li.classList.toggle('is-active', j === active));
+    list.setAttribute('aria-activedescendant', opts[active].id);
+    opts[active].scrollIntoView({ block: 'nearest' });
+  };
+  const choose = (i) => {
+    if (sel.selectedIndex !== i) { sel.selectedIndex = i; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+    sync();
+  };
+  const open = () => {
+    document.querySelectorAll('.dd.is-open').forEach((d) => d !== wrap && d.dispatchEvent(new Event('dd:close')));
+    list.hidden = false; wrap.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true');
+    highlight(Math.max(0, sel.selectedIndex)); list.focus();
+  };
+  const close = (refocus) => {
+    list.hidden = true; wrap.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false');
+    if (refocus) btn.focus();
+  };
+  wrap.addEventListener('dd:close', () => close(false));
+  btn.addEventListener('click', () => (list.hidden ? open() : close(true)));
+  btn.addEventListener('keydown', (e) => { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); open(); } });
+  let typed = '', typedAt = 0;
+  list.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (k === 'ArrowDown') highlight(active + 1);
+    else if (k === 'ArrowUp') highlight(active - 1);
+    else if (k === 'Home') highlight(0);
+    else if (k === 'End') highlight(opts.length - 1);
+    else if (k === 'Enter' || k === ' ') { choose(active); close(true); }
+    else if (k === 'Escape') close(true);
+    else if (k === 'Tab') { close(false); return; }
+    else if (k.length === 1) { // type to jump, e.g. "ne" for New York
+      typed = (Date.now() - typedAt > 700 ? '' : typed) + k.toLowerCase(); typedAt = Date.now();
+      const hit = opts.findIndex((li) => li.textContent.toLowerCase().startsWith(typed));
+      if (hit >= 0) highlight(hit);
+    } else return;
+    e.preventDefault();
+  });
+  list.addEventListener('blur', (e) => { if (!wrap.contains(e.relatedTarget)) close(false); });
+  sel.form?.addEventListener('reset', () => setTimeout(sync));
+  sync();
+}
+document.querySelectorAll('select:not([multiple])').forEach(enhanceSelect);
+document.addEventListener('click', (e) => document.querySelectorAll('.dd.is-open').forEach((d) => { if (!d.contains(e.target)) d.dispatchEvent(new Event('dd:close')); }));
 
 // Admin queue: select-all checkbox
 document.querySelector('[data-select-all]')?.addEventListener('change', (e) => {

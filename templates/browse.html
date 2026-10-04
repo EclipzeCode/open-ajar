@@ -1,93 +1,95 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
 {% block title %}{{ copy.title }}{% endblock %}
-{% macro facet(title, key, options, labels=None) %}
-  {% set shown = [] %}
-  {% for v in options if facets[key].get(v) or v in f[key] %}{% do shown.append(v) %}{% endfor %}
-  {% if shown %}
-  <fieldset class="facet">
-    <legend>{{ title }}</legend>
-    {% for v in shown %}
-      <label class="check"><input type="checkbox" name="{{ key }}" value="{{ v }}" {% if v in f[key] %}checked{% endif %}>
-        <span>{{ labels[v] if labels else v }}</span><span class="check__n">{{ facets[key].get(v, 0) }}</span></label>
-    {% endfor %}
-  </fieldset>
+
+{# One filter pill: a button that opens a small panel of options. kind is 'checkbox' (many) or 'radio' (one). #}
+{% macro pill(title, key, options, kind='checkbox', labels=None, any_label=None) %}
+  {% set chosen = f[key] if kind == 'checkbox' else ([f[key]] if f[key] else []) %}
+  {% set opts = [] %}
+  {% for v in options if facets[key].get(v) or v in chosen %}{% do opts.append(v) %}{% endfor %}
+  {% if opts %}
+  <details class="fpop{% if chosen %} is-active{% endif %}">
+    <summary class="fpop__btn">{{ title }}{% if chosen %} <span class="fpop__n">{{ chosen|length if kind == 'checkbox' else '1' }}</span>{% endif %}</summary>
+    <div class="fpop__panel{% if opts|length > 8 %} fpop__panel--tall{% endif %}">
+      {% if kind == 'radio' %}
+        <label class="fopt"><input type="radio" name="{{ key }}" value="" {% if not chosen %}checked{% endif %}><span>{{ any_label }}</span></label>
+      {% endif %}
+      {% for v in opts %}
+        <label class="fopt"><input type="{{ kind }}" name="{{ key }}" value="{{ v }}" {% if v in chosen %}checked{% endif %}>
+          <span>{{ labels[v] if labels else v }}</span><span class="fopt__n">{{ facets[key].get(v, 0) }}</span></label>
+      {% endfor %}
+      <button class="btn btn--sm btn--block fpop__done" type="button">Done</button>
+      <noscript><button class="btn btn--sm btn--block" type="submit">Apply</button></noscript>
+    </div>
+  </details>
   {% endif %}
 {% endmacro %}
+
 {% block content %}
 <div class="wrap">
   <header class="page-head">
-    <p class="eyebrow">{{ 'Jobs' if sector == 'jobs' else 'Opportunities' }}</p>
+    <span class="eyebrow">{{ 'Jobs' if sector == 'jobs' else 'Opportunities' }}</span>
     <h1>{{ copy.h1 }}</h1>
     <p class="lead">{{ copy.sub }}</p>
   </header>
 
   <form class="browse" method="get" data-autosubmit>
-    <div class="browse__bar">
+    <div class="searchbar">
+      <svg class="searchbar__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <label class="sr-only" for="q">Search</label>
-      <input id="q" name="q" type="search" value="{{ f.q }}" maxlength="100" placeholder="{{ 'Search jobs, e.g. cashier or lifeguard' if sector == 'jobs' else 'Search, e.g. research or coding' }}">
-      <label class="sr-only" for="sort">Sort</label>
-      <select id="sort" name="sort">
-        <option value="featured">Newest</option>
-        <option value="deadline" {% if f.sort == 'deadline' %}selected{% endif %}>Deadline soonest</option>
-        <option value="title" {% if f.sort == 'title' %}selected{% endif %}>A to Z</option>
-      </select>
+      <input id="q" name="q" type="search" value="{{ f.q }}" maxlength="100" placeholder="{{ 'Search jobs, e.g. cashier or lifeguard' if sector == 'jobs' else 'Search programs, internships, scholarships…' }}">
       <button class="btn" type="submit">Search</button>
     </div>
 
-    <div class="browse__body">
-      <details class="filters">
-        <summary>Filters{% if active %} ({{ active }}){% endif %}</summary>
-        <div class="filters__inner">
-          <div class="field">
-            <label for="grade">Grade</label>
-            <select id="grade" name="grade"><option value="">Any grade</option>
-              {% for g in D.GRADES %}<option value="{{ g }}" {% if f.grade == g %}selected{% endif %}>Grade {{ g }}</option>{% endfor %}
-            </select>
-          </div>
-          {% if facets.state %}
-          <div class="field">
-            <label for="state">State</label>
-            <select id="state" name="state"><option value="">Any state</option>
-              {% for code, name in D.STATES|dictsort(by='value') if facets.state.get(code) %}
-                <option value="{{ code }}" {% if f.state == code %}selected{% endif %}>{{ name }} ({{ facets.state[code] }})</option>
-              {% endfor %}
-            </select>
-          </div>
-          {% endif %}
-          {% if sector != 'jobs' %}
-            {{ facet('Type', 'type', D.TYPES) }}
-            {{ facet('Cost', 'cost', D.COSTS, D.COSTS) }}
-            {{ facet('Format', 'format', D.FORMATS) }}
-          {% endif %}
-          {{ facet('Commitment', 'commitment', D.COMMITMENTS) }}
-          {% if sector != 'jobs' %}{{ facet('Interest', 'interest', D.INTERESTS) }}{% endif %}
-          <div class="filters__actions">
-            <button class="btn btn--sm" type="submit">Apply filters</button>
-            {% if active or f.q %}<a class="link" href="{{ request.path }}">Clear all</a>{% endif %}
-          </div>
-        </div>
-      </details>
-
-      <section class="results" aria-labelledby="results-h">
-        <h2 id="results-h" class="results__count" role="status">{{ total }} {{ 'result' if total == 1 else 'results' }}{% if f.q %} for “{{ f.q }}”{% endif %}</h2>
-        {% if items %}
-          <div class="grid grid--2">{% for o in items %}{{ m.card(o, D, saved) }}{% endfor %}</div>
-          {% if pages > 1 %}
-          <nav class="pager" aria-label="Pages">
-            {% if page > 1 %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page - 1) }}">← Previous</a>{% endif %}
-            <span class="muted">Page {{ page }} of {{ pages }}</span>
-            {% if page < pages %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page + 1) }}">Next →</a>{% endif %}
-          </nav>
-          {% endif %}
-        {% else %}
-          <div class="empty">
-            <p><strong>Nothing matches that yet.</strong></p>
-            <p>Try fewer filters or a broader search. Know one that belongs here? <a href="{{ url_for('site.submit') }}">Submit it</a>.</p>
-          </div>
+    <div class="fbar" role="group" aria-label="Filters">
+      <div class="fbar__pills">
+        {{ pill('Grade', 'grade', D.GRADES, 'radio', {9: 'Grade 9', 10: 'Grade 10', 11: 'Grade 11', 12: 'Grade 12'}, 'Any grade') }}
+        {{ pill('State', 'state', D.STATES|dictsort(by='value')|map('first')|list, 'radio', D.STATES, 'Any state') }}
+        {% if sector != 'jobs' %}
+          {{ pill('Type', 'type', D.TYPES) }}
+          {{ pill('Cost', 'cost', D.COSTS, labels=D.COSTS) }}
+          {{ pill('Format', 'format', D.FORMATS) }}
         {% endif %}
-      </section>
+        {{ pill('Commitment', 'commitment', D.COMMITMENTS) }}
+        {% if sector != 'jobs' %}{{ pill('Interest', 'interest', D.INTERESTS) }}{% endif %}
+      </div>
+    </div>
+
+    <div class="results__head">
+      <div class="results__left">
+      <h2 class="results__count" role="status">{{ '{:,}'.format(total) }} {{ 'result' if total == 1 else 'results' }}</h2>
+      {% if chips %}
+        <ul class="chips" aria-label="Active filters">
+          {% for label, url in chips %}<li><a class="chip" href="{{ url }}" aria-label="Remove filter {{ label }}">{{ label }}<span aria-hidden="true">×</span></a></li>{% endfor %}
+          {% if chips|length > 1 %}<li><a class="chips__clear" href="{{ request.path }}">Clear all</a></li>{% endif %}
+        </ul>
+      {% endif %}
+      </div>
+      <div class="results__sort">
+        <label class="sr-only" for="sort">Sort by</label>
+        <select id="sort" name="sort" class="select--pill">
+          <option value="featured">Newest first</option>
+          <option value="deadline" {% if f.sort == 'deadline' %}selected{% endif %}>Deadline soonest</option>
+          <option value="title" {% if f.sort == 'title' %}selected{% endif %}>A to Z</option>
+        </select>
+      </div>
     </div>
   </form>
+
+  {% if items %}
+    <div class="grid">{% for o in items %}{{ m.card(o, D, saved) }}{% endfor %}</div>
+    {% if pages > 1 %}
+    <nav class="pager" aria-label="Pages">
+      {% if page > 1 %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page - 1) }}">← Previous</a>{% endif %}
+      <span class="muted">Page {{ page }} of {{ pages }}</span>
+      {% if page < pages %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page + 1) }}">Next →</a>{% endif %}
+    </nav>
+    {% endif %}
+  {% else %}
+    <div class="empty">
+      <p><strong>Nothing matches that yet.</strong></p>
+      <p>Try removing a filter or searching something broader. Know one that belongs here? <a href="{{ url_for('site.submit') }}">Submit it</a>.</p>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
