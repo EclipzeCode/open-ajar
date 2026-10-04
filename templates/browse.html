@@ -37,7 +37,7 @@
     <div class="searchbar">
       <svg class="searchbar__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <label class="sr-only" for="q">Search</label>
-      <input id="q" name="q" type="search" value="{{ f.q }}" maxlength="100" placeholder="{{ 'Search jobs, e.g. cashier or lifeguard' if sector == 'jobs' else 'Search programs, internships, scholarships…' }}">
+      <input id="q" name="q" type="search" value="{{ f.q }}" maxlength="100" placeholder="{{ 'Search jobs, e.g. cashier' if sector == 'jobs' else 'Search opportunities' }}">
       <button class="btn" type="submit">Search</button>
     </div>
 

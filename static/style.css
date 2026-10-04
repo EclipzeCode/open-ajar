@@ -133,10 +133,16 @@ img { max-width: 100%; height: auto; display: block; }
 .card__title a { color: var(--ink-strong); text-decoration: none; }
 .card__title a::after { content: ''; position: absolute; inset: 0; }
 .card__org { color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
-.card__summary { font-size: .92rem; flex: 1; color: #4B5563; }
-.card__meta { list-style: none; padding: 14px 0 0; margin: 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; }
-.card__meta li { font-size: .76rem; background: var(--soft); padding: 4px 9px; border-radius: 99px; color: var(--muted); }
-.is-soon, .card__meta li.is-soon { color: var(--danger); font-weight: 600; }
+.card__org { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* three lines of summary, so cards in a row line up */
+.card__summary { font-size: .92rem; color: #4B5563; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 16px; }
+.card__foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.card__facts { margin: 0; font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; }
+.card__facts span:not(:last-child)::after { content: '·'; margin: 0 7px; color: #CBD5E1; }
+.card__deadline { margin: 0; display: flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 500; color: var(--ink-strong); min-width: 0; }
+.card__deadline span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card__deadline svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; opacity: .7; }
+.is-soon, .card__deadline.is-soon { color: var(--danger); font-weight: 600; }
 
 /* forms */
 .form { display: grid; gap: 4px; }
@@ -468,3 +474,39 @@ textarea { resize: vertical; }
 .history--wide { list-style: none; padding: 0; }
 .history--wide li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin-bottom: 8px; }
 pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; background: var(--soft); padding: 12px; border-radius: 10px; overflow-wrap: anywhere; }
+
+/* phones: tighter, even blocks */
+@media (max-width: 640px) {
+  .section { padding: 56px 0; }
+  .page-head { padding: 40px 0 20px; }
+  .card { padding: 18px; }
+  .card:hover { transform: none; }
+  .features { gap: 12px; margin-top: 28px; }
+  .feature { display: grid; grid-template-columns: 44px 1fr; gap: 2px 14px; padding: 18px; align-items: start; }
+  .feature__band { display: none; }
+  .feature__icon { grid-row: span 2; width: 44px; height: 44px; border-radius: 14px; margin: 0; box-shadow: 0 6px 14px rgba(30, 108, 229, .22); }
+  .feature__icon svg { width: 22px; height: 22px; }
+  .feature h3 { padding: 2px 0 0; margin: 0; font-size: 1.02rem; }
+  .feature p { padding: 0; font-size: .9rem; }
+  .panel--accent { padding: 28px 22px; gap: 28px; border-radius: 22px; }
+  .panel--accent > div + div { padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, .25); }
+  .panel--accent .btn, .closing .btn { width: 100%; }
+  .closing .actions { flex-direction: column; }
+  .stats-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stats-strip strong { font-size: 1.6rem; }
+  .stats-strip span { font-size: .78rem; }
+  .section__head .link { width: 100%; }
+  /* browse: one swipeable row of filter pills; count + sort on one line, chips below */
+  .fbar { margin: 14px -16px 10px; }
+  .fbar__pills { flex-wrap: nowrap; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+  .fbar__pills::-webkit-scrollbar { display: none; }
+  .fpop { flex: none; }
+  .results__head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 12px; }
+  .results__left { display: contents; }
+  .results__count { order: 1; }
+  .results__sort { order: 2; }
+  .chips { order: 3; grid-column: 1 / -1; }
+  .quote { width: 270px; padding: 22px; }
+  .quote blockquote { font-size: .93rem; }
+}
