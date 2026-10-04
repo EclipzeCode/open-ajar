@@ -80,17 +80,48 @@
   </div>
 </section>
 
-{% if voices %}
-<section class="section center">
+{#
+  TESTIMONIALS: edit this list. Each one needs a quote, name and role; photo is optional
+  (put the image in static/img/testimonials/ and set e.g. 'photo': 'maya.jpg'; without one, initials show).
+  Entries marked 'placeholder': True only appear on your own computer, never on the live site.
+  Approved quotes students send from their account page are added after these automatically.
+#}
+{% set testimonials = [
+  {'placeholder': True, 'quote': 'Testimonial goes here. One to three sentences about how Open Ajar helped them find or land an opportunity.', 'name': 'Student name', 'role': 'Grade 11 · School name'},
+  {'placeholder': True, 'quote': 'Testimonial goes here. Something specific works best, like the program they found or a deadline they would have missed.', 'name': 'Student name', 'role': 'Senior · School name'},
+  {'placeholder': True, 'quote': 'Testimonial goes here. Could be from a student, a parent or a counselor.', 'name': 'Counselor name', 'role': 'School counselor · School name'},
+  {'placeholder': True, 'quote': 'Testimonial goes here. Interns placed through Open Ajar are great to feature.', 'name': 'Intern name', 'role': 'Intern @ Business name'},
+  {'placeholder': True, 'quote': 'Testimonial goes here. Keep it short so the cards stay even.', 'name': 'Student name', 'role': 'Junior · School name'},
+  {'placeholder': True, 'quote': 'Testimonial goes here. A business owner who hosted an intern would be a strong one.', 'name': 'Owner name', 'role': 'Owner, Business name'},
+] %}
+{% set shown = [] %}
+{% for t in testimonials if not (t.placeholder and production) %}{% do shown.append(t) %}{% endfor %}
+{% for v in voices %}{% do shown.append({'quote': v.quote, 'name': v.name, 'role': v.role_label}) %}{% endfor %}
+
+{% macro quote_card(t, hidden=False) %}
+<figure class="quote{% if t.placeholder %} quote--placeholder{% endif %}"{% if hidden %} aria-hidden="true"{% endif %}>
+  <svg class="quote__mark" viewBox="0 0 32 24" aria-hidden="true"><path d="M0 24V14C0 6 4 1 12 0l1 4c-4 1-6 4-6 8h6v12H0zm19 0V14c0-8 4-13 12-14l1 4c-4 1-6 4-6 8h6v12H19z"/></svg>
+  <blockquote>{{ t.quote }}</blockquote>
+  <figcaption>
+    {% if t.photo %}<img class="quote__avatar" src="{{ url_for('static', filename='img/testimonials/' + t.photo) }}" alt="" width="44" height="44" loading="lazy">
+    {% else %}<span class="quote__avatar" aria-hidden="true">{{ t.name.split()|map('first')|join|upper|truncate(2, True, '') }}</span>{% endif %}
+    <div>{{ t.name }}{% if t.role %}<span>{{ t.role }}</span>{% endif %}</div>
+  </figcaption>
+</figure>
+{% endmacro %}
+
+{% if shown %}
+<section class="section center testimonials" aria-labelledby="voices-h">
   <div class="wrap">
     <span class="eyebrow">Testimonials</span>
-    <h2>Community voices</h2>
-    <p class="lead">What students say about using Open Ajar.</p>
-    <div class="quotes">
-      {% for v in voices %}
-        <figure class="quote"><blockquote>{{ v.quote }}</blockquote>
-          <figcaption><span class="quote__avatar" aria-hidden="true">{{ v.name[:1]|upper }}</span><div>{{ v.name }}{% if v.role_label %}<span>{{ v.role_label }}</span>{% endif %}</div></figcaption></figure>
-      {% endfor %}
+    <h2 id="voices-h">Community voices</h2>
+    <p class="lead">Hear from the students, families and partners who use Open Ajar.</p>
+  </div>
+  {# the cards are listed twice so the strip can loop forever; the copy is hidden from screen readers #}
+  <div class="marquee">
+    <div class="marquee__track">
+      {% for t in shown %}{{ quote_card(t) }}{% endfor %}
+      {% for t in shown %}{{ quote_card(t, hidden=True) }}{% endfor %}
     </div>
   </div>
 </section>
