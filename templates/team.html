@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Team{% endblock %}
+{# To edit the team, change this list. Put photos in static/img/ and leave photo empty to show initials instead. #}
+{% set founders = [
+  {'name': 'Jayden Lee', 'role': 'Cofounder & Executive Director', 'photo': 'jayden.jpg',
+   'bio': 'Jayden is a cofounder and the executive director of Open Ajar. He’s grateful that his parents never pressured him, but without anyone to point him toward opportunities, he missed some. Finding them on his own, while balancing everything else in high school, was harder than it should have been. Open Ajar is the tool he wishes he’d had.'},
+  {'name': 'Aayush Dhar', 'role': 'Cofounder', 'photo': 'aayush.jpg',
+   'bio': 'Aayush is a cofounder of Open Ajar. He was fortunate to have people who pointed him toward opportunities and helped him take them, and he saw how much of a difference that made. He helped start Open Ajar so that access like that doesn’t depend on luck or who you know.'},
+] %}
+{% set crew = [
+  {'name': 'Jack Lee', 'role': 'Co Vice President', 'bio': 'Jack helps the team reach more high-school students and keep the community running, so finding an opportunity is never about who you happen to know.'},
+  {'name': 'Corbin Jimenez', 'role': 'Co Vice President', 'bio': 'Corbin works on getting Open Ajar in front of the students who need it most and making their experience a good one, from a first visit to a first real opportunity.'},
+] %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Team</p>
+    <h1>The people behind Open Ajar.</h1>
+    <p class="lead">Open Ajar was founded by high-school students who saw how much opportunity depends on who you know.</p>
+  </header>
+  <div class="founders">
+    {% for p in founders %}
+    <article class="person">
+      <img src="{{ url_for('static', filename='img/' + p.photo) }}" alt="Portrait of {{ p.name }}" width="640" height="800" loading="lazy">
+      <div>
+        <p class="eyebrow">{{ p.role }}</p>
+        <h2>{{ p.name }}</h2>
+        <p>{{ p.bio }}</p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <h2 class="section-title">The rest of the team</h2>
+  <div class="grid grid--2">
+    {% for p in crew %}
+    <article class="member">
+      <span class="member__initials" aria-hidden="true">{{ p.name.split()|map('first')|join }}</span>
+      <div><h3>{{ p.name }}</h3><p class="muted">{{ p.role }}</p><p>{{ p.bio }}</p></div>
+    </article>
+    {% endfor %}
+  </div>
+  <div class="panel panel--center">
+    <h2>Get in touch</h2>
+    <a class="btn" href="mailto:{{ contact_email }}">Email {{ contact_email }}</a>
+  </div>
+</div>
+{% endblock %}

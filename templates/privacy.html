@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy{% endblock %}
+{% block content %}
+<div class="wrap narrow legal">
+  <header class="page-head">
+    <p class="eyebrow">Open Ajar</p>
+    <h1>Privacy Policy</h1>
+    <p class="muted">Last updated: October 4, 2026</p>
+  </header>
+  <p>Open Ajar is a student-founded platform that helps high-school students find and track opportunities. This policy explains what we collect, why, and what we do with it. If anything is unclear, email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+
+  <h2>Who we are</h2>
+  <p>Open Ajar is run by its student team, Jayden Lee and Aayush Dhar. You can reach us at {{ contact_email }}.</p>
+
+  <h2>What we collect</h2>
+  <p>When you create an account, we collect:</p>
+  <ul>
+    <li>Your name and email address.</li>
+    <li>Your password, stored only as a scrambled (hashed) value that we cannot read.</li>
+    <li>Optional profile details you choose to add: your grade, interests and general location.</li>
+  </ul>
+  <p>As you use Open Ajar, we store the opportunities you save and track, along with any notes, deadlines and checklist items you add.</p>
+  <p>If you submit an opportunity, we collect the listing details and a contact email so reviewers can follow up. Your contact email is never shown publicly.</p>
+  <p>If you apply to intern with us, we collect what you put in the application so we can match you with a business.</p>
+  <p>To keep you signed in, we use one secure, signed cookie. It is necessary for the site to work. We do not use advertising or tracking cookies, we do not run ads, and we do not sell your information.</p>
+
+  <h2>Why we use it</h2>
+  <ul>
+    <li>To create and secure your account.</li>
+    <li>To keep your saved and tracked opportunities in one place across your devices.</li>
+    <li>To send account emails (confirming your address, resetting your password) and, if you leave them on, deadline reminders for opportunities you track.</li>
+    <li>To review opportunities people submit before they appear to students, and to place interns.</li>
+  </ul>
+
+  <h2>Who we share it with</h2>
+  <p>Only the services that make Open Ajar work, and only what they need:</p>
+  <ul>
+    <li>Our email provider (Resend) receives your email address and the contents of emails we send you.</li>
+    <li>Our hosting provider (Render) stores the site and its database on our behalf.</li>
+    <li>We load fonts from Google Fonts, so Google may receive your device’s IP address when a page loads.</li>
+  </ul>
+
+  <h2>How we protect it</h2>
+  <p>Passwords are hashed with a strong algorithm and never stored in readable form. The site is served over HTTPS and the sign-in cookie is marked HttpOnly and Secure. No system is perfectly secure, but we follow sensible practices and fix problems quickly.</p>
+
+  <h2>How long we keep it</h2>
+  <p>We keep your account information as long as your account exists. You can delete your account at any time from your account page, which permanently removes your profile, saved opportunities and tracked applications. You can also email us and we’ll delete it for you.</p>
+
+  <h2>Students and parents</h2>
+  <p>Open Ajar is for high-school students who are 13 or older. It is not directed to children under 13 and we do not knowingly collect their information. If you are under 18, please use Open Ajar with a parent or guardian’s awareness. Parents who believe their child gave us information can email us and we’ll remove it.</p>
+
+  <h2>Your choices</h2>
+  <p>You can update your profile, turn off reminder emails, remove saved or tracked opportunities, or delete your account any time from your account page.</p>
+
+  <h2>Changes</h2>
+  <p>If we change this policy, we’ll update the date at the top. For significant changes, we’ll try to let signed-in users know.</p>
+</div>
+{% endblock %}

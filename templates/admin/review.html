@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Review: {{ o.title }}{% endblock %}
+{% block content %}
+{% set labels = {'approve': 'Approve', 'request_changes': 'Ask for changes', 'reject': 'Reject', 'expire': 'Expire', 'reopen': 'Reopen for review'} %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Admin · <span class="pill pill--{{ o.status }}">{{ D.STATUSES[o.status] }}</span></p>
+    <h1>{{ o.title }}</h1>
+    <p class="muted">{{ o.org }} · origin {{ o.source }}{% if o.url %} · <a href="{{ o.url }}" target="_blank" rel="noopener noreferrer">Official page ↗</a>{% endif %}
+      {% if o.status == 'approved' %} · <a href="{{ url_for('site.detail', opp_id=o.id) }}">Live listing</a>{% endif %}</p>
+  </header>
+  {% include 'admin/_nav.html' %}
+
+  <div class="form-layout">
+    <aside class="form-layout__aside">
+      <h2>Decision</h2>
+      {% if actions %}
+      <form class="form" method="post">
+        {{ m.csrf() }}
+        <div class="field">
+          <label for="message">Note to the submitter</label>
+          <p class="field__help">Required to reject or ask for changes. They’ll see it on their account page.</p>
+          <textarea id="message" name="message" rows="3" maxlength="1000"></textarea>
+        </div>
+        <div class="actions">
+          {% for a in actions %}<button class="btn btn--sm{% if a != 'approve' %} btn--ghost{% endif %}" type="submit" name="action" value="{{ a }}">{{ labels[a] }}</button>{% endfor %}
+        </div>
+      </form>
+      {% endif %}
+
+      {% if submitter or o.contact_email %}
+        <h2>Submitted by</h2>
+        <p>{% if submitter %}{{ submitter.name }} ({{ submitter.email }})<br>{% endif %}
+          {% if o.contact_email %}Contact: {{ o.contact_email }}<br>{% endif %}
+          {% if o.relationship %}{{ D.RELATIONSHIPS.get(o.relationship, o.relationship) }}{% endif %}</p>
+      {% endif %}
+
+      <h2>History</h2>
+      <ol class="history">
+        {% for e in events %}<li><strong>{{ e.action|replace('_', ' ')|capitalize }}</strong> by {{ e.actor }} · {{ e.created_at|day }}{% if e.message %}<br><span class="muted small">{{ e.message }}</span>{% endif %}</li>{% endfor %}
+      </ol>
+    </aside>
+
+    <form class="form" method="post" novalidate>
+      {{ m.csrf() }}
+      <input type="hidden" name="action" value="edit">
+      <h2>Edit listing</h2>
+      {{ m.summary(errors) }}
+      {{ m.opp_fields(values, errors, D) }}
+      <div class="row2">
+        {{ m.select('verification', 'Verification', D.VERIFICATION, values, errors, required=True) }}
+        {{ m.input('expires_at', 'Hide after', values, errors, type='date', help='Blank: two days after the deadline, or never if there is none.') }}
+      </div>
+      <button class="btn" type="submit">Save changes</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

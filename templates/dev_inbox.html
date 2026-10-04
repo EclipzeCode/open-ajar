@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Dev inbox{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <header class="page-head">
+    <p class="eyebrow">Development only</p>
+    <h1>Dev inbox</h1>
+    <p class="lead">No RESEND_API_KEY is set, so emails land here instead of being sent. Newest first; cleared when the server restarts.</p>
+  </header>
+  {% for e in emails %}
+    <article class="panel"><p><strong>To:</strong> {{ e.to }}<br><strong>Subject:</strong> {{ e.subject }}</p><pre class="mail">{{ e.text|urlize }}</pre></article>
+  {% else %}
+    <p class="empty">No emails yet. Sign up or request a password reset to see one.</p>
+  {% endfor %}
+</div>
+{% endblock %}

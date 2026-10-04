@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}{{ o.title }}{% endblock %}
+{% block content %}
+{% set dl = deadline_info(o.deadline_date, o.deadline_note) %}
+<div class="wrap">
+  <nav class="crumbs"><a href="{{ url_for('site.browse', sector='jobs' if o.type == 'Job' else 'opportunities') }}">← Back to {{ 'jobs' if o.type == 'Job' else 'opportunities' }}</a></nav>
+  <article class="detail">
+    <header class="detail__head">
+      <p class="eyebrow">{{ o.type }}</p>
+      <h1>{{ o.title }}</h1>
+      <p class="detail__org">{{ o.org }}</p>
+    </header>
+    <div class="detail__body">
+      <div class="prose">
+        <h2>What it is</h2>
+        <p>{{ o.summary }}</p>
+        {% if o.eligibility %}<h2>Who it’s for</h2><p>{{ o.eligibility }}</p>{% endif %}
+        {% if o.requirements %}
+          <h2>What you’ll likely need</h2>
+          <ul class="ticks">{% for r in o.requirements %}<li>{{ r }}</li>{% endfor %}</ul>
+          <p class="muted">Start tracking to turn these into a checklist you can tick off.</p>
+        {% endif %}
+      </div>
+      <aside class="aside">
+        <dl class="facts">
+          <div><dt>Grade</dt><dd>{{ grade_label(o.grades) }}</dd></div>
+          <div><dt>Cost</dt><dd>{{ D.COSTS[o.cost] }}{% if o.cost_note %}. {{ o.cost_note }}{% endif %}</dd></div>
+          <div><dt>Format</dt><dd>{{ o.format }}{% if o.location %} · {{ o.location }}{% endif %}</dd></div>
+          <div><dt>Commitment</dt><dd>{{ o.commitment }}{% if o.commitment_note %} · {{ o.commitment_note }}{% endif %}</dd></div>
+          <div class="{% if dl[1] %}is-soon{% endif %}"><dt>Deadline</dt><dd>{{ dl[0] }}</dd></div>
+        </dl>
+        <div class="aside__actions">
+          {% if o.url %}
+            <a class="btn btn--block" href="{{ o.url }}" target="_blank" rel="noopener noreferrer">Apply on the official site ↗</a>
+          {% else %}
+            <p class="muted">No official application link has been provided yet.</p>
+          {% endif %}
+          <form method="post" action="{{ url_for('site.toggle_save', opp_id=o.id) }}">{{ m.csrf() }}
+            <button class="btn btn--ghost btn--block" type="submit">{{ '★ Saved' if saved else '☆ Save' }}</button>
+          </form>
+          {% if tracked %}
+            <a class="btn btn--ghost btn--block" href="{{ url_for('account.tracker') }}#t-{{ o.id }}">Tracking · {{ tracked.stage }}</a>
+          {% else %}
+            <form method="post" action="{{ url_for('site.track', opp_id=o.id) }}">{{ m.csrf() }}
+              <button class="btn btn--ghost btn--block" type="submit">+ Start tracking</button>
+            </form>
+          {% endif %}
+          {% if not user %}<p class="muted small">Saving and tracking need a free account.</p>{% endif %}
+        </div>
+        <div class="verify">
+          {{ m.badge(o, D) }}
+          <p class="small">{% if o.verification == 'verified' %}An Open Ajar reviewer checked the official page recently.{% elif o.verification == 'source' %}Approved by a reviewer. Details come from the organization’s page and may have changed.{% else %}Not yet independently checked.{% endif %}
+          Always confirm details on the official page before applying.</p>
+        </div>
+      </aside>
+    </div>
+  </article>
+</div>
+{% endblock %}

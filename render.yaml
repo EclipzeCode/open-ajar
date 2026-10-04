@@ -2,30 +2,25 @@
 services:
   - type: web
     name: open-ajar            # becomes https://<name>.onrender.com if the name is free
-    runtime: docker
-    plan: starter              # persistent disks need a paid plan; on free, the SQLite DB is wiped on every deploy/restart
+    runtime: python
+    plan: starter              # the disk below needs a paid plan; on free, the database is wiped on every deploy/restart
     region: virginia
-    healthCheckPath: /api/meta
+    buildCommand: pip install -r requirements.txt
+    # One worker on purpose: rate limits and the reminder timer live in that process.
+    startCommand: gunicorn -w 1 --threads 8 'app:create_app()'
+    healthCheckPath: /healthz
     envVars:
-      - key: NODE_ENV
-        value: production
-      - key: HOST
-        value: 0.0.0.0
-      - key: PORT
-        value: "4173"
+      - key: SECRET_KEY        # signs the login cookie; Render generates a random one
+        generateValue: true
       - key: DB_PATH
         value: /data/openajar.db
       - key: TRUST_PROXY       # Render sits in front of the app; needed for per-IP rate limits
         value: "1"
-      - key: SEED_DEMO
-        value: "0"
-      - key: DEMO_MODE
-        value: "0"
       - key: APP_URL           # set to https://<name>.onrender.com (or your custom domain)
         sync: false
       - key: RESEND_API_KEY
         sync: false
-      - key: EMAIL_FROM
+      - key: EMAIL_FROM        # e.g. Open Ajar <hello@yourdomain.org>, once the domain is verified in Resend
         sync: false
     disk:
       name: openajar-data

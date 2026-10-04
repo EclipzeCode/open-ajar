@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Application received{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <header class="page-head">
+    <p class="eyebrow">Become an intern</p>
+    <h1>Application received.</h1>
+    <p class="lead">Thanks for applying. We’ll reach out by email when we have a match with one of the businesses we work with, so keep an eye on your inbox.</p>
+  </header>
+  <div class="actions"><a class="btn" href="{{ url_for('site.browse') }}">Browse opportunities meanwhile</a></div>
+</div>
+{% endblock %}

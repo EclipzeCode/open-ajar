@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Intern applications{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Intern applications</h1></header>
+  {% include 'admin/_nav.html' %}
+  <nav class="stages" aria-label="Status">
+    <a href="{{ url_for('admin.interns') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
+    {% for s in statuses %}<a href="{{ url_for('admin.interns', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ s|capitalize }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
+  </nav>
+  {% for a in apps %}
+    <article class="panel">
+      <h2>{{ a.full_name }} <span class="pill pill--{{ a.status }}">{{ a.status|capitalize }}</span></h2>
+      <p class="muted small"><a href="mailto:{{ a.email }}">{{ a.email }}</a>{% if a.grade %} · Grade {{ a.grade }}{% endif %}{% if a.school %} · {{ a.school }}{% endif %}{% if a.location %} · {{ a.location }}{% endif %} · applied {{ a.created_at|day }}</p>
+      {% set ints = a.interests|fromjson %}{% if ints %}<p class="small"><strong>Interests:</strong> {{ ints|join(', ') }}</p>{% endif %}
+      {% if a.availability %}<p class="small"><strong>Availability:</strong> {{ a.availability }}</p>{% endif %}
+      {% if a.skills %}<p class="small"><strong>Skills:</strong> {{ a.skills }}</p>{% endif %}
+      <p><strong>Why:</strong> {{ a.statement }}</p>
+      {% if a.link %}<p class="small"><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.link }} ↗</a></p>{% endif %}
+      <form class="inline-form" method="post" action="{{ url_for('admin.interns', status=status) }}">
+        {{ m.csrf() }}<input type="hidden" name="id" value="{{ a.id }}">
+        <label class="sr-only" for="st-{{ a.id }}">Status</label>
+        <select id="st-{{ a.id }}" name="status">{% for s in statuses %}<option value="{{ s }}" {% if a.status == s %}selected{% endif %}>{{ s|capitalize }}</option>{% endfor %}</select>
+        <label class="sr-only" for="note-{{ a.id }}">Private note</label>
+        <input id="note-{{ a.id }}" name="admin_note" value="{{ a.admin_note }}" placeholder="Private note" maxlength="2000">
+        <button class="btn btn--sm btn--ghost" type="submit">Save</button>
+      </form>
+    </article>
+  {% else %}
+    <p class="empty">No applications{% if status %} marked {{ status }}{% endif %} yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

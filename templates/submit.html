@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Submit an opportunity{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Submit</p>
+    <h1>{% if existing %}Revise your submission.{% else %}Share an opportunity.{% endif %}</h1>
+    <p class="lead">Know a program, internship or job that high-school students should hear about? Send it in. A reviewer checks every listing before it goes live.</p>
+  </header>
+
+  {% if unverified %}
+    <div class="panel">
+      <h2>Confirm your email first.</h2>
+      <p>We need a reachable, real person behind every submission. Check {{ user.email }} for the link we sent when you signed up.</p>
+      <form method="post" action="{{ url_for('account.resend_verification') }}">{{ m.csrf() }}<button class="btn" type="submit">Send the link again</button></form>
+    </div>
+  {% else %}
+  <div class="form-layout">
+    <aside class="form-layout__aside">
+      <h2>What happens next</h2>
+      <ol>
+        <li>Your listing goes into the review queue.</li>
+        <li>A reviewer checks the official page.</li>
+        <li>It’s approved, or they ask you for changes. You’ll see their note on your account page.</li>
+      </ol>
+      {% if existing and existing.reviewer_message %}
+        <div class="alert"><strong>Reviewer’s note:</strong> {{ existing.reviewer_message }}</div>
+      {% endif %}
+    </aside>
+    <form class="form" method="post" novalidate>
+      {{ m.csrf() }}
+      {{ m.summary(errors) }}
+      {{ m.opp_fields(values, errors, D) }}
+      <h2 class="form__section">About you</h2>
+      <p class="muted">Only reviewers see this. It’s never shown publicly.</p>
+      {{ m.select('relationship', 'How are you connected to it?', D.RELATIONSHIPS, values, errors, required=True) }}
+      {{ m.input('contact_email', 'Email a reviewer can reach', values if values.get('contact_email') else {'contact_email': user.email}, errors, type='email', required=True, auto='email') }}
+      <button class="btn" type="submit">{{ 'Send for review again' if existing else 'Submit for review' }}</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

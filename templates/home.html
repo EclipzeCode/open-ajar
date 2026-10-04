@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <p class="eyebrow">Student-founded · For high-school students</p>
+      <h1>Your next opportunity shouldn’t depend on <em>who you know.</em></h1>
+      <p class="lead">Open Ajar puts internships, programs, scholarships and teen jobs in one place, then helps you go from finding one to actually applying.</p>
+      <form class="hero__search" action="{{ url_for('site.browse') }}" role="search">
+        <label class="sr-only" for="hero-q">Search opportunities</label>
+        <input id="hero-q" name="q" type="search" placeholder="Try “coding”, “research” or “summer”">
+        <button class="btn" type="submit">Search</button>
+      </form>
+      {% if total and states > 1 %}<p class="muted"><strong>{{ total }}</strong> opportunities across <strong>{{ states }}</strong> states, all free to use.</p>{% endif %}
+    </div>
+    <div class="door-art" aria-hidden="true"><div class="door-art__light"></div><div class="door-art__door"><span></span></div></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap split">
+    <h2>Right now, opportunity is scattered.</h2>
+    <div>
+      <p>It lives in counselor emails, university websites, company career pages, nonprofit newsletters, Instagram, LinkedIn, and conversations with parents and coaches.</p>
+      <p>If you’re well connected, some of it reaches you. If you’re not, most of it never does. <strong>Open Ajar puts it in one place.</strong></p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>From finding it to walking through.</h2>
+    <ol class="steps">
+      <li><h3>Discover</h3><p>Search and filter by interest, grade, state, cost and deadline.</p></li>
+      <li><h3>Evaluate</h3><p>See eligibility, cost or pay, requirements, and how well we’ve checked it.</p></li>
+      <li><h3>Track</h3><p>Save it, turn its requirements into a checklist and add your own notes.</p></li>
+      <li><h3>Apply</h3><p>Go straight to the organization’s real application. We never sit in the middle.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="section__head">
+      <div><p class="eyebrow">Just added</p><h2>Open right now.</h2></div>
+      <a class="link" href="{{ url_for('site.browse') }}">{% if total %}See all {{ total }} →{% else %}Browse →{% endif %}</a>
+    </div>
+    {% if featured %}
+      <div class="grid">{% for o in featured[:3] %}{{ m.card(o, D) }}{% endfor %}</div>
+    {% else %}
+      <p class="empty">No opportunities are published yet. Check back soon, or <a href="{{ url_for('site.submit') }}">submit one</a>.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap panel panel--accent">
+    <div>
+      <p class="eyebrow">For students</p>
+      <h2>Want real experience? Intern with us.</h2>
+      <p>We place motivated high-school students as interns with local businesses we work with. Apply once and we’ll reach out when there’s a fit.</p>
+      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern</a>
+    </div>
+    <div>
+      <p class="eyebrow">For businesses</p>
+      <h2>Host a high-school intern.</h2>
+      <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
+      <a class="btn btn--ghost-light" href="mailto:{{ contact_email }}?subject=Hosting%20an%20intern%20with%20Open%20Ajar">Partner with us</a>
+    </div>
+  </div>
+</section>
+
+{% if voices %}
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Community voices</p>
+    <h2>From students using Open Ajar.</h2>
+    <div class="quotes">
+      {% for v in voices %}
+        <figure class="quote"><blockquote>“{{ v.quote }}”</blockquote><figcaption>{{ v.name }}{% if v.role_label %}, {{ v.role_label }}{% endif %}</figcaption></figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="wrap closing">
+    <h2>Access should <em>compound.</em></h2>
+    <p>Students who find their way through can help the next student find theirs. Know an opportunity worth sharing?</p>
+    <div class="actions"><a class="btn" href="{{ url_for('site.submit') }}">Submit an opportunity</a><a class="link" href="{{ url_for('site.support') }}">Support Open Ajar →</a></div>
+  </div>
+</section>
+{% endblock %}
