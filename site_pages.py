@@ -10,7 +10,7 @@ from core import (add_event, all_, client_ip, current_user, facets, get_db, get_
                   limited, login_required, new_id, one, run, safe_next, search_public, update_opp)
 
 bp = Blueprint('site', __name__)
-PAGE = 20
+PAGE = 24  # divides evenly into 1, 2, 3 or 4 columns, so full pages never leave a ragged last row
 
 
 @bp.get('/healthz')
@@ -36,9 +36,17 @@ SECTORS = {
 }
 
 
-@bp.get('/opportunities', defaults={'sector': 'opportunities'})
-@bp.get('/jobs', defaults={'sector': 'jobs'})
-def browse(sector):
+@bp.get('/opportunities')
+def browse():
+    return _browse('opportunities')
+
+
+@bp.get('/jobs')
+def jobs():
+    return _browse('jobs')
+
+
+def _browse(sector):
     a = request.args
     grade = a.get('grade', '')
     f = {

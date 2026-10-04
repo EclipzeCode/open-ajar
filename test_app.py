@@ -50,6 +50,11 @@ class Flows(unittest.TestCase):
         self.post('/login', {'email': 'admin@example.org', 'password': PW}, admin)
         return admin
 
+    def test_nav_links_go_to_the_right_pages(self):
+        page = self.c.get('/').data
+        self.assertIn(b'href="/opportunities"', page)
+        self.assertIn(b'href="/jobs"', page)
+
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
 

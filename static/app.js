@@ -7,6 +7,44 @@ const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
 }), { rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.reveal').forEach((el) => seen.observe(el));
 
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Home: the search pill types a keyword, pauses, erases it, and moves to the next. Clicking searches that keyword.
+const typer = document.querySelector('.typer[data-words]');
+if (typer) {
+  const words = typer.dataset.words.split('|');
+  const out = typer.querySelector('.typer__word');
+  const base = typer.getAttribute('href').split('?')[0];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const type = async (word) => { for (let n = 1; n <= word.length; n++) { out.textContent = word.slice(0, n); await sleep(65 + Math.random() * 45); } };
+  const erase = async (word) => { for (let n = word.length - 1; n >= 0; n--) { out.textContent = word.slice(0, n); await sleep(28); } };
+  (async function loop() {
+    for (let i = 0; ; i = (i + 1) % words.length) {
+      typer.href = `${base}?q=${encodeURIComponent(words[i])}`;
+      if (calm) { out.textContent = words[i]; await sleep(2600); continue; }
+      if (out.textContent !== words[i]) await type(words[i]); // the first word is already on the page
+      await sleep(1700);
+      await erase(words[i]);
+      await sleep(250);
+    }
+  })();
+}
+
+// Home: numbers count up once they're on screen
+const counter = new IntersectionObserver((entries) => entries.forEach((e) => {
+  if (!e.isIntersecting) return;
+  counter.unobserve(e.target);
+  const el = e.target, end = Number(el.dataset.count), t0 = performance.now(), ms = 1200;
+  if (calm || !end) return;
+  const tick = (t) => {
+    const p = Math.min(1, (t - t0) / ms);
+    el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}));
+document.querySelectorAll('[data-count]').forEach((el) => counter.observe(el));
+
 // Mobile menu
 const menuBtn = document.querySelector('.menu-btn');
 menuBtn?.addEventListener('click', () => {

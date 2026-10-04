@@ -20,8 +20,8 @@
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav id="nav" class="nav" aria-label="Main">
       {% set ep = request.endpoint or '' %}
-      <a href="{{ url_for('site.browse') }}" {% if ep == 'site.browse' and request.path != '/jobs' %}aria-current="page"{% endif %}>Opportunities</a>
-      <a href="{{ url_for('site.browse', sector='jobs') }}" {% if request.path == '/jobs' %}aria-current="page"{% endif %}>Jobs</a>
+      <a href="{{ url_for('site.browse') }}" {% if ep == 'site.browse' %}aria-current="page"{% endif %}>Opportunities</a>
+      <a href="{{ url_for('site.jobs') }}" {% if ep == 'site.jobs' %}aria-current="page"{% endif %}>Jobs</a>
       <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Become an intern</a>
       <a href="{{ url_for('site.submit') }}" {% if ep == 'site.submit' %}aria-current="page"{% endif %}>Submit</a>
       <a href="{{ url_for('site.about') }}" {% if ep == 'site.about' %}aria-current="page"{% endif %}>About</a>
@@ -49,7 +49,7 @@
       <a href="{{ url_for('site.browse') }}">Opportunities</a>
       <a href="{{ url_for('site.about') }}">About</a>
       <a href="{{ url_for('site.privacy') }}">Privacy</a>
-      <a href="{{ url_for('site.browse', sector='jobs') }}">Jobs</a>
+      <a href="{{ url_for('site.jobs') }}">Jobs</a>
       <a href="{{ url_for('site.team') }}">Team</a>
       <a href="{{ url_for('site.terms') }}">Terms</a>
       <a href="{{ url_for('site.apply') }}">Become an intern</a>
