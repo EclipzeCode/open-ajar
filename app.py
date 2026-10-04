@@ -127,6 +127,7 @@ def create_app(test_config=None):
         return request.path + '?' + urlencode(args)
 
     app.jinja_env.add_extension('jinja2.ext.do')
+    app.jinja_env.tests['section_message'] = lambda m: ' ' in m[0]  # category like 'error profile'
     app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url)
     app.jinja_env.filters['fromjson'] = json.loads
     app.jinja_env.filters['day'] = lambda iso: (iso or '')[:10]

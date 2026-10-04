@@ -104,6 +104,62 @@ menuBtn?.addEventListener('click', () => {
   menuBtn.setAttribute('aria-expanded', open);
 });
 
+// Form errors: our own message under each field instead of the browser's pop-up bubbles.
+// The server still checks everything; this just gives quicker, nicer feedback.
+const labelText = (el) => {
+  const id = el.id.replace(/-native$/, '');
+  const label = id && document.querySelector(`label[for="${id}"]`);
+  const fieldset = el.closest('fieldset');
+  const text = label ? label.textContent : fieldset?.querySelector('legend')?.textContent || el.getAttribute('aria-label') || '';
+  return text.replace(/\(optional\)/i, '').trim();
+};
+const messageFor = (el) => {
+  const v = el.validity, name = labelText(el).toLowerCase();
+  if (v.valueMissing) {
+    if (el.type === 'email') return 'Enter your email address';
+    if (el.type === 'password') return name ? `Enter your ${name.replace(/^your /, '')}` : 'Enter your password';
+    if (el.tagName === 'SELECT' || el.type === 'radio') return name ? `Choose ${name}` : 'Choose an option';
+    if (el.type === 'checkbox') return 'Tick this box to continue';
+    return name ? `Enter ${name}` : 'Fill in this field';
+  }
+  if (v.typeMismatch) return el.type === 'email' ? 'Enter a valid email address, like name@example.com' : 'Enter a full link starting with https://';
+  if (v.tooShort) return `Use at least ${el.minLength} characters (you have ${el.value.length})`;
+  if (v.tooLong) return `Use ${el.maxLength} characters or fewer`;
+  if (v.badInput || v.patternMismatch) return 'That doesn’t look right. Check it and try again';
+  return el.validationMessage;
+};
+const shownOn = (el) => (el.classList.contains('dd__native') ? el.parentElement.querySelector('.dd__btn') : el);
+function clearError(el) {
+  const target = shownOn(el);
+  target.removeAttribute('aria-invalid');
+  (el.closest('.field') || el.parentElement).querySelectorAll('.field__error').forEach((p) => p.remove());
+}
+function showError(el, msg) {
+  clearError(el);
+  const target = shownOn(el), box = el.closest('.field') || el.parentElement;
+  const p = document.createElement('p');
+  p.className = 'field__error';
+  p.id = `${el.name || 'field'}-err-${Math.random().toString(36).slice(2, 7)}`;
+  p.textContent = msg;
+  box.append(p);
+  target.setAttribute('aria-invalid', 'true');
+  target.setAttribute('aria-describedby', p.id);
+}
+document.querySelectorAll('form').forEach((f) => { f.noValidate = true; });
+document.addEventListener('submit', (e) => {
+  const bad = [...e.target.elements].filter((el) => el.willValidate && !el.checkValidity());
+  if (!bad.length) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  bad.forEach((el) => showError(el, messageFor(el)));
+  shownOn(bad[0]).focus();
+}, true);
+// clear a field's message as soon as what's typed becomes valid
+['input', 'change'].forEach((type) => document.addEventListener(type, (e) => {
+  const el = e.target;
+  if (el.willValidate && shownOn(el).getAttribute('aria-invalid') === 'true' && el.checkValidity()) clearError(el);
+}));
+
 // "Are you sure?" for destructive buttons and forms
 document.addEventListener('click', (e) => {
   const el = e.target.closest('button[data-confirm]');

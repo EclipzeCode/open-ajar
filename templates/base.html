@@ -37,9 +37,11 @@
 </header>
 
 <main id="main">
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}<div class="wrap">{% for m in messages %}<p class="flash" role="status">{{ m }}</p>{% endfor %}</div>{% endif %}
-  {% endwith %}
+  {# messages for one card of the account page ("error profile") are shown in that card instead #}
+  {% set page_messages = get_flashed_messages(with_categories=true)|reject('section_message')|list %}
+  {% if page_messages %}<div class="wrap">{% for cat, m in page_messages %}
+    <p class="flash{% if cat == 'error' %} flash--error{% endif %}" role="{{ 'alert' if cat == 'error' else 'status' }}">{{ m }}</p>
+  {% endfor %}</div>{% endif %}
   {% block content %}{% endblock %}
 </main>
 

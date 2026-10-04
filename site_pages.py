@@ -141,7 +141,7 @@ def submit(opp_id=None):
         if not existing or existing['submitted_by'] != u['id']:
             abort(404)
         if existing['status'] != 'changes_requested':
-            flash('You can only edit a submission after a reviewer asks for changes.')
+            flash('You can only edit a submission after a reviewer asks for changes.', 'error')
             return redirect(url_for('account.account'))
     if not u['email_verified']:
         return render_template('submit.html', unverified=True, values={}, errors={})
