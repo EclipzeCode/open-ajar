@@ -132,6 +132,8 @@ def create_app(test_config=None):
     register_cli(app)
     if not app.config.get('TESTING'):
         start_maintenance(app)
+        print(f"Open Ajar ready (production={app.config['PRODUCTION']}, db={app.config['DB_PATH']}, "
+              f"email={'resend' if app.config['RESEND_API_KEY'] else 'dev inbox'})", flush=True)
     return app
 
 
