@@ -45,6 +45,31 @@ const counter = new IntersectionObserver((entries) => entries.forEach((e) => {
 }));
 document.querySelectorAll('[data-count]').forEach((el) => counter.observe(el));
 
+// Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer
+const doorway = document.querySelector('.doorway');
+if (doorway && !calm) {
+  let queued = false;
+  const update = () => {
+    queued = false;
+    const r = doorway.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
+    doorway.style.setProperty('--p', p.toFixed(3));
+  };
+  const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  update();
+  if (matchMedia('(pointer: fine)').matches) {
+    const scene = doorway.querySelector('.doorway__scene');
+    doorway.addEventListener('pointermove', (e) => {
+      const r = scene.getBoundingClientRect();
+      doorway.style.setProperty('--mx', (((e.clientX - r.left) / r.width) - .5).toFixed(3));
+      doorway.style.setProperty('--my', (((e.clientY - r.top) / r.height) - .5).toFixed(3));
+    });
+    doorway.addEventListener('pointerleave', () => { doorway.style.setProperty('--mx', 0); doorway.style.setProperty('--my', 0); });
+  }
+}
+
 // Mobile menu
 const menuBtn = document.querySelector('.menu-btn');
 menuBtn?.addEventListener('click', () => {

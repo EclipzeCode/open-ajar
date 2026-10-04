@@ -23,6 +23,36 @@
   </div>
 </section>
 
+{# Scroll-driven door: app.js sets --p from 0 (closed) to 1 (open) as this section scrolls past. #}
+<section class="doorway" aria-labelledby="doorway-h">
+  <div class="doorway__sticky wrap">
+    <div class="doorway__copy">
+      <span class="eyebrow">Why “ajar”</span>
+      <div class="doorway__lines">
+        <h2 class="doorway__line doorway__line--closed" aria-hidden="true">Most doors to opportunity are <em>closed.</em></h2>
+        <h2 class="doorway__line doorway__line--open" id="doorway-h">We open them <em>a little wider.</em></h2>
+      </div>
+      <p class="lead doorway__text">An ajar door isn’t wide open, but it’s open enough to see what’s on the other side. That’s what we do for opportunities that usually only reach well-connected students.</p>
+    </div>
+    <div class="doorway__scene" aria-hidden="true">
+      <div class="doorway__stage">
+      <div class="doorway__frame">
+        <div class="doorway__room">
+          <span class="doorway__tag t1">Internships</span>
+          <span class="doorway__tag t2">Scholarships</span>
+          <span class="doorway__tag t3">Research</span>
+          <span class="doorway__tag t4">Summer programs</span>
+          <span class="doorway__tag t5">Teen jobs</span>
+          <span class="doorway__tag t6">Competitions</span>
+        </div>
+        <div class="doorway__door"><span class="doorway__panel"></span><span class="doorway__panel"></span><span class="doorway__knob"></span></div>
+      </div>
+      <div class="doorway__spill"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section center">
   <div class="wrap">
     <span class="eyebrow">Our mission</span>
