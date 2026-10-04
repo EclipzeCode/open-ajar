@@ -77,6 +77,8 @@ def create_app(test_config=None):
 
     @app.before_request
     def before():
+        if not app.config.get('TESTING'):
+            start_maintenance(app)
         load_user()
         if request.method == 'POST':
             sent = request.form.get('csrf') or request.headers.get('X-CSRF-Token') or ''
@@ -131,7 +133,6 @@ def create_app(test_config=None):
 
     register_cli(app)
     if not app.config.get('TESTING'):
-        start_maintenance(app)
         print(f"Open Ajar ready (production={app.config['PRODUCTION']}, db={app.config['DB_PATH']}, "
               f"email={'resend' if app.config['RESEND_API_KEY'] else 'dev inbox'})", flush=True)
     return app
@@ -145,8 +146,20 @@ def init_db(path):
     db.close()
 
 
+_maintenance_started = False
+_maintenance_lock = threading.Lock()
+
+
 def start_maintenance(app):
-    """Every 10 minutes: expire listings past their expiry date and send the daily deadline reminders."""
+    """Every 10 minutes: expire listings past their expiry date and send the daily deadline reminders.
+    Started on the first request, inside the process that serves requests. Starting it when the app is created
+    would put the thread in gunicorn's master process, and a process forked from one with a running thread can
+    deadlock (which is exactly what hung the first Render deploys)."""
+    global _maintenance_started
+    with _maintenance_lock:
+        if _maintenance_started:
+            return
+        _maintenance_started = True
     # ponytail: an in-process thread assumes one gunicorn worker (render.yaml uses -w 1); the reminder pass is
     # still guarded per-day in the database, so an accidental second process would not double-send
     def loop():
