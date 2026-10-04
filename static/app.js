@@ -54,6 +54,7 @@ if (doorway && !calm) {
     const r = doorway.getBoundingClientRect();
     const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
     doorway.style.setProperty('--p', p.toFixed(3));
+    doorway.classList.toggle('is-open', p > .55); // the links behind the door only respond once you can see them
   };
   const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
   addEventListener('scroll', onScroll, { passive: true });
@@ -67,6 +68,32 @@ if (doorway && !calm) {
       doorway.style.setProperty('--my', (((e.clientY - r.top) / r.height) - .5).toFixed(3));
     });
     doorway.addEventListener('pointerleave', () => { doorway.style.setProperty('--mx', 0); doorway.style.setProperty('--my', 0); });
+  }
+}
+
+// Home: the hero grid square under the pointer lifts; squares it leaves fade out behind it
+const cells = document.querySelector('.hero__cells');
+if (cells && !calm && matchMedia('(pointer: fine)').matches) {
+  const hero = cells.parentElement, SIZE = 44;
+  let current = null, key = '';
+  hero.addEventListener('pointermove', (e) => {
+    const r = hero.getBoundingClientRect();
+    const x = Math.floor((e.clientX - r.left) / SIZE) * SIZE, y = Math.floor((e.clientY - r.top) / SIZE) * SIZE;
+    if (`${x},${y}` === key) return;
+    key = `${x},${y}`;
+    leave();
+    current = document.createElement('span');
+    current.className = 'hero__cell';
+    current.style.left = `${x}px`; current.style.top = `${y}px`;
+    current.style.opacity = Math.max(0, 1 - (y / r.height) * 1.1).toFixed(2); // fade out toward the bottom like the grid
+    cells.append(current);
+  });
+  hero.addEventListener('pointerleave', () => { leave(); key = ''; });
+  function leave() {
+    if (!current) return;
+    const el = current; current = null;
+    el.classList.add('is-leaving');
+    el.addEventListener('animationend', () => el.remove(), { once: true });
   }
 }
 

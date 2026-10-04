@@ -3,6 +3,7 @@
 {% macro icon(path) %}<span class="feature__icon" aria-hidden="true"><svg viewBox="0 0 24 24">{{ path|safe }}</svg></span>{% endmacro %}
 {% block content %}
 <section class="hero">
+  <div class="hero__cells" aria-hidden="true"></div>
   <span class="aurora aurora--1"></span><span class="aurora aurora--2"></span><span class="aurora aurora--3"></span>
   <div class="wrap">
     <h1 class="reveal">Opportunity shouldn’t depend on <em>who you know.</em></h1>
@@ -34,20 +35,20 @@
       </div>
       <p class="lead doorway__text">An ajar door isn’t wide open, but it’s open enough to see what’s on the other side. That’s what we do for opportunities that usually only reach well-connected students.</p>
     </div>
-    <div class="doorway__scene" aria-hidden="true">
+    <div class="doorway__scene">
       <div class="doorway__stage">
       <div class="doorway__frame">
-        <div class="doorway__room">
-          <span class="doorway__tag t1">Internships</span>
-          <span class="doorway__tag t2">Scholarships</span>
-          <span class="doorway__tag t3">Research</span>
-          <span class="doorway__tag t4">Summer programs</span>
-          <span class="doorway__tag t5">Teen jobs</span>
-          <span class="doorway__tag t6">Competitions</span>
-        </div>
-        <div class="doorway__door"><span class="doorway__panel"></span><span class="doorway__panel"></span><span class="doorway__knob"></span></div>
+        <nav class="doorway__room" aria-label="Browse by kind">
+          <a class="doorway__tag t1" href="{{ url_for('site.browse', type='Internship') }}">Internships</a>
+          <a class="doorway__tag t2" href="{{ url_for('site.browse', type='Scholarship') }}">Scholarships</a>
+          <a class="doorway__tag t3" href="{{ url_for('site.browse', type='Research program') }}">Research</a>
+          <a class="doorway__tag t4" href="{{ url_for('site.browse', type='Summer program') }}">Summer programs</a>
+          <a class="doorway__tag t5" href="{{ url_for('site.jobs') }}">Teen jobs</a>
+          <a class="doorway__tag t6" href="{{ url_for('site.browse', type='Competition') }}">Competitions</a>
+        </nav>
+        <div class="doorway__door" aria-hidden="true"><span class="doorway__panel"></span><span class="doorway__panel"></span><span class="doorway__knob"></span></div>
       </div>
-      <div class="doorway__spill"></div>
+      <div class="doorway__spill" aria-hidden="true"></div>
       </div>
     </div>
   </div>
