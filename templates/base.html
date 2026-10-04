@@ -8,7 +8,7 @@
   <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
@@ -45,21 +45,20 @@
 
 <footer class="footer">
   <div class="wrap footer__inner">
-    <div>
-      <p class="brand"><span class="brand__door" aria-hidden="true"></span>Open Ajar</p>
-      <p class="muted">Student-founded. Built so finding your next opportunity doesn’t depend on who you know.</p>
-    </div>
     <nav aria-label="Footer" class="footer__links">
       <a href="{{ url_for('site.browse') }}">Opportunities</a>
-      <a href="{{ url_for('site.browse', sector='jobs') }}">Jobs</a>
-      <a href="{{ url_for('site.apply') }}">Become an intern</a>
-      <a href="{{ url_for('site.submit') }}">Submit</a>
-      <a href="{{ url_for('site.support') }}">Support us</a>
-      <a href="{{ url_for('site.team') }}">Team</a>
+      <a href="{{ url_for('site.about') }}">About</a>
       <a href="{{ url_for('site.privacy') }}">Privacy</a>
+      <a href="{{ url_for('site.browse', sector='jobs') }}">Jobs</a>
+      <a href="{{ url_for('site.team') }}">Team</a>
       <a href="{{ url_for('site.terms') }}">Terms</a>
+      <a href="{{ url_for('site.apply') }}">Become an intern</a>
+      <a href="{{ url_for('site.support') }}">Support us</a>
+      <a href="mailto:{{ contact_email }}">Contact</a>
+      <a href="{{ url_for('site.submit') }}">Submit</a>
       {% if dev_inbox %}<a href="{{ url_for('site.dev_inbox') }}">Dev inbox</a>{% endif %}
     </nav>
+    <p class="muted small">Student-founded. Built so finding your next opportunity doesn’t depend on who you know.<br>© 2026 Open Ajar</p>
   </div>
 </footer>
 </body>

@@ -1,5 +1,12 @@
 // Small progressive enhancements. Every page works without this file.
 
+// Fade sections up as they scroll into view
+document.documentElement.classList.add('js');
+const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
+  if (e.isIntersecting) { e.target.classList.add('is-in'); seen.unobserve(e.target); }
+}), { rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach((el) => seen.observe(el));
+
 // Mobile menu
 const menuBtn = document.querySelector('.menu-btn');
 menuBtn?.addEventListener('click', () => {
