@@ -56,10 +56,11 @@ class Flows(unittest.TestCase):
         self.assertIn(b'href="/jobs"', page)
 
     def test_placeholder_testimonials_never_reach_the_live_site(self):
-        self.assertIn(b'Testimonial goes here', self.c.get('/').data)
         live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',
                            'APP_URL': 'https://example.org', 'DB_PATH': self.app.config['DB_PATH']})
-        self.assertNotIn(b'Testimonial goes here', live.test_client().get('/').data)
+        page = live.test_client().get('/').data
+        self.assertIn(b'Vanessa Gunuwan', page)
+        self.assertNotIn(b'Testimonial goes here', page)
 
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
