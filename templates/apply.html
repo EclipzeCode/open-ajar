@@ -1,40 +1,71 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
 {% block title %}Become an intern{% endblock %}
+{% block body_class %}page-panel{% endblock %}
 {% block content %}
-<div class="wrap">
-  <header class="page-head">
-    <p class="eyebrow">Become an intern</p>
-    <h1>Apply to intern with Open Ajar.</h1>
-    <p class="lead">We place motivated high-school students as interns with local businesses we work with. Tell us about yourself and we’ll be in touch when there’s a fit. No account needed.</p>
-  </header>
-  <div class="form-layout">
-    <aside class="form-layout__aside">
-      <h2>How it works</h2>
-      <ol>
-        <li>You apply here. It takes a few minutes.</li>
-        <li>We get to know you and what you’re looking for.</li>
-        <li>When a business we work with needs an intern who fits, we introduce you.</li>
-        <li>You get real experience. They get a hand.</li>
-      </ol>
-      <p class="muted small">Applying doesn’t guarantee a placement. We reach out as opportunities come up.</p>
-    </aside>
-    <form class="form" method="post" novalidate>
-      {{ m.csrf() }}
-      {{ m.summary(errors) }}
-      {{ m.input('full_name', 'Your name', values, errors, required=True, max=120, auto='name') }}
-      {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
-      <div class="row2">
-        {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, values, errors) }}
-        {{ m.input('school', 'Your school', values, errors, max=160) }}
+<div class="wrap acct">
+  <header class="acct-head">
+    <div class="acct-head__who">
+      <span class="acct-avatar" aria-hidden="true"><svg class="acct-avatar__icon" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg></span>
+      <div>
+        <h1>Apply to intern with Open Ajar</h1>
+        <p class="acct-head__meta"><span class="pill pill--approved">No account needed</span><span class="pill">About 5 minutes</span><span class="pill">Grades 9–12</span></p>
+        <p class="muted small">We place motivated high-school students as interns with local businesses we work with.</p>
       </div>
-      {{ m.input('location', 'Your city or area', values, errors, max=160, help='So we can match you with businesses nearby.') }}
-      {{ m.checks('interests', 'What kind of work interests you?', D.INTERESTS, values.get('interests'), errors) }}
-      {{ m.textarea('skills', 'Skills or experience', values, errors, max=1000, rows=3, help='Anything you’re good at or have done before. Short is fine.') }}
-      {{ m.input('availability', 'When are you available?', values, errors, max=300, help='For example: after school, weekends, about 10 hours a week.') }}
-      {{ m.textarea('statement', 'Why do you want to intern?', values, errors, required=True, max=2000, help='A few honest sentences. What do you hope to get out of it?') }}
-      {{ m.input('link', 'A link', values, errors, type='url', max=300, placeholder='https://', help='A portfolio, résumé, LinkedIn, or anything that shows who you are.') }}
-      <button class="btn" type="submit">Send application</button>
+    </div>
+  </header>
+
+  <div class="acct-body">
+    <nav class="acct-nav" aria-label="Application sections">
+      <div class="acct-nav__links">
+        <a href="#about">About you</a>
+        <a href="#interests">Interests &amp; experience</a>
+        <a href="#statement">Your statement</a>
+      </div>
+      <div class="acct-nav__help">
+        <strong>How it works</strong>
+        <ol class="acct-nav__steps">
+          <li>You apply here.</li>
+          <li>We get to know what you’re looking for.</li>
+          <li>When a business needs an intern who fits, we introduce you.</li>
+        </ol>
+        <p>Applying doesn’t guarantee a placement. We reach out as spots open up.</p>
+      </div>
+    </nav>
+
+    <form class="acct-sections" method="post" novalidate>
+      {{ m.csrf() }}
+      {% if errors %}<div class="acct-note acct-note--error" role="alert">Please fix the highlighted fields{% if errors.get('_') %}: {{ errors['_'] }}{% else %}.{% endif %}</div>{% endif %}
+
+      <section class="acct-card" id="about" aria-labelledby="about-h">
+        <div class="acct-card__head"><h2 id="about-h">About you</h2><p>So we know who to get in touch with.</p></div>
+        <div class="row2">
+          {{ m.input('full_name', 'Your name', values, errors, required=True, max=120, auto='name') }}
+          {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
+        </div>
+        <div class="row2">
+          {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, values, errors, placeholder='Choose your grade') }}
+          {{ m.input('school', 'Your school', values, errors, max=160) }}
+        </div>
+        {{ m.input('location', 'Your city or area', values, errors, max=160, placeholder='e.g. Austin, TX', help='So we can match you with businesses nearby.') }}
+      </section>
+
+      <section class="acct-card" id="interests" aria-labelledby="interests-h">
+        <div class="acct-card__head"><h2 id="interests-h">Interests &amp; experience</h2><p>What kind of work you’d enjoy, and when you’re free.</p></div>
+        {{ m.checks('interests', 'What kind of work interests you?', D.INTERESTS, values.get('interests'), errors) }}
+        {{ m.textarea('skills', 'Skills or experience', values, errors, max=1000, rows=3, help='Anything you’re good at or have done before. Short is fine.') }}
+        {{ m.input('availability', 'When are you available?', values, errors, max=300, placeholder='e.g. after school and weekends, about 10 hours a week') }}
+      </section>
+
+      <section class="acct-card" id="statement" aria-labelledby="statement-h">
+        <div class="acct-card__head"><h2 id="statement-h">Your statement</h2><p>A few honest sentences go a long way.</p></div>
+        {{ m.textarea('statement', 'Why do you want to intern?', values, errors, required=True, max=2000, rows=5, help='What do you hope to get out of it?') }}
+        {{ m.input('link', 'A link', values, errors, type='url', max=300, placeholder='https://', help='A portfolio, résumé, LinkedIn, or anything that shows who you are.') }}
+        <div class="acct-card__foot acct-card__foot--split">
+          <span class="muted small">We’ll only use this to find you an internship.</span>
+          <button class="btn" type="submit">Send application</button>
+        </div>
+      </section>
     </form>
   </div>
 </div>

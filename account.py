@@ -293,11 +293,13 @@ def tracker():
         o = opp_dict(r)
         o['checklist'] = json.loads(r['checklist'] or '[]')
         items.append(o)
-    stage = request.args.get('stage')
+    stage = request.args.get('stage') if request.args.get('stage') in data.STAGES else None
     tracked = [o for o in items if o['is_tracked']]
+    saved = [o for o in items if o['is_saved'] and not o['is_tracked']]
+    due_soon = sum(data.deadline_info(o['own_deadline'] or o['deadline_date'])[1] for o in tracked)
     return render_template('tracker.html', tracked=[o for o in tracked if not stage or o['stage'] == stage],
                            counts={s: sum(o['stage'] == s for o in tracked) for s in data.STAGES}, stage=stage,
-                           saved=[o for o in items if o['is_saved'] and not o['is_tracked']])
+                           total=len(tracked), due_soon=due_soon, saved=saved)
 
 
 @bp.post('/tracker/<opp_id>')

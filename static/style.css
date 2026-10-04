@@ -476,12 +476,27 @@ textarea { resize: none; }
 .acct-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 20px; margin-bottom: 20px;
   background: var(--warn-soft); border-radius: 16px; color: #78350F; }
 .acct-banner p { margin: 2px 0 0; font-size: .92rem; }
-.acct-body { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; }
+.acct-body { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 28px; }
 .acct-nav { align-self: stretch; display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 20px;
   background: radial-gradient(120% 40% at 0% 100%, rgba(255, 255, 255, .16), transparent 60%), var(--grad);
   box-shadow: 0 12px 28px rgba(30, 108, 229, .22); }
 /* the panel runs the full height of the cards; the section links stay pinned while you scroll */
 .acct-nav__links { position: sticky; top: 100px; display: grid; gap: 4px; }
+/* shared by the account, tracker, submit and intern pages */
+.acct-avatar__icon { width: 30px; height: 30px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.acct-nav__n { margin-left: auto; min-width: 24px; padding: 1px 7px; border-radius: 99px; background: rgba(255, 255, 255, .18); font-size: .75rem; text-align: center; }
+.acct-nav a[aria-current="true"] .acct-nav__n { background: var(--accent-soft); }
+.acct-nav__steps { margin: 6px 0 10px; padding-left: 18px; font-size: .82rem; line-height: 1.5; color: rgba(255, 255, 255, .9); }
+.acct-nav__steps li { margin-bottom: 4px; }
+.acct-note--warn { background: var(--warn-soft); color: #78350F; }
+.acct-card--solo { max-width: 720px; }
+.track__title { min-width: 0; }
+.track__title h2 a { color: var(--ink-strong); text-decoration: none; }
+.track__title h2 a:hover { color: var(--accent); }
+.track__stage { flex: none; min-width: 170px; }
+.track__stage .dd__btn { font-weight: 600; background: #fff; }
+.track__links { display: inline-flex; align-items: center; gap: 16px; }
+.subs__side--row { flex-direction: row; align-items: center; }
 /* help card pinned to the bottom of the panel, above Delete account */
 .acct-nav__help { margin-top: auto; position: sticky; bottom: 24px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, .14); color: #fff; }
 .acct-nav__help strong { display: block; font: 600 .95rem var(--display); margin-bottom: 4px; }
@@ -538,6 +553,7 @@ textarea { resize: none; }
 @media (max-width: 860px) {
   .acct-body { grid-template-columns: 1fr; gap: 16px; }
   .acct-nav__help { display: none; }
+  .acct-nav__n { margin-left: 6px; }
   .acct-nav__links { display: contents; }
   .acct-nav { position: sticky; top: 84px; z-index: 5; height: auto; min-height: 0; flex-direction: row; display: flex; overflow-x: auto; gap: 4px; padding: 6px; border-radius: 16px; scrollbar-width: none; }
   .acct-nav::-webkit-scrollbar { display: none; }
@@ -619,18 +635,18 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
 /* account page on wider screens: the page itself doesn't scroll; the header and side panel stay put
    and only the column of cards scrolls inside its own container. Phones keep normal page scrolling. */
 @media (min-width: 861px) {
-  body.page-account { height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-  body.page-account .topbar { flex: none; }
-  body.page-account main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  body.page-account main > .wrap:not(.acct) { flex: none; }
-  body.page-account .footer { display: none; }
-  .page-account .acct { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 24px 0; }
-  .page-account .acct-head, .page-account .acct-banner { flex: none; }
-  .page-account .acct-body { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
-  .page-account .acct-sections { overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; align-content: start; grid-auto-rows: max-content;
+  body.page-panel { height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+  body.page-panel .topbar { flex: none; }
+  body.page-panel main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  body.page-panel main > .wrap:not(.acct) { flex: none; }
+  body.page-panel .footer { display: none; }
+  .page-panel .acct { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 24px 0; }
+  .page-panel .acct-head, .page-panel .acct-banner { flex: none; }
+  .page-panel .acct-body { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .page-panel .acct-sections { overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; align-content: start; grid-auto-rows: max-content;
     padding: 0 10px 4px 2px; margin-right: -10px; scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
-  .page-account .acct-sections::-webkit-scrollbar { width: 8px; }
-  .page-account .acct-sections::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
-  .page-account .acct-nav__links, .page-account .acct-nav__help { position: static; }
-  .page-account .acct-card { scroll-margin-top: 0; }
+  .page-panel .acct-sections::-webkit-scrollbar { width: 8px; }
+  .page-panel .acct-sections::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+  .page-panel .acct-nav__links, .page-panel .acct-nav__help { position: static; }
+  .page-panel .acct-card { scroll-margin-top: 0; }
 }
