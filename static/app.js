@@ -97,16 +97,26 @@ if (cells && !calm && matchMedia('(pointer: fine)').matches) {
   }
 }
 
-// Account page: highlight the section you're looking at in the side menu
-const acctLinks = [...document.querySelectorAll('.acct-nav a')];
+// Account page: highlight the section you're looking at in the side menu.
+// On wide screens the cards scroll inside their own box; on phones the whole page scrolls.
+const acctLinks = [...document.querySelectorAll('.acct-nav a[href^="#"]')];
 if (acctLinks.length) {
+  const scroller = document.querySelector('.acct-sections');
+  const cards = [...document.querySelectorAll('.acct-card')];
   const mark = (id) => acctLinks.forEach((a) => a.setAttribute('aria-current', a.hash === `#${id}` ? 'true' : 'false'));
-  const spy = new IntersectionObserver((entries) => {
-    const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-    if (visible.length) mark(visible[0].target.id);
-  }, { rootMargin: '-120px 0px -55% 0px' });
-  document.querySelectorAll('.acct-card').forEach((c) => spy.observe(c));
-  mark(location.hash.slice(1) || 'profile');
+  const update = () => {
+    const inBox = getComputedStyle(scroller).overflowY === 'auto';
+    const atEnd = inBox ? scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4
+                        : innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+    const line = (inBox ? scroller.getBoundingClientRect().top : 100) + 80;
+    let id = cards[0].id;
+    for (const c of cards) if (c.getBoundingClientRect().top <= line) id = c.id;
+    mark(atEnd ? cards[cards.length - 1].id : id);
+  };
+  scroller.addEventListener('scroll', update, { passive: true });
+  addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update);
+  update();
 }
 
 // Mobile menu

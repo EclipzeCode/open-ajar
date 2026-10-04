@@ -615,3 +615,22 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .quote { width: 270px; padding: 22px; }
   .quote blockquote { font-size: .93rem; }
 }
+
+/* account page on wider screens: the page itself doesn't scroll; the header and side panel stay put
+   and only the column of cards scrolls inside its own container. Phones keep normal page scrolling. */
+@media (min-width: 861px) {
+  body.page-account { height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+  body.page-account .topbar { flex: none; }
+  body.page-account main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  body.page-account main > .wrap:not(.acct) { flex: none; }
+  body.page-account .footer { display: none; }
+  .page-account .acct { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 24px 0; }
+  .page-account .acct-head, .page-account .acct-banner { flex: none; }
+  .page-account .acct-body { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .page-account .acct-sections { overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; align-content: start; grid-auto-rows: max-content;
+    padding: 0 10px 4px 2px; margin-right: -10px; scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
+  .page-account .acct-sections::-webkit-scrollbar { width: 8px; }
+  .page-account .acct-sections::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+  .page-account .acct-nav__links, .page-account .acct-nav__help { position: static; }
+  .page-account .acct-card { scroll-margin-top: 0; }
+}
