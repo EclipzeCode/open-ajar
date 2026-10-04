@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Become an intern{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Become an intern</p>
+    <h1>Apply to intern with Open Ajar.</h1>
+    <p class="lead">We place motivated high-school students as interns with local businesses we work with. Tell us about yourself and we’ll be in touch when there’s a fit. No account needed.</p>
+  </header>
+  <div class="form-layout">
+    <aside class="form-layout__aside">
+      <h2>How it works</h2>
+      <ol>
+        <li>You apply here. It takes a few minutes.</li>
+        <li>We get to know you and what you’re looking for.</li>
+        <li>When a business we work with needs an intern who fits, we introduce you.</li>
+        <li>You get real experience. They get a hand.</li>
+      </ol>
+      <p class="muted small">Applying doesn’t guarantee a placement. We reach out as opportunities come up.</p>
+    </aside>
+    <form class="form" method="post" novalidate>
+      {{ m.csrf() }}
+      {{ m.summary(errors) }}
+      {{ m.input('full_name', 'Your name', values, errors, required=True, max=120, auto='name') }}
+      {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
+      <div class="row2">
+        {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, values, errors) }}
+        {{ m.input('school', 'Your school', values, errors, max=160) }}
+      </div>
+      {{ m.input('location', 'Your city or area', values, errors, max=160, help='So we can match you with businesses nearby.') }}
+      {{ m.checks('interests', 'What kind of work interests you?', D.INTERESTS, values.get('interests'), errors) }}
+      {{ m.textarea('skills', 'Skills or experience', values, errors, max=1000, rows=3, help='Anything you’re good at or have done before. Short is fine.') }}
+      {{ m.input('availability', 'When are you available?', values, errors, max=300, help='For example: after school, weekends, about 10 hours a week.') }}
+      {{ m.textarea('statement', 'Why do you want to intern?', values, errors, required=True, max=2000, help='A few honest sentences. What do you hope to get out of it?') }}
+      {{ m.input('link', 'A link', values, errors, type='url', max=300, placeholder='https://', help='A portfolio, résumé, LinkedIn, or anything that shows who you are.') }}
+      <button class="btn" type="submit">Send application</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

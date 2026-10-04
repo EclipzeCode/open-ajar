@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}{{ copy.title }}{% endblock %}
+{% macro facet(title, key, options, labels=None) %}
+  {% set shown = [] %}
+  {% for v in options if facets[key].get(v) or v in f[key] %}{% do shown.append(v) %}{% endfor %}
+  {% if shown %}
+  <fieldset class="facet">
+    <legend>{{ title }}</legend>
+    {% for v in shown %}
+      <label class="check"><input type="checkbox" name="{{ key }}" value="{{ v }}" {% if v in f[key] %}checked{% endif %}>
+        <span>{{ labels[v] if labels else v }}</span><span class="check__n">{{ facets[key].get(v, 0) }}</span></label>
+    {% endfor %}
+  </fieldset>
+  {% endif %}
+{% endmacro %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">{{ 'Jobs' if sector == 'jobs' else 'Opportunities' }}</p>
+    <h1>{{ copy.h1 }}</h1>
+    <p class="lead">{{ copy.sub }}</p>
+  </header>
+
+  <form class="browse" method="get" data-autosubmit>
+    <div class="browse__bar">
+      <label class="sr-only" for="q">Search</label>
+      <input id="q" name="q" type="search" value="{{ f.q }}" maxlength="100" placeholder="{{ 'Search jobs, e.g. cashier or lifeguard' if sector == 'jobs' else 'Search, e.g. research or coding' }}">
+      <label class="sr-only" for="sort">Sort</label>
+      <select id="sort" name="sort">
+        <option value="featured">Newest</option>
+        <option value="deadline" {% if f.sort == 'deadline' %}selected{% endif %}>Deadline soonest</option>
+        <option value="title" {% if f.sort == 'title' %}selected{% endif %}>A to Z</option>
+      </select>
+      <button class="btn" type="submit">Search</button>
+    </div>
+
+    <div class="browse__body">
+      <details class="filters">
+        <summary>Filters{% if active %} ({{ active }}){% endif %}</summary>
+        <div class="filters__inner">
+          <div class="field">
+            <label for="grade">Grade</label>
+            <select id="grade" name="grade"><option value="">Any grade</option>
+              {% for g in D.GRADES %}<option value="{{ g }}" {% if f.grade == g %}selected{% endif %}>Grade {{ g }}</option>{% endfor %}
+            </select>
+          </div>
+          {% if facets.state %}
+          <div class="field">
+            <label for="state">State</label>
+            <select id="state" name="state"><option value="">Any state</option>
+              {% for code, name in D.STATES|dictsort(by='value') if facets.state.get(code) %}
+                <option value="{{ code }}" {% if f.state == code %}selected{% endif %}>{{ name }} ({{ facets.state[code] }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          {% if sector != 'jobs' %}
+            {{ facet('Type', 'type', D.TYPES) }}
+            {{ facet('Cost', 'cost', D.COSTS, D.COSTS) }}
+            {{ facet('Format', 'format', D.FORMATS) }}
+          {% endif %}
+          {{ facet('Commitment', 'commitment', D.COMMITMENTS) }}
+          {% if sector != 'jobs' %}{{ facet('Interest', 'interest', D.INTERESTS) }}{% endif %}
+          <div class="filters__actions">
+            <button class="btn btn--sm" type="submit">Apply filters</button>
+            {% if active or f.q %}<a class="link" href="{{ request.path }}">Clear all</a>{% endif %}
+          </div>
+        </div>
+      </details>
+
+      <section class="results" aria-labelledby="results-h">
+        <h2 id="results-h" class="results__count" role="status">{{ total }} {{ 'result' if total == 1 else 'results' }}{% if f.q %} for “{{ f.q }}”{% endif %}</h2>
+        {% if items %}
+          <div class="grid grid--2">{% for o in items %}{{ m.card(o, D, saved) }}{% endfor %}</div>
+          {% if pages > 1 %}
+          <nav class="pager" aria-label="Pages">
+            {% if page > 1 %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page - 1) }}">← Previous</a>{% endif %}
+            <span class="muted">Page {{ page }} of {{ pages }}</span>
+            {% if page < pages %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page + 1) }}">Next →</a>{% endif %}
+          </nav>
+          {% endif %}
+        {% else %}
+          <div class="empty">
+            <p><strong>Nothing matches that yet.</strong></p>
+            <p>Try fewer filters or a broader search. Know one that belongs here? <a href="{{ url_for('site.submit') }}">Submit it</a>.</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </form>
+</div>
+{% endblock %}

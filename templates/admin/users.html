@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Users</h1>
+    <p class="muted">Changing someone’s role or disabling them signs them out everywhere. The last admin can’t be removed.</p></header>
+  {% include 'admin/_nav.html' %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Person</th><th>Joined</th><th>Role and access</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.name }}</strong><br><span class="muted small">{{ u.email }}{% if not u.email_verified %} · unconfirmed{% endif %}</span></td>
+          <td class="small">{{ u.created_at|day }}</td>
+          <td>
+            <form class="inline-form" method="post">
+              {{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
+              <label class="sr-only" for="role-{{ u.id }}">Role</label>
+              <select id="role-{{ u.id }}" name="role">{% for r in D.ROLES %}<option {% if u.role == r %}selected{% endif %}>{{ r }}</option>{% endfor %}</select>
+              <label class="check"><input type="checkbox" name="disabled" value="1" {% if u.disabled %}checked{% endif %}><span>Disabled</span></label>
+              <button class="btn btn--sm btn--ghost" type="submit">Save</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

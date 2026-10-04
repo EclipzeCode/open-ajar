@@ -1,17 +1,10 @@
-# Runtime data — contains real accounts, emails and password hashes. Never commit.
+# Runtime data: real accounts, emails and password hashes. Never commit.
 var/
 *.db
 *.db-shm
 *.db-wal
 
-# Secrets / environment
 .env
-.env.*
-!.env.example
-
-# Dependencies (project is zero-dependency, but just in case)
-node_modules/
-
-# OS / editor noise
+.venv/
+__pycache__/
 .DS_Store
-*.log

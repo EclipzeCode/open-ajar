@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Community voices{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Community voices</h1>
+    <p class="muted">Approved quotes appear on the home page. A student who edits their quote sends it back to pending.</p></header>
+  {% include 'admin/_nav.html' %}
+  {% for t in quotes %}
+    <article class="panel">
+      <blockquote>“{{ t.quote }}”</blockquote>
+      <p class="muted small">{{ t.name }}{% if t.role_label %}, {{ t.role_label }}{% endif %} · {{ t.updated_at|day }} · <span class="pill pill--{{ t.status }}">{{ t.status|capitalize }}</span></p>
+      <form class="inline-form" method="post">
+        {{ m.csrf() }}<input type="hidden" name="id" value="{{ t.id }}">
+        {% if t.status != 'approved' %}<button class="btn btn--sm" name="status" value="approved">Approve</button>{% endif %}
+        {% if t.status != 'declined' %}<button class="btn btn--sm btn--ghost" name="status" value="declined">Decline</button>{% endif %}
+        {% if t.status != 'pending' %}<button class="btn btn--sm btn--ghost" name="status" value="pending">Back to pending</button>{% endif %}
+      </form>
+    </article>
+  {% else %}
+    <p class="empty">No quotes yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

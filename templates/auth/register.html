@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Create an account{% endblock %}
+{% block content %}
+<div class="wrap auth">
+  <h1>Create your account.</h1>
+  <p class="muted">Free, and it takes a minute. Save opportunities, track your applications and get deadline reminders.</p>
+  {{ m.summary(errors) }}
+  <form class="form" method="post" novalidate>
+    {{ m.csrf() }}
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+    {{ m.input('name', 'Your name', values, errors, required=True, max=80, auto='name') }}
+    {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
+    <div class="field{% if errors.get('password') %} has-error{% endif %}">
+      <label for="password">Password</label>
+      <p class="field__help">At least 10 characters. A short phrase works well.</p>
+      <input id="password" name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" {% if errors.get('password') %}aria-invalid="true" aria-describedby="password-err"{% endif %}>
+      {{ m.err(errors, 'password') }}
+    </div>
+    <p class="muted small">By creating an account you agree to the <a href="{{ url_for('site.terms') }}">Terms</a> and <a href="{{ url_for('site.privacy') }}">Privacy Policy</a>. You must be 13 or older.</p>
+    <button class="btn btn--block" type="submit">Create account</button>
+  </form>
+  <p>Already have one? <a href="{{ url_for('account.login', next=request.args.get('next')) }}">Sign in</a></p>
+</div>
+{% endblock %}

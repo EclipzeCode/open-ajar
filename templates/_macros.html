@@ -1,0 +1,107 @@
+{% macro err(errors, name) %}{% if errors.get(name) %}<p class="field__error" id="{{ name }}-err">{{ errors[name] }}</p>{% endif %}{% endmacro %}
+
+{% macro input(name, label, values, errors, type='text', required=False, help=None, max=None, auto=None, placeholder=None) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if not required %} <span class="muted">(optional)</span>{% endif %}</label>
+  {% if help %}<p class="field__help">{{ help }}</p>{% endif %}
+  <input id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ values.get(name) or '' }}" {% if required %}required{% endif %}
+    {% if max %}maxlength="{{ max }}"{% endif %} {% if auto %}autocomplete="{{ auto }}"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-err"{% endif %}>
+  {{ err(errors, name) }}
+</div>
+{% endmacro %}
+
+{% macro textarea(name, label, values, errors, required=False, help=None, max=None, rows=4) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if not required %} <span class="muted">(optional)</span>{% endif %}</label>
+  {% if help %}<p class="field__help">{{ help }}</p>{% endif %}
+  <textarea id="{{ name }}" name="{{ name }}" rows="{{ rows }}" {% if required %}required{% endif %} {% if max %}maxlength="{{ max }}"{% endif %}
+    {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-err"{% endif %}>{{ values.get(name) or '' }}</textarea>
+  {{ err(errors, name) }}
+</div>
+{% endmacro %}
+
+{% macro select(name, label, options, values, errors, required=False, placeholder='Choose one') %}
+{# options: list of values, or dict value -> label #}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if not required %} <span class="muted">(optional)</span>{% endif %}</label>
+  <select id="{{ name }}" name="{{ name }}" {% if required %}required{% endif %} {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-err"{% endif %}>
+    <option value="">{{ placeholder }}</option>
+    {% for v in options %}
+      {% set lbl = options[v] if options is mapping else v %}
+      <option value="{{ v }}" {% if values.get(name)|string == v|string %}selected{% endif %}>{{ lbl }}</option>
+    {% endfor %}
+  </select>
+  {{ err(errors, name) }}
+</div>
+{% endmacro %}
+
+{% macro checks(name, label, options, selected, errors, help=None) %}
+<fieldset class="field{% if errors.get(name) %} has-error{% endif %}">
+  <legend>{{ label }}</legend>
+  {% if help %}<p class="field__help">{{ help }}</p>{% endif %}
+  <div class="checks">
+    {% for v in options %}
+      <label class="check"><input type="checkbox" name="{{ name }}" value="{{ v }}" {% if v in (selected or []) %}checked{% endif %}>
+        <span>{{ options[v] if options is mapping else v }}</span></label>
+    {% endfor %}
+  </div>
+  {{ err(errors, name) }}
+</fieldset>
+{% endmacro %}
+
+{% macro summary(errors) %}
+{% if errors %}<div class="alert" role="alert"><strong>Please fix the highlighted fields.</strong>{% if errors.get('_') %} {{ errors['_'] }}{% endif %}</div>{% endif %}
+{% endmacro %}
+
+{% macro csrf() %}<input type="hidden" name="csrf" value="{{ csrf_token }}">{% endmacro %}
+
+{# The listing fields shared by the public submit form and the admin editor. #}
+{% macro opp_fields(values, errors, D) %}
+{{ input('title', 'Title', values, errors, required=True, max=140) }}
+{{ input('org', 'Organization', values, errors, required=True, max=140) }}
+{{ select('type', 'Type', D.TYPES, values, errors, required=True) }}
+{{ textarea('summary', 'Summary', values, errors, required=True, max=600, help='What it is, in a few plain sentences (20–600 characters).') }}
+{{ textarea('eligibility', 'Who can apply', values, errors, required=True, max=600, rows=3) }}
+{{ textarea('requirements', 'What applicants need', values, errors, max=4000, rows=4, help='One per line, e.g. “Short essay” or “Teacher recommendation”. These become the student’s checklist.') }}
+{{ checks('grades', 'Grades', {9: 'Grade 9', 10: 'Grade 10', 11: 'Grade 11', 12: 'Grade 12'}, values.get('grades'), errors) }}
+{{ checks('interests', 'Interests', D.INTERESTS, values.get('interests'), errors) }}
+<div class="row2">
+  {{ select('cost', 'Cost', D.COSTS, values, errors, required=True) }}
+  {{ input('cost_note', 'Cost detail', values, errors, max=200, placeholder='e.g. $15/hour, or need-based aid') }}
+</div>
+<div class="row2">
+  {{ select('format', 'Format', D.FORMATS, values, errors, required=True) }}
+  {{ input('location', 'Location', values, errors, required=True, max=200, placeholder='e.g. Austin, TX, or Online') }}
+</div>
+<div class="row2">
+  {{ select('commitment', 'Commitment', D.COMMITMENTS, values, errors, required=True) }}
+  {{ input('commitment_note', 'Commitment detail', values, errors, max=200, placeholder='e.g. 6 weeks, 20 hours/week') }}
+</div>
+<div class="row2">
+  {{ input('deadline_date', 'Deadline', values, errors, type='date') }}
+  {{ input('deadline_note', 'Deadline note', values, errors, max=200, placeholder='e.g. Rolling, or priority deadline') }}
+</div>
+{{ input('url', 'Official link', values, errors, type='url', max=500, placeholder='https://', help='Where students apply. Use the organization’s own page.') }}
+{% endmacro %}
+
+{% macro badge(o, D) %}<span class="badge badge--{{ o.verification }}">{{ D.VERIFICATION[o.verification] }}</span>{% endmacro %}
+
+{% macro card(o, D, saved=()) %}
+{% set dl = deadline_info(o.deadline_date, o.deadline_note) %}
+<article class="card">
+  <div class="card__top">
+    <p class="card__type">{{ o.type }}</p>
+    {% if o.id in saved %}<span class="pill pill--saved">Saved</span>{% endif %}
+  </div>
+  <h3 class="card__title"><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></h3>
+  <p class="card__org">{{ o.org }}</p>
+  <p class="card__summary">{{ o.summary|truncate(170) }}</p>
+  <ul class="card__meta">
+    <li>{{ grade_label(o.grades) }}</li>
+    <li>{{ D.COSTS[o.cost] }}</li>
+    <li>{{ o.format }}{% if o.format != 'Online' and o.location %} · {{ o.location|truncate(40) }}{% endif %}</li>
+    <li class="{% if dl[1] %}is-soon{% endif %}">{{ dl[0] }}</li>
+  </ul>
+</article>
+{% endmacro %}

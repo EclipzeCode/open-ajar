@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}About{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">About</p>
+    <h1>A door that’s open enough to see through.</h1>
+  </header>
+  <div class="about">
+    <section>
+      <h2>Why we exist</h2>
+      <div class="prose">
+        <p class="pull">Your next opportunity shouldn’t depend on who you know.</p>
+        <p>Opportunities live in counselor emails, university sites, career pages, nonprofit newsletters, Instagram, LinkedIn, and conversations with parents and coaches. Students with strong networks tend to hear about the good ones. Students without those connections can miss them entirely.</p>
+        <p>Open Ajar is a student-founded attempt to change that: one organized place to find opportunities, understand them, and follow them through.</p>
+      </div>
+    </section>
+    <section>
+      <h2>Why “ajar”</h2>
+      <div class="prose">
+        <p>An ajar door isn’t completely open, but it’s open enough for you to see that something is on the other side.</p>
+        <p>That’s the idea. Opportunity shouldn’t be hidden behind connections or luck. We make the door easier to find and give you the tools to walk through it.</p>
+      </div>
+    </section>
+    <section>
+      <h2>How listings get here</h2>
+      <div class="prose">
+        <p>Nothing is published automatically. Every listing, whether a person submitted it or we imported it, waits in a review queue until an admin approves it, asks for changes, or declines it. You always apply on the organization’s own site.</p>
+        <ul class="levels">
+          <li><span class="badge badge--verified">Verified</span> A reviewer checked the official page recently.</li>
+          <li><span class="badge badge--source">Source-linked</span> Approved by a reviewer. Details come from the organization’s page and may have changed.</li>
+          <li><span class="badge badge--unreviewed">Unreviewed</span> Not yet independently checked.</li>
+        </ul>
+      </div>
+    </section>
+    <section>
+      <h2>The longer view</h2>
+      <div class="prose">
+        <p>Students who benefit from Open Ajar can help other students discover opportunities, so access compounds instead of staying with the people who already have it.</p>
+        <div class="actions"><a class="btn" href="{{ url_for('site.browse') }}">Browse opportunities</a><a class="link" href="{{ url_for('site.team') }}">Meet the team →</a></div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

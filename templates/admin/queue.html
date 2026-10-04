@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Review listings{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Listings</h1></header>
+  {% include 'admin/_nav.html' %}
+
+  <nav class="stages" aria-label="Status">
+    {% for key, label in D.STATUSES.items() %}
+      <a href="{{ url_for('admin.queue', status=key) }}" {% if status == key %}aria-current="page"{% endif %}>{{ label }} <span>{{ counts.get(key, 0) }}</span></a>
+    {% endfor %}
+    <a href="{{ url_for('admin.queue', status='all') }}" {% if status == 'all' %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
+  </nav>
+
+  <form class="filterbar" method="get">
+    <input type="hidden" name="status" value="{{ status }}">
+    <label class="sr-only" for="aq">Search</label><input id="aq" name="q" value="{{ q }}" placeholder="Search title or organization">
+    <label class="sr-only" for="asrc">Origin</label>
+    <select id="asrc" name="source"><option value="">Any origin</option>
+      {% for s in sources %}<option value="{{ s.source }}" {% if s.source == source %}selected{% endif %}>{{ s.source }} ({{ s.n }})</option>{% endfor %}
+    </select>
+    <button class="btn btn--sm" type="submit">Filter</button>
+  </form>
+
+  {% if items %}
+  <form method="post" action="{{ url_for('admin.bulk_approve') }}">
+    {{ m.csrf() }}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th><label class="sr-only" for="all">Select all</label><input type="checkbox" id="all" data-select-all></th><th>Listing</th><th>Type</th><th>Origin</th><th>Deadline</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for o in items %}
+          <tr>
+            <td><input type="checkbox" name="ids" value="{{ o.id }}" aria-label="Select {{ o.title }}"></td>
+            <td><a href="{{ url_for('admin.review', opp_id=o.id) }}"><strong>{{ o.title }}</strong></a><br><span class="muted small">{{ o.org }}</span>{% if status == 'all' %} <span class="pill pill--{{ o.status }}">{{ D.STATUSES[o.status] }}</span>{% endif %}</td>
+            <td>{{ o.type }}</td>
+            <td class="small">{{ o.source }}</td>
+            <td class="small">{{ o.deadline_date or '—' }}</td>
+            <td class="small">{{ o.updated_at|day }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">Showing up to 300. Bulk approval only approves; rejecting or asking for changes needs a note, so open the listing.</p>
+    <button class="btn" type="submit" data-confirm="Approve the selected listings? They’ll go live right away.">Approve selected</button>
+  </form>
+  {% else %}
+    <p class="empty">Nothing here.</p>
+  {% endif %}
+</div>
+{% endblock %}

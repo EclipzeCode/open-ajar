@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Submitted{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <header class="page-head">
+    <p class="eyebrow">Submitted</p>
+    <h1>Thanks. It’s in the queue.</h1>
+    <p class="lead">“{{ title }}” is waiting for a reviewer. You can follow its status, and any notes from the reviewer, on your account page.</p>
+  </header>
+  <div class="actions"><a class="btn" href="{{ url_for('account.account') }}">Go to my account</a><a class="link" href="{{ url_for('site.submit') }}">Submit another →</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Choose a new password{% endblock %}
+{% block content %}
+<div class="wrap auth">
+  <h1>Choose a new password.</h1>
+  {% if error %}
+    <div class="alert" role="alert">{{ error }}</div>
+    <p><a class="btn" href="{{ url_for('account.forgot') }}">Request a new link</a></p>
+  {% else %}
+    <p class="muted">After this you’ll be signed out everywhere and can sign in with the new password.</p>
+    <form class="form" method="post">
+      {{ m.csrf() }}
+      <input type="hidden" name="token" value="{{ token }}">
+      <div class="field{% if field_error %} has-error{% endif %}">
+        <label for="password">New password</label>
+        <p class="field__help">At least 10 characters.</p>
+        <input id="password" name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password">
+        {% if field_error %}<p class="field__error">{{ field_error }}</p>{% endif %}
+      </div>
+      <button class="btn btn--block" type="submit">Save new password</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Your account{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Account</p>
+    <h1>Hi, {{ u.name.split()[0] }}.</h1>
+    <p class="muted">{{ u.email }}{% if u.email_verified %} · confirmed{% endif %}</p>
+  </header>
+
+  {% if not u.email_verified %}
+  <div class="alert">
+    <strong>Confirm your email.</strong> We sent a link to {{ u.email }}. You’ll need it to submit opportunities and get deadline reminders.
+    <form method="post" action="{{ url_for('account.resend_verification') }}" class="inline">{{ m.csrf() }}<button class="btn btn--sm" type="submit">Send it again</button></form>
+  </div>
+  {% endif %}
+
+  <div class="account">
+    <section class="panel">
+      <h2>Your profile</h2>
+      <form class="form" method="post" action="{{ url_for('account.save_profile') }}">
+        {{ m.csrf() }}
+        {{ m.input('name', 'Name', u, errors, required=True, max=80, auto='name') }}
+        <div class="row2">
+          {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, u, errors) }}
+          {{ m.input('location', 'City or area', u, errors, max=120) }}
+        </div>
+        {{ m.checks('interests', 'Interests', D.INTERESTS, interests, errors) }}
+        <label class="check"><input type="checkbox" name="email_reminders" value="1" {% if u.email_reminders %}checked{% endif %}>
+          <span>Email me when a deadline for something I’m tracking is a week away</span></label>
+        <button class="btn" type="submit">Save profile</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Your submissions</h2>
+      {% for s in submissions %}
+        <div class="sub">
+          <p><strong>{{ s.title }}</strong> <span class="pill pill--{{ s.status }}">{{ D.STATUSES[s.status] }}</span></p>
+          {% if s.status == 'approved' %}<p><a href="{{ url_for('site.detail', opp_id=s.id) }}">View the live listing →</a></p>{% endif %}
+          {% for e in s.events %}<p class="note"><strong>Reviewer:</strong> {{ e.message }}</p>{% endfor %}
+          {% if s.status == 'changes_requested' %}<p><a class="btn btn--sm" href="{{ url_for('site.submit', opp_id=s.id) }}">Revise and resubmit</a></p>{% endif %}
+        </div>
+      {% else %}
+        <p class="muted">Nothing yet. <a href="{{ url_for('site.submit') }}">Share an opportunity</a> other students should know about.</p>
+      {% endfor %}
+    </section>
+
+    <section class="panel">
+      <h2>Share your story</h2>
+      <p class="muted">Has Open Ajar helped you? A short quote may appear on the home page after a reviewer approves it.</p>
+      {% if quote %}<p class="small">Status: <span class="pill pill--{{ quote.status }}">{{ quote.status|capitalize }}</span></p>{% endif %}
+      <form class="form" method="post" action="{{ url_for('account.save_quote') }}">
+        {{ m.csrf() }}
+        {{ m.textarea('quote', 'Your quote', quote or {}, {}, required=True, max=400, rows=3) }}
+        {{ m.input('role_label', 'How should we describe you?', quote or {}, {}, max=80, placeholder='e.g. Junior, Austin TX') }}
+        <button class="btn btn--ghost" type="submit">{{ 'Update quote' if quote else 'Send quote' }}</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Change password</h2>
+      <form class="form" method="post" action="{{ url_for('account.change_password') }}">
+        {{ m.csrf() }}
+        <div class="field"><label for="current">Current password</label><input id="current" name="current" type="password" required autocomplete="current-password"></div>
+        <div class="field"><label for="new">New password</label><input id="new" name="new" type="password" required minlength="10" autocomplete="new-password"></div>
+        <button class="btn btn--ghost" type="submit">Change password</button>
+      </form>
+      <form method="post" action="{{ url_for('account.logout') }}" class="spaced">{{ m.csrf() }}<button class="btn btn--ghost" type="submit">Sign out</button></form>
+    </section>
+
+    <section class="panel panel--danger">
+      <h2>Delete account</h2>
+      <p>This permanently removes your profile, saved opportunities and tracked applications. Listings you submitted stay up.</p>
+      <form class="form" method="post" action="{{ url_for('account.delete_account') }}" data-confirm="Delete your account for good? This can’t be undone.">
+        {{ m.csrf() }}
+        <div class="field"><label for="del-pw">Current password</label><input id="del-pw" name="password" type="password" required autocomplete="current-password"></div>
+        <button class="btn btn--danger" type="submit">Delete my account</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

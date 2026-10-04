@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Confirm your email{% endblock %}
+{% block content %}
+<div class="wrap auth">
+  <h1>Confirm your email.</h1>
+  {% if error %}
+    <div class="alert" role="alert">{{ error }}</div>
+    {% if user %}<form method="post" action="{{ url_for('account.resend_verification') }}">{{ m.csrf() }}<button class="btn" type="submit">Send a new link</button></form>
+    {% else %}<p><a href="{{ url_for('account.login') }}">Sign in</a> and use “Send a new link” on your account page.</p>{% endif %}
+  {% elif token %}
+    <p class="muted">One click and you’re done.</p>
+    <form method="post">{{ m.csrf() }}<input type="hidden" name="token" value="{{ token }}"><button class="btn btn--block" type="submit">Confirm my email</button></form>
+  {% else %}
+    <p>That link is missing its code. Open the link from your email again.</p>
+  {% endif %}
+</div>
+{% endblock %}
