@@ -476,16 +476,26 @@ textarea { resize: none; }
 .acct-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 20px; margin-bottom: 20px;
   background: var(--warn-soft); border-radius: 16px; color: #78350F; }
 .acct-banner p { margin: 2px 0 0; font-size: .92rem; }
-.acct-body { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; align-items: start; }
-.acct-nav { position: sticky; top: 100px; display: grid; gap: 4px; padding: 12px; border-radius: 20px; background: var(--grad);
+.acct-body { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; }
+.acct-nav { align-self: stretch; display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 20px;
+  background: radial-gradient(120% 40% at 0% 100%, rgba(255, 255, 255, .16), transparent 60%), var(--grad);
   box-shadow: 0 12px 28px rgba(30, 108, 229, .22); }
+/* the panel runs the full height of the cards; the section links stay pinned while you scroll */
+.acct-nav__links { position: sticky; top: 100px; display: grid; gap: 4px; }
+/* help card pinned to the bottom of the panel, above Delete account */
+.acct-nav__help { margin-top: auto; position: sticky; bottom: 24px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, .14); color: #fff; }
+.acct-nav__help strong { display: block; font: 600 .95rem var(--display); margin-bottom: 4px; }
+.acct-nav__help p { margin: 0 0 12px; font-size: .82rem; line-height: 1.5; color: rgba(255, 255, 255, .85); }
+.acct-nav .acct-nav__mail { display: inline-flex; padding: 7px 12px; border-radius: 10px; background: #fff; color: var(--accent); font-size: .82rem; font-weight: 600; }
+.acct-nav .acct-nav__mail::before { display: none; }
+.acct-nav .acct-nav__mail:hover { background: #fff; color: var(--accent); }
 .acct-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; text-decoration: none;
   color: rgba(255, 255, 255, .85); font: 500 .92rem var(--display); transition: background .15s, color .15s; }
 .acct-nav a::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .45; flex: none; }
 .acct-nav a:hover { background: rgba(255, 255, 255, .14); color: #fff; }
 .acct-nav a[aria-current="true"] { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(15, 23, 42, .12); }
 .acct-nav a[aria-current="true"]::before { opacity: 1; }
-.acct-nav__danger { margin-top: 6px; border-top: 1px solid rgba(255, 255, 255, .2); border-radius: 0 0 12px 12px !important; padding-top: 14px !important; }
+.acct-nav__danger { margin-top: 4px; }
 .acct-nav__danger:not([aria-current="true"]) { color: #FECACA !important; }
 .acct-sections { display: grid; gap: 32px; }
 .acct-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 28px 28px; scroll-margin-top: 100px; overflow: hidden;
@@ -527,7 +537,9 @@ textarea { resize: none; }
 .switch input:focus-visible + .switch__track { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 @media (max-width: 860px) {
   .acct-body { grid-template-columns: 1fr; gap: 16px; }
-  .acct-nav { position: sticky; top: 84px; z-index: 5; display: flex; overflow-x: auto; gap: 4px; padding: 6px; border-radius: 16px; scrollbar-width: none; }
+  .acct-nav__help { display: none; }
+  .acct-nav__links { display: contents; }
+  .acct-nav { position: sticky; top: 84px; z-index: 5; height: auto; min-height: 0; flex-direction: row; display: flex; overflow-x: auto; gap: 4px; padding: 6px; border-radius: 16px; scrollbar-width: none; }
   .acct-nav::-webkit-scrollbar { display: none; }
   .acct-nav a { flex: none; padding: 7px 12px; border-radius: 10px; }
   .acct-nav a::before { display: none; }
