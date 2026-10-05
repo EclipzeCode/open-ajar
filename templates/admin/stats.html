@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Stats{% endblock %}
+{% macro stat(n, label, note=None, accent=False) %}
+  <div class="stat{% if accent %} stat--accent{% endif %}"><div class="stat__n">{{ '{:,}'.format(n) }}</div><p>{{ label }}</p>{% if note %}<p class="small stat__note">{{ note }}</p>{% endif %}</div>
+{% endmacro %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Stats</h1>
+    <p class="lead">Straight counts from the database, so every number here can be backed up.</p></header>
+  {% include 'admin/_nav.html' %}
+
+  <h2 class="stats__h">Outcomes</h2>
+  <div class="stats">
+    {{ stat(s.won_here, 'acceptances found on Open Ajar', s.won_students ~ ' different students', accent=True) }}
+    {{ stat(s.won, 'acceptances tracked in total', s.won_elsewhere ~ ' found elsewhere, ' ~ (s.won - s.won_here - s.won_elsewhere) ~ ' not answered yet') }}
+    {{ stat(s.placed, 'students placed as interns', s.intern_apps ~ ' intern applications') }}
+  </div>
+
+  <h2 class="stats__h">Members and reach</h2>
+  <div class="stats">
+    {{ stat(s.members, 'members', s.verified ~ ' confirmed their email') }}
+    {{ stat(s.engaged, 'engaged members', 'Saved or tracked at least one listing') }}
+    {{ stat(s.active30, 'active in the last 30 days', s.active7 ~ ' in the last 7 days') }}
+    {{ stat(s.schools, 'schools', s.with_school ~ ' members gave a school') }}
+  </div>
+
+  <h2 class="stats__h">Engagement</h2>
+  <div class="stats">
+    {{ stat(s.tracked, 'applications tracked') }}
+    {{ stat(s.saved, 'listings saved') }}
+    {{ stat(s.reminded, 'deadline reminders sent') }}
+  </div>
+
+  <h2 class="stats__h">Listings</h2>
+  <div class="stats">
+    {{ stat(s.live, 'live listings', (s.live - s.live_jobs) ~ ' opportunities, ' ~ s.live_jobs ~ ' jobs') }}
+    {{ stat(s.reviewed, 'listings reviewed by the team', s.checked ~ ' checked against the official page') }}
+    {{ stat(s.removed, 'removed as outdated or unconfirmed') }}
+  </div>
+
+  <div class="stats-cols">
+    <section class="panel">
+      <h2>Last 8 weeks</h2>
+      <table class="table">
+        <thead><tr><th>Week</th><th>New members</th><th>Active members</th></tr></thead>
+        <tbody>{% for w in weeks %}<tr><td>{{ w.start.strftime('%b %-d') }} – {{ w.end.strftime('%b %-d') }}</td><td>{{ w.signups }}</td><td>{{ w.active }}</td></tr>{% endfor %}</tbody>
+      </table>
+      <p class="muted small">Active means signed in and used the site that week. Counting started when this page was added.</p>
+    </section>
+    <section class="panel">
+      <h2>Schools</h2>
+      {% if top %}
+      <table class="table">
+        <thead><tr><th>School</th><th>Members</th></tr></thead>
+        <tbody>{% for name, c in top %}<tr><td>{{ name }}</td><td>{{ c }}</td></tr>{% endfor %}</tbody>
+      </table>
+      {% else %}<p class="muted">No schools yet. Members can add theirs at signup or on their account page.</p>{% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -144,6 +144,56 @@ def users():
     return render_template('admin/users.html', users=all_('SELECT * FROM users ORDER BY created_at DESC LIMIT 500'))
 
 
+@bp.get('/stats')
+@admin_required
+def stats():
+    """Numbers you can stand behind: every figure here is a straight count from the database."""
+    today = date.fromisoformat(data.now_iso()[:10])  # UTC, the same clock user_days and created_at use
+    ago = lambda days: (today - timedelta(days=days)).isoformat()
+    n = lambda sql, args=(): one(sql, args)['n']
+    won = tuple(data.WON_STAGES)
+    q = ','.join('?' * len(won))
+    s = {
+        'members': n('SELECT COUNT(*) n FROM users WHERE disabled=0'),
+        'verified': n('SELECT COUNT(*) n FROM users WHERE disabled=0 AND email_verified=1'),
+        'engaged': n("""SELECT COUNT(*) n FROM users u WHERE disabled=0 AND (EXISTS (SELECT 1 FROM saved WHERE user_id=u.id)
+                        OR EXISTS (SELECT 1 FROM tracked WHERE user_id=u.id))"""),
+        'active7': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ?', (ago(7),)),
+        'active30': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ?', (ago(30),)),
+        'tracked': n('SELECT COUNT(*) n FROM tracked'),
+        'saved': n('SELECT COUNT(*) n FROM saved'),
+        'reminded': n('SELECT COUNT(*) n FROM tracked WHERE reminded_for IS NOT NULL'),
+        'won': n(f'SELECT COUNT(*) n FROM tracked WHERE stage IN ({q})', won),
+        'won_here': n(f'SELECT COUNT(*) n FROM tracked WHERE stage IN ({q}) AND found_here=1', won),
+        'won_elsewhere': n(f'SELECT COUNT(*) n FROM tracked WHERE stage IN ({q}) AND found_here=0', won),
+        'won_students': n(f'SELECT COUNT(DISTINCT user_id) n FROM tracked WHERE stage IN ({q}) AND found_here=1', won),
+        'placed': n("SELECT COUNT(*) n FROM intern_applications WHERE status='placed'"),
+        'intern_apps': n('SELECT COUNT(*) n FROM intern_applications'),
+        'live': n("SELECT COUNT(*) n FROM opportunities WHERE status='approved'"),
+        'live_jobs': n("SELECT COUNT(*) n FROM opportunities WHERE status='approved' AND type='Job'"),
+        'reviewed': n('SELECT COUNT(DISTINCT opportunity_id) n FROM review_events'),
+        'checked': n("SELECT COUNT(*) n FROM opportunities WHERE verification='verified'"),
+        'removed': n("SELECT COUNT(*) n FROM opportunities WHERE status IN ('rejected','expired')"),
+    }
+    # Schools: typed freely, so group case- and space-insensitively and show the most common spelling
+    schools = {}
+    for r in all_("SELECT school FROM users WHERE disabled=0 AND school <> ''"):
+        key = ' '.join(r['school'].lower().split())
+        names = schools.setdefault(key, {})
+        names[r['school']] = names.get(r['school'], 0) + 1
+    top = sorted(((max(v, key=v.get), sum(v.values())) for v in schools.values()), key=lambda x: -x[1])
+    s['schools'] = len(schools)
+    s['with_school'] = sum(c for _, c in top)
+    # Last 8 weeks, newest first
+    weeks = []
+    for i in range(8):
+        end, start = today - timedelta(days=7 * i), today - timedelta(days=7 * (i + 1))
+        weeks.append({'start': start + timedelta(days=1), 'end': end,
+                      'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
+                      'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
+    return render_template('admin/stats.html', s=s, top=top[:20], weeks=weeks)
+
+
 @bp.get('/activity')
 @admin_required
 def activity():

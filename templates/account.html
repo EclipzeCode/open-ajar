@@ -65,6 +65,7 @@
             {{ m.input('name', 'Name', u, errors, required=True, max=80, auto='name') }}
             {{ m.input('location', 'City or area', u, errors, max=120, placeholder='e.g. Austin, TX') }}
           </div>
+          {{ m.input('school', 'School', u, errors, max=120, auto='organization', placeholder='e.g. Lincoln High School') }}
           <div class="row2">
             {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, u, errors, placeholder='Not set') }}
             <div class="field">

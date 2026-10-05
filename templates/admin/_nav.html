@@ -1,5 +1,6 @@
 <nav class="tabs" aria-label="Admin">
   {% set ep = request.endpoint %}
+  <a href="{{ url_for('admin.stats') }}" {% if ep == 'admin.stats' %}aria-current="page"{% endif %}>Stats</a>
   <a href="{{ url_for('admin.queue') }}" {% if ep in ('admin.queue', 'admin.review') %}aria-current="page"{% endif %}>Listings</a>
   <a href="{{ url_for('admin.interns') }}" {% if ep == 'admin.interns' %}aria-current="page"{% endif %}>Intern applications</a>
   <a href="{{ url_for('admin.voices') }}" {% if ep == 'admin.voices' %}aria-current="page"{% endif %}>Community voices</a>

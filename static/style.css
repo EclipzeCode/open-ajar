@@ -654,3 +654,18 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
 /* Filter options with no results under the current filters */
 .fopt.is-empty { color: var(--muted); }
 .fopt.is-empty .fopt__n { opacity: .6; }
+
+/* Tracker: "did you find it here?" prompt on accepted cards */
+.track__found { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap;
+  margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); }
+.track__found[hidden] { display: none; }
+.track__found p { margin: 0; color: var(--ink-strong); }
+.track__found-btns { display: flex; gap: 8px; }
+
+/* Admin stats */
+.stats__h { font-size: 1.05rem; margin: 28px 0 0; color: var(--muted); font-weight: 600; }
+.stat .stat__note { margin-top: 4px; font-size: .82rem; }
+.stat--accent .stat__note { color: rgba(255,255,255,.85); }
+.stats-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.stats-cols .panel { min-width: 0; }
+@media (max-width: 860px) { .stats-cols { grid-template-columns: 1fr; } }
