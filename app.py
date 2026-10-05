@@ -239,7 +239,7 @@ def apply_correction_file(fixes):
     problems = []
     for fx in fixes:
         row = opp_dict(db.execute('SELECT * FROM opportunities WHERE external_id=?', (fx['external_id'],)).fetchone())
-        if not row or row['title'] != fx['title']:
+        if not row or row['title'] not in (fx['title'], fx.get('set', {}).get('title')):  # new title = already renamed
             problems.append(f"{fx['external_id']}: not found or title differs")
             continue
         if fx.get('unpublish'):

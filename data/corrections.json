@@ -5017,5 +5017,4044 @@
   "external_id": "b3:row-217",
   "title": "Shark Tank-style business pitch competitions (varies by school/region)",
   "unpublish": "Not a specific program; it linked to a general government homepage."
+ },
+ {
+  "external_id": "b3:row-211",
+  "title": "Foundation for Teen Entrepreneurship Programs",
+  "unpublish": "Couldn't confirm this organization or its programs on an official page."
+ },
+ {
+  "external_id": "b3:row-215",
+  "title": "Network for Teaching Entrepreneurship (NFTE)",
+  "verified": true,
+  "set": {
+   "summary": "NFTE's World Series of Innovation: a free global challenge to design entrepreneurial solutions to real-world problems tied to the UN Sustainable Development Goals.",
+   "eligibility": "Ages 13–24 in the Impact League (younger leagues for ages 5–12), individually or in teams.",
+   "cost": "Award",
+   "cost_note": "Free to enter; prizes from $300 to $1,500",
+   "format": "Online",
+   "location": "Submit online",
+   "commitment": "One-off",
+   "commitment_note": "One project submission",
+   "deadline_date": "2026-12-13",
+   "deadline_note": "Submissions due December 13, 2026",
+   "url": "https://innovation.nfte.com/"
+  }
+ },
+ {
+  "external_id": "b3:row-216",
+  "title": "Real World Scholars",
+  "verified": true,
+  "set": {
+   "summary": "EdCorps lets a class or club run a real online business under Real World Scholars' nonprofit umbrella, with an e-commerce storefront and seed grants.",
+   "eligibility": "K–12 students whose teacher or club advisor signs up their class or club.",
+   "cost": "Free",
+   "cost_note": "Seed grants available for classrooms",
+   "format": "Hybrid",
+   "location": "Your classroom, selling online",
+   "commitment": "School year",
+   "commitment_note": "Run a student business through the year",
+   "deadline_note": "Teachers can apply to start an EdCorps any time"
+  }
+ },
+ {
+  "external_id": "b3:row-218",
+  "title": "Shell Eco-marathon",
+  "set": {
+   "eligibility": "High-school and university teams that design and build an ultra-efficient vehicle (Prototype or UrbanConcept class).",
+   "cost": "Varies",
+   "cost_note": "Teams fund their own vehicle build and travel",
+   "format": "In person",
+   "location": "Shell Eco-marathon Americas (and other regions)",
+   "commitment": "School year",
+   "commitment_note": "Build through the year, then compete at the regional event",
+   "deadline_note": "Check the official site for this season's team registration"
+  }
+ },
+ {
+  "external_id": "b3:row-219",
+  "title": "Wharton Global Youth Investment Competition",
+  "unpublish": "Duplicate of the other Wharton Global High School Investment Competition listing."
+ },
+ {
+  "external_id": "b3:row-222",
+  "title": "Bank of America Student Leaders",
+  "unpublish": "Since 2026 the program requires a high-school diploma and some college credit."
+ },
+ {
+  "external_id": "b3:row-223",
+  "title": "Comcast NBCUniversal Media Internships (high school pathways)",
+  "unpublish": "Not a specific program; it linked to a general careers page."
+ },
+ {
+  "external_id": "b3:row-224",
+  "title": "Congressional Internship Program (individual House/Senate offices)",
+  "set": {
+   "eligibility": "Varies by office; some representatives and senators take high-school interns, usually juniors and seniors.",
+   "cost": "Varies",
+   "cost_note": "Some offices pay; many internships are unpaid",
+   "format": "In person",
+   "location": "Your member's Washington, D.C. or local district office",
+   "commitment": "Flexible",
+   "commitment_note": "Usually a few weeks in summer or part-time during the school year",
+   "deadline_note": "Check your representative's or senator's website; each office sets its own deadlines"
+  }
+ },
+ {
+  "external_id": "b3:row-225",
+  "title": "Disney Dreamers Academy",
+  "verified": true,
+  "set": {
+   "eligibility": "U.S. high-school students in grades 9–12, ages 13–19.",
+   "cost": "Free",
+   "cost_note": "All-expenses-paid trip for the student and one parent or guardian",
+   "format": "In person",
+   "location": "Walt Disney World Resort, Florida",
+   "commitment": "One-off",
+   "commitment_note": "A multi-day mentoring event in the spring; 100 students are chosen",
+   "deadline_note": "Applications usually close at the end of October",
+   "url": "https://disneyexperiences.com/disney-dreamers-academy/"
+  }
+ },
+ {
+  "external_id": "b3:row-226",
+  "title": "ESPN Wide World of Sports Internship/Volunteer Programs",
+  "unpublish": "Not a specific program; it linked to ESPN's homepage."
+ },
+ {
+  "external_id": "b3:row-227",
+  "title": "Federal Bureau of Investigation Teen Academy",
+  "verified": true,
+  "set": {
+   "eligibility": "Usually rising high-school juniors and seniors; each FBI field office sets its own rules and picks students by application and essay.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Hosted by individual FBI field offices",
+   "commitment": "One-off",
+   "commitment_note": "Usually a one-day program in summer",
+   "deadline_note": "Applications usually open in spring and close in May; check your local field office",
+   "url": "https://www.fbi.gov/contact-us/field-offices"
+  }
+ },
+ {
+  "external_id": "b3:row-228",
+  "title": "Fermilab Target Internship Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "eligibility": "Illinois high-school sophomores and juniors with at least a 3.0 GPA and strong interest in physics, math, computer science or engineering; must be eligible to work in the U.S.",
+   "cost": "Award",
+   "cost_note": "Paid (about $17 an hour)",
+   "format": "In person",
+   "location": "Batavia, IL",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks: half research, half STEM and leadership workshops",
+   "deadline_note": "Applications usually close in February",
+   "url": "https://internships.fnal.gov/"
+  }
+ },
+ {
+  "external_id": "b3:row-229",
+  "title": "Goldman Sachs Community TeamWorks / Possibilities Program",
+  "unpublish": "Not a specific high-school program; it linked to a general careers page."
+ },
+ {
+  "external_id": "b3:row-230",
+  "title": "Google Code Next",
+  "unpublish": "The official Code Next page is offline and no current link could be found."
+ },
+ {
+  "external_id": "b3:row-232",
+  "title": "IBM P-TECH",
+  "verified": true,
+  "set": {
+   "eligibility": "Students who apply in 8th grade to a P-TECH school in a participating district; many schools admit by interest, with no exam.",
+   "cost": "Free",
+   "cost_note": "No cost to students; districts cover college tuition",
+   "format": "In person",
+   "location": "P-TECH schools in participating districts",
+   "commitment": "School year",
+   "commitment_note": "A six-year program (grades 9–14) ending with a diploma and an associate degree, plus internships and mentoring",
+   "deadline_note": "Apply in 8th grade through your district's high-school admissions process",
+   "url": "https://ptech.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-233",
+  "title": "Intel Involved / Semiconductor industry outreach programs",
+  "unpublish": "Not a specific program; it linked to a company homepage."
+ },
+ {
+  "external_id": "b3:row-234",
+  "title": "JPMorgan Chase Emerging Career Programs",
+  "unpublish": "Not a specific high-school program; it linked to a general careers page."
+ },
+ {
+  "external_id": "b3:row-235",
+  "title": "Lawrence Berkeley National Laboratory High School Internships",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11,
+    12
+   ],
+   "summary": "Experiences in Research: six-week summer internships where high-school students work on real projects with Berkeley Lab scientists and staff.",
+   "eligibility": "Students in grades 10–12 enrolled in Northern California, at least 16 years old, with experience working independently. Living within about 20 miles of the lab is recommended.",
+   "cost": "Award",
+   "cost_note": "Paid: $500 per week",
+   "format": "Hybrid",
+   "location": "Berkeley, CA",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks, about 30–35 hours a week (June 15 – July 24 in 2026)",
+   "deadline_note": "Applications close in late March (March 29 in 2026)",
+   "url": "https://k12education.lbl.gov/programs/high-school/experiences-in-research"
+  }
+ },
+ {
+  "external_id": "b3:row-236",
+  "title": "Legal Aid Society High School Internship Programs",
+  "unpublish": "Not a specific program; it linked to one city's general homepage."
+ },
+ {
+  "external_id": "b3:row-237",
+  "title": "Library of Congress Junior Fellows Program",
+  "unpublish": "Open only to college students and recent graduates."
+ },
+ {
+  "external_id": "b3:row-238",
+  "title": "Local police department teen academies (varies by city)",
+  "unpublish": "Not a specific program; it linked to a state government homepage."
+ },
+ {
+  "external_id": "b3:row-239",
+  "title": "Los Alamos National Laboratory High School Internships",
+  "verified": true,
+  "set": {
+   "eligibility": "New Mexico high-school students who are at least 16 with a 2.75+ GPA; some sessions require senior status. A drug test is required.",
+   "cost": "Award",
+   "cost_note": "Paid internship",
+   "format": "In person",
+   "location": "Los Alamos, NM",
+   "commitment": "Flexible",
+   "commitment_note": "Spring, summer and fall sessions",
+   "deadline_note": "Each session has its own window (for example, spring 2026 applications ran Dec 1 – Feb 13)"
+  }
+ },
+ {
+  "external_id": "b3:row-240",
+  "title": "Microsoft TEALS Program (student side)",
+  "unpublish": "A volunteer-teacher program for schools, not an opportunity students apply to."
+ },
+ {
+  "external_id": "b3:row-241",
+  "title": "Morgan Stanley Sophomore/High School Programs",
+  "unpublish": "Not a specific program, and the linked page no longer exists."
+ },
+ {
+  "external_id": "b3:row-242",
+  "title": "NASA Office of STEM Engagement Internships",
+  "verified": true,
+  "set": {
+   "eligibility": "U.S. citizens at least 16 years old, enrolled in high school or college, with at least a 3.0 GPA.",
+   "cost": "Varies",
+   "cost_note": "Most internships are paid; some are unpaid",
+   "format": "Hybrid",
+   "location": "NASA centers across the U.S., plus some virtual projects",
+   "commitment": "Flexible",
+   "commitment_note": "Spring, summer and fall sessions",
+   "deadline_date": "2027-02-26",
+   "deadline_note": "Summer 2027 applications close February 26, 2027 (fall 2027: May 21)",
+   "url": "https://www.nasa.gov/learning-resources/internship-programs/"
+  }
+ },
+ {
+  "external_id": "b3:row-246",
+  "title": "National Archives Volunteer and Internship Programs",
+  "verified": true,
+  "set": {
+   "eligibility": "U.S. citizens at least 16, currently enrolled in high school or college (or graduated in the last three years), in good academic standing. A background check is required.",
+   "cost": "Varies",
+   "cost_note": "Unpaid; can count for school credit",
+   "format": "In person",
+   "location": "National Archives facilities across the U.S.",
+   "commitment": "Flexible",
+   "commitment_note": "10–12 weeks, 10–40 hours a week (at least 100 hours)",
+   "deadline_note": "Each internship posting lists its own deadline",
+   "url": "https://www.archives.gov/careers/internships/about"
+  }
+ },
+ {
+  "external_id": "b3:row-247",
+  "title": "Oak Ridge National Laboratory High School Internships",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "The Next Generation STEM Internship (NGSI): STEM projects alongside ORNL research and professional staff.",
+   "eligibility": "Rising juniors, seniors and recent graduates at high schools in nearby East Tennessee counties (including Anderson, Blount, Knox, Loudon, Roane and Sevier), at least 16 with a 3.0+ GPA.",
+   "cost_note": "Contact ORNL's education office about pay",
+   "format": "In person",
+   "location": "Oak Ridge, TN",
+   "commitment": "Flexible",
+   "commitment_note": "Summer and fall sessions",
+   "deadline_note": "Apply through Zintellect; each session has its own deadline",
+   "url": "https://www.ornl.gov/education"
+  }
+ },
+ {
+  "external_id": "b3:row-248",
+  "title": "Public Defender Office Job Shadowing (varies by county)",
+  "unpublish": "Not a specific program; it linked to a national association's homepage."
+ },
+ {
+  "external_id": "b3:row-249",
+  "title": "Sandia National Laboratories Student Internships",
+  "verified": true,
+  "set": {
+   "eligibility": "Full-time high-school or college students at least 16. High-school applicants need a 3.0 GPA for technical roles (2.5 for clerical or laborer roles).",
+   "cost": "Award",
+   "cost_note": "Paid internships",
+   "format": "In person",
+   "location": "Albuquerque, NM and Livermore, CA",
+   "commitment": "Flexible",
+   "commitment_note": "Mostly summer internships",
+   "deadline_note": "Openings are posted on a rolling basis",
+   "url": "https://www.sandia.gov/careers/careers/students-and-postdocs/internships-co-ops/"
+  }
+ },
+ {
+  "external_id": "b3:row-250",
+  "title": "Sloan-Kettering Institute Summer Research Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "eligibility": "High-school juniors living within 25 miles of MSK's Manhattan campus (NY, NJ or CT), at least 14, with a 3.5 science GPA and authorization to work in the U.S.",
+   "cost": "Free",
+   "cost_note": "Free to attend",
+   "format": "In person",
+   "location": "New York, NY",
+   "commitment": "Summer",
+   "commitment_note": "Eight weeks onsite, full program required",
+   "deadline_note": "Check MSK's Summer Student Program page for this year's deadline; two recommendation letters required",
+   "url": "https://www.mskcc.org/education-training/summer-student"
+  }
+ },
+ {
+  "external_id": "b3:row-251",
+  "title": "Smithsonian Institution Internships (high school pathways)",
+  "verified": true,
+  "set": {
+   "eligibility": "Mostly for D.C.-area high-school students: the Natural History museum's internship takes rising sophomores to seniors ages 14–19, and the Secretary's Youth Advisory Council takes juniors and seniors ages 16–18 (including some national members).",
+   "cost": "Varies",
+   "cost_note": "Varies by program",
+   "format": "In person",
+   "location": "Washington, D.C. area",
+   "commitment": "Flexible",
+   "commitment_note": "Summer internships (June–August) or school-year council meetings",
+   "deadline_note": "Apply through the Smithsonian's SOLAA portal; deadlines vary by program",
+   "url": "https://www.si.edu/youth-programs"
+  }
+ },
+ {
+  "external_id": "b3:row-252",
+  "title": "Sports Illustrated Kids / Youth Journalism Programs",
+  "unpublish": "Not a specific program; it linked to a general kids' news site."
+ },
+ {
+  "external_id": "b3:row-254",
+  "title": "Verizon Innovative Learning",
+  "unpublish": "A school-wide program that schools join; students can't apply."
+ },
+ {
+  "external_id": "b3:row-256",
+  "title": "Wharton Global Youth Program: Moneyball Academy",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "summary": "Three-week summer program in sports analytics at the Wharton School: statistics, data and how teams make decisions.",
+   "eligibility": "Students in grades 10–11 with a strong math background and an interest in sports; selective (about 75 students). International applicants welcome.",
+   "cost": "Fee",
+   "cost_note": "About $10,600 (2025) plus a $100 application fee",
+   "format": "In person",
+   "location": "Philadelphia, PA",
+   "commitment": "Summer",
+   "commitment_note": "Three weeks in July",
+   "deadline_note": "Check Wharton Global Youth for this year's application deadline",
+   "url": "https://globalyouth.wharton.upenn.edu/programs-courses/moneyball-academy/"
+  }
+ },
+ {
+  "external_id": "b3:row-257",
+  "title": "White House Internship Program",
+  "unpublish": "Requires applicants to be 18 and in or recently out of college."
+ },
+ {
+  "external_id": "b3:row-268",
+  "title": "National Park Service Seasonal Jobs",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "Most seasonal jobs require you to be 18 (and 18 to drive government vehicles). Ages 15–18 can look at the Youth Conservation Corps instead.",
+   "cost": "Award",
+   "cost_note": "Paid federal seasonal jobs",
+   "format": "In person",
+   "location": "National parks across the U.S.",
+   "commitment": "Summer",
+   "commitment_note": "Seasonal (mostly summer) positions",
+   "deadline_note": "Search USAJOBS for 'National Park Service' with Temporary work type; postings open months ahead",
+   "url": "https://www.usajobs.gov/"
+  }
+ },
+ {
+  "external_id": "b3:row-273",
+  "title": "US Department of Labor Youth Jobs Portal",
+  "unpublish": "A general resource page, not a specific opportunity."
+ },
+ {
+  "external_id": "b3:row-274",
+  "title": "USA Jobs Pathways Internship Program",
+  "verified": true,
+  "set": {
+   "eligibility": "Current students in an accredited high school, college or qualifying career and technical program, enrolled at least part-time; some postings require age 16+.",
+   "cost": "Award",
+   "cost_note": "Paid federal internships",
+   "format": "In person",
+   "location": "Federal agencies nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Varies by agency and posting",
+   "deadline_note": "Agencies post openings on USAJOBS year-round; each posting has its own deadline",
+   "url": "https://www.usajobs.gov/studentsandgrads"
+  }
+ },
+ {
+  "external_id": "b3:row-275",
+  "title": "American Bar Association Law Day Job Shadowing",
+  "unpublish": "Not a specific program; local events vary and the listing pointed to a general page."
+ },
+ {
+  "external_id": "b3:row-276",
+  "title": "American Medical Association Job Shadow Program",
+  "unpublish": "Not a specific program; it linked to the AMA homepage."
+ },
+ {
+  "external_id": "b3:row-277",
+  "title": "Chamber of Commerce Youth Job Shadow Day",
+  "unpublish": "Not a specific program; it linked to the national chamber's homepage."
+ },
+ {
+  "external_id": "b3:row-279",
+  "title": "MedEdits Job Shadow Directory",
+  "unpublish": "A paid admissions consulting company, not an opportunity."
+ },
+ {
+  "external_id": "b3:row-281",
+  "title": "Vault Job Shadowing Resources",
+  "unpublish": "A general career site, not a specific opportunity."
+ },
+ {
+  "external_id": "b3:row-282",
+  "title": "100 Black Men of America Mentoring Program",
+  "verified": true,
+  "set": {
+   "eligibility": "Youth ages 8–18 (and college students 18–21) served by one of 100+ local chapters.",
+   "cost": "Free",
+   "cost_note": "Free for youth",
+   "format": "In person",
+   "location": "Local chapters nationwide",
+   "commitment": "School year",
+   "commitment_note": "Cohort-based mentoring on education, careers, money, health and leadership",
+   "deadline_note": "Contact your local chapter to register"
+  }
+ },
+ {
+  "external_id": "b3:row-283",
+  "title": "Big Brothers Big Sisters",
+  "verified": true,
+  "set": {
+   "eligibility": "Young people ages 5 and up can be matched with a mentor; high-school students (usually freshmen and up) can mentor younger kids in school-based programs.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Local agencies nationwide",
+   "commitment": "School year",
+   "commitment_note": "About 1–2 hours a week for at least a school year",
+   "deadline_note": "Apply any time through your local agency"
+  }
+ },
+ {
+  "external_id": "b3:row-284",
+  "title": "Boys & Girls Clubs of America",
+  "verified": true,
+  "set": {
+   "eligibility": "Youth up to age 18; most clubs have teen programs for ages 13–18.",
+   "cost": "Varies",
+   "cost_note": "Low yearly dues set by each club (often $5–$50); financial help available",
+   "format": "In person",
+   "location": "Local clubs nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "After-school and summer programs",
+   "deadline_note": "Join your local club any time"
+  }
+ },
+ {
+  "external_id": "b3:row-285",
+  "title": "College Possible",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "eligibility": "Low-income high-school juniors at partner schools with at least a 2.0 GPA who want to attend a four-year college.",
+   "cost": "Free",
+   "cost_note": "Free for students and families",
+   "format": "In person",
+   "location": "Partner high schools in several states (including Minnesota, Oregon, Washington and Wisconsin)",
+   "commitment": "School year",
+   "commitment_note": "After-school sessions twice a week through junior and senior year",
+   "deadline_note": "Ask your school counselor whether your school partners with College Possible"
+  }
+ },
+ {
+  "external_id": "b3:row-286",
+  "title": "Everybody Wins! USA Mentoring and Literacy Program",
+  "unpublish": "An adult-volunteer program, and its website no longer exists."
+ },
+ {
+  "external_id": "b3:row-287",
+  "title": "LULAC National Educational Service Centers Mentoring",
+  "verified": true,
+  "set": {
+   "summary": "LULAC's education centers (LNESC) run free college-access programs such as Upward Bound, with tutoring, counseling, mentoring and help with applications and financial aid.",
+   "eligibility": "Middle- and high-school students, focused on low-income and first-generation students near an LNESC center.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "LNESC centers in cities across the U.S.",
+   "commitment": "School year",
+   "commitment_note": "Year-round academic support and college coaching",
+   "deadline_note": "Contact your nearest LNESC center about enrollment",
+   "url": "https://lnesc.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-288",
+  "title": "MENTOR: National Mentoring Resource Center",
+  "unpublish": "A national resource organization rather than a program students join."
+ },
+ {
+  "external_id": "b3:row-289",
+  "title": "National Urban League Youth Mentoring Programs",
+  "verified": true,
+  "set": {
+   "summary": "Project Ready: group mentoring from local Urban League affiliates focused on school success and college and career readiness.",
+   "eligibility": "Youth ages 11–17 served by a participating Urban League affiliate.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Participating Urban League affiliates",
+   "commitment": "School year",
+   "commitment_note": "Group mentoring and activities through the year",
+   "deadline_note": "Contact your local Urban League affiliate"
+  }
+ },
+ {
+  "external_id": "b3:row-290",
+  "title": "Posse Foundation",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school seniors nominated by their school or a community organization in a Posse city, with leadership and academic potential. Not need-based.",
+   "cost": "Award",
+   "cost_note": "Full-tuition scholarship at a partner college",
+   "format": "In person",
+   "location": "20+ cities including Atlanta, Boston, Chicago, Los Angeles, Miami, New York and D.C.",
+   "commitment": "One-off",
+   "commitment_note": "Nomination, then interviews in the fall of senior year",
+   "deadline_note": "Nominations are usually taken from spring of junior year to early August; ask your counselor",
+   "url": "https://possefoundation.org/recruiting-students/the-nomination-process"
+  }
+ },
+ {
+  "external_id": "b3:row-291",
+  "title": "Reach Out and Read (volunteer side)",
+  "unpublish": "No teen volunteer role could be confirmed."
+ },
+ {
+  "external_id": "b3:row-292",
+  "title": "Student Sponsor Partners",
+  "verified": true,
+  "set": {
+   "grades": [
+    9
+   ],
+   "eligibility": "New York City students entering ninth grade from underserved communities.",
+   "cost": "Varies",
+   "cost_note": "Scholarships to a partner private high school; families pay part of tuition",
+   "format": "In person",
+   "location": "New York, NY (23 partner high schools)",
+   "commitment": "School year",
+   "commitment_note": "Four years of high school with a one-on-one mentor, plus college and career programs",
+   "deadline_note": "Apply in 8th grade; contact SSP for this year's dates",
+   "url": "https://sspnyc.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-294",
+  "title": "American Museum of Natural History Science Research Mentoring Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "eligibility": "NYC 10th or 11th graders who attend an AMNH partner school or have done a previous AMNH program.",
+   "cost": "Award",
+   "cost_note": "$2,500 stipend on completion",
+   "format": "In person",
+   "location": "New York, NY",
+   "commitment": "School year",
+   "commitment_note": "Four-week summer institute, then a year-long research project with an AMNH scientist",
+   "deadline_note": "Check AMNH's teen programs page for this year's deadline"
+  }
+ },
+ {
+  "external_id": "b3:row-296",
+  "title": "Athena AI Research Program",
+  "unpublish": "Couldn't confirm the program on an official page."
+ },
+ {
+  "external_id": "b3:row-297",
+  "title": "Baylor College of Medicine Student Health Science Academy",
+  "unpublish": "The program page no longer exists; Baylor's health-science programs are magnet schools entered by lottery."
+ },
+ {
+  "external_id": "b3:row-298",
+  "title": "Boston Children's Hospital High School Research Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11,
+    12
+   ],
+   "summary": "Boston Children's SCOOP program: six weeks working in a pediatric hospital setting.",
+   "eligibility": "Rising high-school sophomores, juniors and seniors; very selective (about 10 spots).",
+   "cost_note": "Contact the hospital about pay",
+   "format": "In person",
+   "location": "Boston, MA",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks in July–August, about 24 hours a week",
+   "deadline_note": "Applications close in late February"
+  }
+ },
+ {
+  "external_id": "b3:row-299",
+  "title": "City of Hope High School Summer Internship Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11,
+    12
+   ],
+   "summary": "The Eugene and Ruth Roberts Summer Student Academy: 10 weeks of mentored biomedical research at City of Hope.",
+   "eligibility": "High-school students who are U.S. citizens or permanent residents, at least 16 by the start, who have taken biology and chemistry.",
+   "cost": "Award",
+   "cost_note": "No fee; about a $4,000 stipend",
+   "format": "In person",
+   "location": "Duarte, CA",
+   "commitment": "Summer",
+   "commitment_note": "About 10 weeks, early June to early August",
+   "deadline_note": "Applications usually close in March"
+  }
+ },
+ {
+  "external_id": "b3:row-301",
+  "title": "Cold Spring Harbor Laboratory DNA Learning Center Programs",
+  "verified": true,
+  "set": {
+   "eligibility": "Students from the summer after 5th grade through senior year; some advanced camps are for high-schoolers.",
+   "cost": "Fee",
+   "cost_note": "Advanced weeklong camps around $700; limited scholarships",
+   "format": "In person",
+   "location": "Cold Spring Harbor, NY (and NYC sites)",
+   "commitment": "Summer",
+   "commitment_note": "Weeklong day camps, 20–30 hours of lab work",
+   "deadline_note": "Register for each camp; spots fill up",
+   "url": "https://summercamps.dnalc.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-302",
+  "title": "Columbia University Science Honors Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11,
+    12
+   ],
+   "eligibility": "High-school students in grades 10–12 who pass the entrance exam.",
+   "cost": "Fee",
+   "cost_note": "About $900 tuition plus a $50 application fee; waivers available",
+   "format": "In person",
+   "location": "Columbia University, New York, NY",
+   "commitment": "School year",
+   "commitment_note": "Saturday mornings, September through May",
+   "deadline_note": "Applications are due in mid-April; entrance exam in late May or early June",
+   "url": "https://outreach.engineering.columbia.edu/SHP"
+  }
+ },
+ {
+  "external_id": "b3:row-303",
+  "title": "Fred Hutchinson Cancer Center Summer High School Internship Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "eligibility": "Students between 11th and 12th grade, at least 16, from backgrounds underrepresented in biomedical science, living in the Greater Seattle area.",
+   "cost": "Award",
+   "cost_note": "Paid stipend",
+   "format": "In person",
+   "location": "Seattle, WA",
+   "commitment": "Summer",
+   "commitment_note": "Eight weeks: two of lab training, six in a research group",
+   "deadline_note": "Applications close March 31",
+   "url": "https://www.fredhutch.org/en/education-training/high-school-students/summer-high-school-internship-program.html"
+  }
+ },
+ {
+  "external_id": "b3:row-304",
+  "title": "HHMI BioInteractive Student Research Resources",
+  "unpublish": "A library of teaching resources, not a program students apply to."
+ },
+ {
+  "external_id": "b3:row-305",
+  "title": "Horizon Academic Research Program",
+  "verified": true,
+  "set": {
+   "summary": "Selective online program where students write a 20–25 page independent research paper with a professor or PhD-level mentor.",
+   "eligibility": "High-school students in grades 9–12 worldwide, typically with an unweighted GPA of 3.67 or higher.",
+   "cost": "Fee",
+   "cost_note": "About $6,000+; need-based aid up to 100% for families earning under $75,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "Multi-week cohorts in summer, fall and winter",
+   "deadline_note": "Rolling admissions for each cohort",
+   "url": "https://horizonacademic.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-306",
+  "title": "MD Anderson Cancer Center High School Summer Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "The King Foundation High School Summer Program in Biomedical Sciences: a 10-week research project with an MD Anderson faculty member.",
+   "eligibility": "Current Texas high-school seniors who are 18 or older by the start of the program. Up to six students are chosen.",
+   "cost_note": "Contact MD Anderson about pay",
+   "format": "In person",
+   "location": "Houston, TX",
+   "commitment": "Summer",
+   "commitment_note": "10 weeks, weekdays 8 a.m.–5 p.m.",
+   "deadline_note": "Check the program page for this year's deadline",
+   "url": "https://www.mdanderson.org/education-training/degrees-programs/summer-research-programs/high-school-summer-program.html"
+  }
+ },
+ {
+  "external_id": "b3:row-307",
+  "title": "Massachusetts General Hospital High School Research Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "title": "MGH Youth Neurology Education & Research Program",
+   "summary": "Paid summer research internship in neurology at Mass General: a lab bootcamp, then six to eight weeks on an ongoing project with weekly seminars.",
+   "eligibility": "Rising high-school seniors and recent graduates who live or study in Massachusetts. Students underrepresented in neurology are encouraged to apply.",
+   "cost": "Award",
+   "cost_note": "Paid internship",
+   "format": "In person",
+   "location": "Boston, MA",
+   "commitment": "Summer",
+   "commitment_note": "Six to eight weeks, full time, late June to early August",
+   "deadline_note": "Applications open November 1 and close January 31",
+   "url": "https://www.massgeneral.org/neurology/education-and-training/youth-neurology-education-and-research-program"
+  }
+ },
+ {
+  "external_id": "b3:row-308",
+  "title": "Milken Institute High School Research Scholars",
+  "unpublish": "Couldn't confirm this program; the Milken Institute is a policy think tank."
+ },
+ {
+  "external_id": "b3:row-309",
+  "title": "New York University Applied Research Innovations in Science and Engineering (ARISE)",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Selective NYU Tandon research program placing students in one of 50+ NYU science and engineering labs.",
+   "eligibility": "Rising high-school juniors and seniors who live in NYC and attend an NYC public school.",
+   "cost": "Award",
+   "cost_note": "Free, with a stipend on completion",
+   "format": "Hybrid",
+   "location": "Brooklyn, NY",
+   "commitment": "Summer",
+   "commitment_note": "Four weeks of evening online workshops in June, then six weeks in a lab",
+   "deadline_note": "Applications usually close in late February"
+  }
+ },
+ {
+  "external_id": "b3:row-311",
+  "title": "Rockefeller University Summer Science Research Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Full-time, seven-week team research program: students design a question, run experiments and present at a final symposium.",
+   "eligibility": "High-school juniors and seniors who are at least 16 at the start of the program.",
+   "cost": "Free",
+   "cost_note": "Free; need-based stipends available",
+   "format": "In person",
+   "location": "New York, NY",
+   "commitment": "Summer",
+   "commitment_note": "Seven weeks, late June to early August",
+   "deadline_note": "Applications open in October and close in early January",
+   "url": "https://www.rockefeller.edu/outreach/ssrp/"
+  }
+ },
+ {
+  "external_id": "b3:row-312",
+  "title": "Simons Foundation Math for America Programs",
+  "unpublish": "Math for America serves teachers, not students."
+ },
+ {
+  "external_id": "b3:row-314",
+  "title": "St. Jude Children's Research Hospital High School Internship",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "High School Research Immersion Program: an eight-week paid internship in St. Jude labs in basic science, psychology, pharmaceutical science or data science.",
+   "eligibility": "Rising seniors at least 16 with a 3.0+ GPA from the Memphis area and nearby counties in Tennessee, Mississippi and Arkansas.",
+   "cost": "Award",
+   "cost_note": "$4,800 stipend",
+   "format": "In person",
+   "location": "Memphis, TN",
+   "commitment": "Summer",
+   "commitment_note": "Eight weeks, full time",
+   "deadline_note": "Check St. Jude's STEMM outreach page for this year's deadline",
+   "url": "https://www.stjude.org/research/comprehensive-cancer-center/education-training/stemm-education-and-outreach-program/high-school-program.html"
+  }
+ },
+ {
+  "external_id": "b3:row-317",
+  "title": "University of Pennsylvania Perelman School of Medicine Summer Research",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "title": "Penn Medicine Summer Program",
+   "summary": "Four-week pre-med program modeled on medical school: labs, simulations, CPR certification and live demonstrations taught by Penn Medicine faculty. Not a research placement.",
+   "eligibility": "Rising high-school juniors and seniors interested in medicine.",
+   "cost": "Fee",
+   "cost_note": "Over $7,000 tuition",
+   "format": "In person",
+   "location": "Philadelphia, PA",
+   "commitment": "Summer",
+   "commitment_note": "Four weeks starting in June",
+   "deadline_note": "Applications usually close March 1",
+   "url": "https://penntoday.upenn.edu/news/penn-medicine-summer-program"
+  }
+ },
+ {
+  "external_id": "b3:row-318",
+  "title": "Veritas AI Research Program",
+  "verified": true,
+  "set": {
+   "summary": "Online AI programs run by Harvard graduate students: a 10-week AI Scholars bootcamp and a 15-week one-on-one AI Fellowship research project.",
+   "eligibility": "High-school students; no prior AI experience needed for AI Scholars.",
+   "cost": "Fee",
+   "cost_note": "About $2,290 (Scholars) to $5,400 (Fellowship); need-based aid available",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "10–15 weeks, several cohorts a year",
+   "deadline_note": "Rolling admissions for each cohort"
+  }
+ },
+ {
+  "external_id": "b3:row-320",
+  "title": "Weill Cornell Medicine Travelers Summer Research Program",
+  "unpublish": "The Travelers program is for college students, and the listed site no longer exists."
+ },
+ {
+  "external_id": "b3:row-321",
+  "title": "AFSA National High School Essay Contest",
+  "verified": true,
+  "set": {
+   "summary": "Annual essay contest on U.S. diplomacy and foreign policy run by the American Foreign Service Association.",
+   "eligibility": "Students in grades 9–12 in the U.S. or its territories, or U.S. citizens and permanent residents at school abroad. Not open to children of Foreign Service members.",
+   "cost": "Award",
+   "cost_note": "$2,500 first prize; second place wins $1,250 and a diplomacy program scholarship",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One essay",
+   "deadline_note": "Entries are usually due in early March",
+   "url": "https://afsa.org/essay-contest"
+  }
+ },
+ {
+  "external_id": "b3:row-322",
+  "title": "AXA Achievement Community Scholarship (legacy)",
+  "unpublish": "The program has been discontinued."
+ },
+ {
+  "external_id": "b3:row-323",
+  "title": "Alabama Student Assistance Program",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-324",
+  "title": "Alaska Performance Scholarship",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Alaska's merit scholarship for graduates of Alaska high schools, worth up to $28,000 in total at eligible Alaska colleges and training programs.",
+   "eligibility": "Alaska residents graduating from an Alaska high school (public, private or home school) who complete the rigorous APS curriculum and meet a minimum GPA (2.5+) or qualifying test score.",
+   "cost": "Award",
+   "cost_note": "Up to $7,000 a year (Level 1, 3.5 GPA), $5,250 (Level 2) or $3,500 (Level 3)",
+   "format": "Online",
+   "location": "Alaska",
+   "commitment": "One-off",
+   "commitment_note": "No separate application: file the FAFSA and list an Alaska school",
+   "deadline_note": "File the FAFSA in your senior year; plan the APS curriculum from 9th grade",
+   "url": "https://acpe.alaska.gov/Funding-Solutions/Alaska-Performance-Scholarship"
+  }
+ },
+ {
+  "external_id": "b3:row-325",
+  "title": "American Chemical Society Scholars Program",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school seniors and college students who are African American, Hispanic/Latino or American Indian, U.S. citizens or permanent residents, with a 3.0+ GPA and plans to study chemistry, biochemistry, chemical engineering or a related field full time.",
+   "cost": "Award",
+   "cost_note": "Up to $5,000 a year, renewable, plus mentoring",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Application with transcript, recommendation and FAFSA",
+   "deadline_note": "Check ACS for this cycle's deadline"
+  }
+ },
+ {
+  "external_id": "b3:row-326",
+  "title": "American Indian College Fund Scholarships",
+  "verified": true,
+  "set": {
+   "summary": "The Full Circle Scholarship and others for American Indian and Alaska Native students at tribal and mainstream colleges.",
+   "eligibility": "High-school seniors in their last semester (and college students) who are enrolled members or descendants of a federally or state-recognized tribe, with a 2.0+ GPA.",
+   "cost": "Award",
+   "cost_note": "Awards vary, typically $2,000–$3,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One online application covers many scholarships",
+   "deadline_note": "Opens February 1; priority deadline May 31"
+  }
+ },
+ {
+  "external_id": "b3:row-327",
+  "title": "American Indian Science and Engineering Society Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "American Indian, Alaska Native, Native Hawaiian, Pacific Islander, First Nations and other Indigenous high-school seniors and college students pursuing STEM degrees. AISES membership (free for students) is required.",
+   "cost": "Award",
+   "cost_note": "Amounts vary by scholarship",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One application through the AISES portal",
+   "deadline_note": "Many scholarships close around May 31",
+   "url": "https://www.aises.org/students/scholarships"
+  }
+ },
+ {
+  "external_id": "b3:row-328",
+  "title": "American Institute of Architects Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Architects Foundation Diversity Advancement Scholarship",
+   "summary": "Multi-year scholarship from the AIA's Architects Foundation for students from underrepresented groups entering architecture school.",
+   "eligibility": "High-school seniors and college students from minority groups who are U.S. citizens or permanent residents entering or enrolled in a NAAB-accredited architecture program.",
+   "cost": "Award",
+   "cost_note": "$4,000 a year for up to five years ($20,000 total)",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_note": "Applications usually open in November and close around January 10",
+   "url": "https://architectsfoundation.org/category/scholarships/"
+  }
+ },
+ {
+  "external_id": "b3:row-329",
+  "title": "American Legion Auxiliary Scholarships",
+  "verified": true,
+  "set": {
+   "title": "American Legion Auxiliary Children of Warriors National Presidents' Scholarship",
+   "eligibility": "High-school seniors who are direct descendants of U.S. veterans from eligible service periods, with 50 hours of verified community service.",
+   "cost": "Award",
+   "cost_note": "Fifteen $5,000 scholarships",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Application with two recommendation letters",
+   "deadline_note": "Due March 1 each year",
+   "url": "https://legion-aux.org/scholarships/children-of-warriors"
+  }
+ },
+ {
+  "external_id": "b3:row-330",
+  "title": "American Legion Oratorical Contest",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school students under 20 who are U.S. citizens or permanent residents.",
+   "cost": "Award",
+   "cost_note": "National prizes of $25,000, $22,500 and $20,000; state winners get $2,000+",
+   "format": "In person",
+   "location": "Local, state and national rounds",
+   "commitment": "One-off",
+   "commitment_note": "Prepared speech on the Constitution, plus an assigned topic",
+   "deadline_note": "Local contests start in the fall; deadlines vary by state"
+  }
+ },
+ {
+  "external_id": "b3:row-331",
+  "title": "American Society of Civil Engineers Scholarships",
+  "unpublish": "ASCE scholarships are for college student members, not high-school students."
+ },
+ {
+  "external_id": "b3:row-332",
+  "title": "Anchor House / disability-focused scholarship programs (varies)",
+  "unpublish": "A broken link to a general list, not a specific opportunity."
+ },
+ {
+  "external_id": "b3:row-333",
+  "title": "Arizona Commission for Postsecondary Education Scholarships",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-334",
+  "title": "Arkansas Academic Challenge Scholarship",
+  "verified": true,
+  "set": {
+   "summary": "Arkansas's lottery-funded scholarship for residents attending Arkansas colleges.",
+   "eligibility": "Arkansas residents graduating from an Arkansas high school who complete the Smart Core curriculum and score at least 19 on the ACT (or equivalent), enrolling full time at an Arkansas college.",
+   "cost": "Award",
+   "cost_note": "At 4-year schools $1,000, $4,000, $4,000 then $5,000 by year; at 2-year schools $1,000 then $3,000",
+   "format": "Online",
+   "location": "Arkansas",
+   "commitment": "One-off",
+   "commitment_note": "Apply through YOUniversal (SAMS)",
+   "deadline_note": "Due July 1 each year",
+   "url": "https://sams.adhe.edu/Scholarship/Details/ACST"
+  }
+ },
+ {
+  "external_id": "b3:row-335",
+  "title": "Boeing STEM Education Scholarships",
+  "unpublish": "Boeing doesn't offer a scholarship students can apply to directly."
+ },
+ {
+  "external_id": "b3:row-336",
+  "title": "Buick Achievers Scholarship Program",
+  "unpublish": "The program has been discontinued."
+ },
+ {
+  "external_id": "b3:row-337",
+  "title": "Burger King McLamore Foundation Scholars Program",
+  "verified": true,
+  "set": {
+   "title": "Burger King Scholars Program",
+   "eligibility": "Graduating high-school seniors (including GED and homeschool) and college students in the U.S. with a 2.0+ GPA, enrolling full time. Work experience, activities, need and service count.",
+   "cost": "Award",
+   "cost_note": "$1,000 to $60,000; most awards are about $1,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application through Scholarship America",
+   "deadline_note": "Usually due December 15, or once 30,000 applications arrive",
+   "url": "https://scholarshipamerica.org/scholarship/burgerking/"
+  }
+ },
+ {
+  "external_id": "b3:row-338",
+  "title": "C-SPAN StudentCam",
+  "verified": true,
+  "set": {
+   "summary": "C-SPAN's national documentary competition. Students make a 5–6 minute film on a civics theme that uses C-SPAN footage and shows multiple viewpoints.",
+   "eligibility": "Students in grades 6–12, alone or in teams of up to three; high school is judged separately.",
+   "cost": "Award",
+   "cost_note": "$100,000 in prizes across 150 winners; $5,000 grand prize",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One 5–6 minute documentary",
+   "deadline_date": "2027-01-20",
+   "deadline_note": "Entries due January 20, 2027"
+  }
+ },
+ {
+  "external_id": "b3:row-339",
+  "title": "California Student Aid Commission (Cal Grant)",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Cal Grant",
+   "summary": "California's state grant for college: tuition and fees at California colleges, plus living-cost support for some students.",
+   "eligibility": "California residents graduating from high school with financial need and a qualifying GPA, attending an eligible California college.",
+   "cost": "Award",
+   "cost_note": "Covers tuition and fees at UC and CSU; set amounts at private and community colleges",
+   "format": "Online",
+   "location": "California",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA or CADAA; your school submits your GPA",
+   "deadline_note": "File the FAFSA or CADAA by the state deadline, usually April 2 of senior year",
+   "url": "https://www.csac.ca.gov/"
+  }
+ },
+ {
+  "external_id": "b3:row-340",
+  "title": "Cameron Impact Scholarship",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Four-year, full-tuition scholarship from the Bryan Cameron Education Foundation, awarded to 10–15 students a year.",
+   "eligibility": "High-school students in the U.S. with a 3.7+ GPA and a strong record of leadership, activities and community service.",
+   "cost": "Award",
+   "cost_note": "Full tuition, fees and books for four years at any accredited U.S. college",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application, two recommendations and a transcript",
+   "deadline_note": "Usually opens in spring of junior year; closes around May 1 or after 3,000 applications",
+   "url": "https://www.bryancameroneducationfoundation.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-341",
+  "title": "Colorado Department of Higher Education Financial Aid",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-342",
+  "title": "Comcast Leaders and Achievers Scholarship Program",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school seniors with a 3.0+ GPA who live in a Comcast service area, with strong community service and leadership, enrolling full time in college.",
+   "cost": "Award",
+   "cost_note": "One-time $2,500 scholarship",
+   "format": "Online",
+   "location": "Comcast service areas",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_note": "Applications usually open in the fall; check the program page",
+   "url": "https://corporate.comcast.com/stories/leaders-and-achievers-scholarships-now-open"
+  }
+ },
+ {
+  "external_id": "b3:row-343",
+  "title": "Connecticut Office of Higher Education Scholarships",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-344",
+  "title": "Coolidge Scholarship",
+  "verified": true,
+  "set": {
+   "summary": "Full-ride presidential scholarship covering tuition, room, board and expenses for four years at any accredited U.S. college.",
+   "eligibility": "High-school juniors (or homeschool equivalent) who are U.S. citizens or permanent residents, applying for college entry two falls later.",
+   "cost": "Award",
+   "cost_note": "Full tuition, room, board and expenses for four years",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Three essays, three short answers, transcript, résumé and two recommendations",
+   "deadline_date": "2026-12-01",
+   "deadline_note": "Due December 1 of junior year"
+  }
+ },
+ {
+  "external_id": "b3:row-345",
+  "title": "DAR American History Essay Contest",
+  "verified": true,
+  "set": {
+   "title": "DAR Patriots of the American Revolution High School Essay Contest",
+   "summary": "Essay contest on the people and ideas of the American Revolution, written from primary sources. Judged at chapter, state and national levels.",
+   "eligibility": "Students in grades 9–12 at public, private or parochial schools, or homeschooled.",
+   "cost": "Award",
+   "cost_note": "Prizes and recognition at each level",
+   "format": "Online",
+   "location": "Through local DAR chapters",
+   "commitment": "One-off",
+   "commitment_note": "One essay",
+   "deadline_note": "Set by your local DAR chapter, usually in the fall",
+   "url": "https://blog.dar.org/2021/08/18/patriots-american-revolution-dar-high-school-essay-contest"
+  }
+ },
+ {
+  "external_id": "b3:row-347",
+  "title": "Delaware Scholarship Incentive Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "Delaware's need-based state grant (ScIP) for residents going to college.",
+   "eligibility": "Delaware residents with financial need, mainly full-time students at Delaware colleges (or out of state for majors not offered in Delaware).",
+   "cost": "Award",
+   "cost_note": "Varies, up to the cost of tuition, fees and books; reapply each year",
+   "format": "Online",
+   "location": "Delaware",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA and the state application",
+   "deadline_note": "File by May 15",
+   "url": "https://education.delaware.gov/families/college-career-life/college-scholarship-financial-aid/scholarships-and-financial-aid-resources/dheo-scholarships"
+  }
+ },
+ {
+  "external_id": "b3:row-349",
+  "title": "Elie Wiesel Prize in Ethics Essay Contest",
+  "unpublish": "Open to college undergraduates only."
+ },
+ {
+  "external_id": "b3:row-350",
+  "title": "Elks National Foundation Legacy Awards",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school seniors who are a child, grandchild, stepchild or ward of a living Elks member who joined by the stated cutoff date.",
+   "cost": "Award",
+   "cost_note": "About 400 awards of $1,000–$1,500 a year for four years",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_date": "2027-02-01",
+   "deadline_note": "Opens September 1; closes February 1",
+   "url": "https://www.elks.org/scholars/scholarships/Legacy.cfm"
+  }
+ },
+ {
+  "external_id": "b3:row-351",
+  "title": "Florida Bright Futures Scholarship Program",
+  "verified": true,
+  "set": {
+   "eligibility": "Florida residents earning a standard Florida diploma who meet the GPA, test score and service-hour requirements and attend an eligible Florida college.",
+   "cost": "Award",
+   "cost_note": "100% of tuition and fees (Academic Scholars) or 75% (Medallion Scholars)",
+   "format": "Online",
+   "location": "Florida",
+   "commitment": "One-off",
+   "commitment_note": "Submit the Florida Financial Aid Application (FFAA)",
+   "deadline_note": "Submit the FFAA by August 31 of your graduation year",
+   "url": "https://www.floridastudentfinancialaidsg.org/SAPBFMAIN/SAPBFMAIN"
+  }
+ },
+ {
+  "external_id": "b3:row-352",
+  "title": "Foot Locker Scholar Athletes",
+  "unpublish": "The program's site is offline and current applications couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-353",
+  "title": "Foundation for a Better Life \"Pass It On\" Scholarship",
+  "unpublish": "Couldn't confirm this scholarship exists; the linked page is gone."
+ },
+ {
+  "external_id": "b3:row-355",
+  "title": "Georgia HOPE Scholarship Program",
+  "verified": true,
+  "set": {
+   "summary": "Georgia's lottery-funded HOPE Scholarship pays part of tuition at Georgia colleges. Top students can qualify for the Zell Miller Scholarship, which covers full tuition.",
+   "eligibility": "Georgia residents graduating from an eligible high school with at least a 3.0 HOPE GPA. Zell Miller requires a 3.7 GPA plus a 1200 SAT or 26 ACT.",
+   "cost": "Award",
+   "cost_note": "Part of tuition (HOPE) or full tuition (Zell Miller) at Georgia public colleges; set amounts at private colleges",
+   "format": "Online",
+   "location": "Georgia",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA or the GSFAPP on GAfutures",
+   "deadline_note": "Apply in your senior year; no fixed deadline before enrollment",
+   "url": "https://gafutures.org/hope-state-aid-programs/hope-zell-miller-scholarships/hope-scholarship/"
+  }
+ },
+ {
+  "external_id": "b3:row-356",
+  "title": "Girl Scout Gold Award National Scholarships",
+  "unpublish": "Girl Scouts USA links to a scholarship search rather than offering a scholarship itself."
+ },
+ {
+  "external_id": "b3:row-359",
+  "title": "Hawaii B Plus Scholarship Program",
+  "unpublish": "The program's site is offline and the program couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-362",
+  "title": "Hispanic Scholarship Fund",
+  "verified": true,
+  "set": {
+   "summary": "The HSF Scholar Program: scholarships, mentoring and career support for students of Hispanic heritage.",
+   "eligibility": "High-school seniors with a 3.0+ GPA (2.5 in college) of Hispanic heritage who are U.S. citizens, permanent residents or DACA recipients, enrolling full time at a four-year nonprofit college. FAFSA or state aid form required.",
+   "cost": "Award",
+   "cost_note": "$500–$5,000, based on need",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_date": "2027-02-15",
+   "deadline_note": "Due February 15",
+   "url": "https://www.hsf.net/scholarship"
+  }
+ },
+ {
+  "external_id": "b3:row-363",
+  "title": "Horatio Alger Association Scholarship",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "eligibility": "High-school juniors who are U.S. citizens with a 2.0+ GPA, family income of $65,000 or less, service involvement and a record of overcoming adversity, planning a bachelor's degree.",
+   "cost": "Award",
+   "cost_note": "105 National Scholarships of $25,000; state awards also available",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application in junior year",
+   "deadline_date": "2027-03-01",
+   "deadline_note": "Opens December 1; closes March 1"
+  }
+ },
+ {
+  "external_id": "b3:row-364",
+  "title": "Idaho Opportunity Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "Idaho residents graduating from an Idaho high school or homeschool (or earning an Idaho GED) with a 2.7+ GPA and financial need, attending an Idaho college.",
+   "cost": "Award",
+   "cost_note": "Up to $3,500 a year, renewable for four years",
+   "format": "Online",
+   "location": "Idaho",
+   "commitment": "One-off",
+   "commitment_note": "FAFSA plus the state application",
+   "deadline_note": "File the FAFSA and the application by March 1",
+   "url": "https://boardofed.idaho.gov/scholarships/idaho-opportunity-scholarship/"
+  }
+ },
+ {
+  "external_id": "b3:row-365",
+  "title": "Illinois Student Assistance Commission (ISAC) Grants",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Illinois MAP Grant",
+   "summary": "Illinois's need-based Monetary Award Program grant for residents attending approved Illinois colleges. It doesn't need to be repaid.",
+   "eligibility": "Illinois residents with financial need who are U.S. citizens, eligible noncitizens or RISE Act-eligible undocumented students, attending an approved Illinois college.",
+   "cost": "Award",
+   "cost_note": "Up to $8,400 a year",
+   "format": "Online",
+   "location": "Illinois",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA (or the Alternative Application) and list an Illinois college",
+   "deadline_note": "File as early as possible after it opens; awards go out until funds run out",
+   "url": "https://isac.org/mapgrant"
+  }
+ },
+ {
+  "external_id": "b3:row-366",
+  "title": "Indiana 21st Century Scholars Program",
+  "verified": true,
+  "set": {
+   "eligibility": "Indiana students who qualify for free or reduced-price lunch in 7th or 8th grade (enrolled automatically), who sign the Scholar Pledge and complete the Scholar Success Program in high school.",
+   "cost": "Award",
+   "cost_note": "Up to 100% of tuition at eligible Indiana colleges",
+   "format": "Online",
+   "location": "Indiana",
+   "commitment": "School year",
+   "commitment_note": "Complete 12 Scholar Success activities through high school",
+   "deadline_note": "Check enrollment on ScholarTrack; file the FAFSA in senior year",
+   "url": "https://scholars.in.gov/"
+  }
+ },
+ {
+  "external_id": "b3:row-367",
+  "title": "Institute of Electrical and Electronics Engineers (IEEE) Scholarships",
+  "unpublish": "IEEE's pre-university page offers teaching resources, not a high-school scholarship."
+ },
+ {
+  "external_id": "b3:row-368",
+  "title": "Iowa College Student Aid Commission Grants",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-369",
+  "title": "John Locke Institute Essay Competition",
+  "verified": true,
+  "set": {
+   "summary": "The Global Essay Prize: essays of up to 2,000 words answering set questions in philosophy, politics, economics, history, psychology, theology and law.",
+   "eligibility": "Students worldwide aged 18 or under (14 or under for the Junior Prize).",
+   "cost": "Award",
+   "cost_note": "Free to enter; category winners get a $5,000 scholarship toward John Locke Institute programs",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One essay",
+   "deadline_note": "Register February–March; essays due by May 31"
+  }
+ },
+ {
+  "external_id": "b3:row-370",
+  "title": "Kansas Board of Regents State Scholarship",
+  "verified": true,
+  "set": {
+   "summary": "Need-based scholarship for students designated Kansas State Scholars in their senior year.",
+   "eligibility": "Kansas residents designated as State Scholars in senior year (based on curriculum, GPA and test scores), enrolling full time at a Kansas college.",
+   "cost": "Award",
+   "cost_note": "Up to $1,000 a year, renewable for four years",
+   "format": "Online",
+   "location": "Kansas",
+   "commitment": "One-off",
+   "commitment_note": "FAFSA plus the State of Kansas Student Aid Application",
+   "deadline_note": "Apply by May 1; FAFSA priority date April 1",
+   "url": "https://www.kansasregents.org/students/student_financial_aid/scholarships_and_grants"
+  }
+ },
+ {
+  "external_id": "b3:row-371",
+  "title": "Kentucky Higher Education Assistance Authority (KEES)",
+  "verified": true,
+  "set": {
+   "title": "Kentucky Educational Excellence Scholarship (KEES)",
+   "summary": "Kentucky students earn KEES money for each year of high school with a 2.5+ GPA, plus a bonus for ACT or SAT scores, to use at Kentucky colleges.",
+   "eligibility": "Students at certified Kentucky high schools who earn at least a 2.5 GPA in a school year.",
+   "cost": "Award",
+   "cost_note": "$125–$500 per high-school year, plus up to $500 for ACT/SAT; up to $2,500 a year of college",
+   "format": "Online",
+   "location": "Kentucky",
+   "commitment": "School year",
+   "commitment_note": "Earned automatically through grades each year",
+   "deadline_note": "No application; your school reports grades",
+   "url": "https://www.kheaa.com/website/kheaa/kees"
+  }
+ },
+ {
+  "external_id": "b3:row-372",
+  "title": "Letters About Literature",
+  "unpublish": "The Library of Congress has ended this contest."
+ },
+ {
+  "external_id": "b3:row-373",
+  "title": "Lockheed Martin STEM Scholarships",
+  "verified": true,
+  "set": {
+   "title": "Lockheed Martin STEM Scholarship",
+   "summary": "About 200 scholarships a year for students heading into engineering, computer science, math or physics, with the chance of a paid Lockheed Martin internship.",
+   "eligibility": "High-school seniors and college students who are U.S. citizens with a 2.5+ GPA and financial need, majoring in aerospace, computer, electrical or industrial engineering, computer science, math or physics.",
+   "cost": "Award",
+   "cost_note": "$10,000, renewable",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application through Scholarship America",
+   "deadline_note": "Usually due in early March"
+  }
+ },
+ {
+  "external_id": "b3:row-374",
+  "title": "Loran Scholars Award",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "Canada's largest undergraduate award for character, service and leadership: tuition, a living stipend, mentoring and funded summer experiences.",
+   "eligibility": "Canadian citizens and permanent residents in their final year of high school (or CEGEP in Quebec). Not open to U.S. students.",
+   "cost": "Award",
+   "cost_note": "Valued at up to $100,000 CAD over four years",
+   "format": "Online",
+   "location": "Canada",
+   "commitment": "One-off",
+   "commitment_note": "Online application, then interviews",
+   "deadline_note": "Due October 15 at noon ET"
+  }
+ },
+ {
+  "external_id": "b3:row-375",
+  "title": "Louisiana TOPS (Taylor Opportunity Program for Students)",
+  "verified": true,
+  "set": {
+   "eligibility": "Louisiana residents who complete the TOPS core curriculum. The Opportunity award needs a 2.5 core GPA and a 20 ACT, with higher tiers for stronger records.",
+   "cost": "Award",
+   "cost_note": "Covers a set tuition amount at Louisiana public colleges (similar amounts at private ones)",
+   "format": "Online",
+   "location": "Louisiana",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA (or the state's alternative application)",
+   "deadline_note": "File by July 1 after graduation",
+   "url": "https://mylosfa.la.gov/students-parents/scholarships-grants/tops/"
+  }
+ },
+ {
+  "external_id": "b3:row-376",
+  "title": "Maine State Grant Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "Maine residents with financial need attending an eligible college as undergraduates.",
+   "cost": "Award",
+   "cost_note": "Up to $2,500 full time ($1,250 part time)",
+   "format": "Online",
+   "location": "Maine",
+   "commitment": "One-off",
+   "commitment_note": "The FAFSA is the application",
+   "deadline_note": "File the FAFSA by May 1",
+   "url": "https://www.famemaine.com/maine_grants_loans/state-of-maine-grant-program"
+  }
+ },
+ {
+  "external_id": "b3:row-377",
+  "title": "Maryland Higher Education Commission Scholarships",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-378",
+  "title": "Massachusetts Office of Student Financial Assistance (OSFA) Grants",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-379",
+  "title": "Michigan Achievement Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "Michigan high-school graduates (class of 2023 and later) who are Michigan residents with a Student Aid Index of $30,000 or less, enrolling full time within 15 months of graduation.",
+   "cost": "Award",
+   "cost_note": "Up to $5,500 a year at public universities, $4,000 at private colleges, $2,750 at community colleges",
+   "format": "Online",
+   "location": "Michigan",
+   "commitment": "One-off",
+   "commitment_note": "No separate application: file the FAFSA",
+   "deadline_note": "File the FAFSA in your senior year",
+   "url": "https://www.michigan.gov/mistudentaid/programs/michigan-achievement-scholarship"
+  }
+ },
+ {
+  "external_id": "b3:row-380",
+  "title": "Minnesota Office of Higher Education State Grant",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Minnesota State Grant",
+   "summary": "Need-based grant for students from low- and moderate-income families at Minnesota colleges.",
+   "eligibility": "Minnesota residents who have finished high school, are at least 17, qualify for aid through the FAFSA and enroll at an eligible Minnesota college.",
+   "cost": "Award",
+   "cost_note": "Varies with need; funding is limited",
+   "format": "Online",
+   "location": "Minnesota",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA (or the Minnesota Dream Act application)",
+   "deadline_note": "File early; the state sets a deadline each year",
+   "url": "https://www.ohe.state.mn.us/mPg.cfm?pageID=138"
+  }
+ },
+ {
+  "external_id": "b3:row-381",
+  "title": "Mississippi Office of Student Financial Aid Grants",
+  "unpublish": "A broken link to a state agency, not a single program."
+ },
+ {
+  "external_id": "b3:row-382",
+  "title": "Missouri Department of Higher Education Access Missouri Grant",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Access Missouri Grant",
+   "eligibility": "Missouri residents with financial need attending an eligible Missouri college.",
+   "cost": "Award",
+   "cost_note": "Up to $2,850 a year at four-year and private schools; $1,300 at public two-year schools",
+   "format": "Online",
+   "location": "Missouri",
+   "commitment": "One-off",
+   "commitment_note": "The FAFSA is the application",
+   "deadline_note": "File the FAFSA by February 1 for a guaranteed award; final deadline April 1",
+   "url": "https://dhewd.mo.gov/ppc/grants/accessmo.php"
+  }
+ },
+ {
+  "external_id": "b3:row-383",
+  "title": "Montana University System Honor Scholarship",
+  "verified": true,
+  "set": {
+   "summary": "Four-year tuition waiver for top graduates of Montana high schools attending a Montana University System campus. About 200 are awarded each year.",
+   "eligibility": "U.S. citizens graduating from an accredited Montana high school (enrolled there for at least three years) with a 3.4+ GPA who complete the regents' core curriculum. Ranked by GPA and ACT/SAT.",
+   "cost": "Award",
+   "cost_note": "Tuition waiver at Montana University System campuses",
+   "format": "Online",
+   "location": "Montana",
+   "commitment": "One-off",
+   "commitment_note": "Online application in senior year",
+   "deadline_note": "Due March 15",
+   "url": "https://mus.edu/Prepare/Pay/Scholarships/"
+  }
+ },
+ {
+  "external_id": "b3:row-384",
+  "title": "NCAA Youth Education Through Sports (YES) Clinics",
+  "unpublish": "These are occasional local clinics, not something students can apply to through this link."
+ },
+ {
+  "external_id": "b3:row-385",
+  "title": "NCTE Achievement Awards in Writing",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "summary": "National writing recognition: each student submits a timed on-demand piece and a best-work sample.",
+   "eligibility": "10th and 11th graders nominated by their school's English teachers.",
+   "cost": "Free",
+   "cost_note": "Free to enter; winners get national recognition",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Two writing samples",
+   "deadline_note": "Schools nominate students in the fall; ask your English teacher",
+   "url": "https://ncte.org/awards/achievement-awards-in-writing/"
+  }
+ },
+ {
+  "external_id": "b3:row-386",
+  "title": "National Beta Club Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "High-school seniors who are active National Beta Club members. GPA, test scores, Beta involvement, service and leadership are considered.",
+   "cost": "Award",
+   "cost_note": "250+ awards from $1,000 to $20,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application with transcript and résumé",
+   "deadline_note": "Usually due in mid-January of senior year",
+   "url": "https://www.betaclub.org/scholarships"
+  }
+ },
+ {
+  "external_id": "b3:row-387",
+  "title": "National Federation of the Blind Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "Legally blind students who are 18 by July, live in the U.S. or Puerto Rico and are starting or continuing full-time college. Winners attend the NFB National Convention.",
+   "cost": "Award",
+   "cost_note": "30 national scholarships from $3,000 to $12,000, plus convention costs",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application; winners attend the July convention",
+   "deadline_note": "Opens December 1; due March 31"
+  }
+ },
+ {
+  "external_id": "b3:row-388",
+  "title": "National GEM Consortium Fellowship",
+  "unpublish": "A graduate fellowship, not open to high-school students."
+ },
+ {
+  "external_id": "b3:row-389",
+  "title": "National Honor Society Scholarship",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "High-school seniors who are active National Honor Society members in good standing, planning to attend a U.S. college. Judged on scholarship, service, leadership and character.",
+   "cost": "Award",
+   "cost_note": "About 600 awards totaling $2 million, from about $3,200 to $25,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_note": "Opens in September; usually due in November"
+  }
+ },
+ {
+  "external_id": "b3:row-390",
+  "title": "National Merit Scholarship Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "summary": "Academic competition entered by taking the PSAT/NMSQT in junior year. Top scorers become Semifinalists, then can advance to Finalist and compete for Merit Scholarships.",
+   "eligibility": "U.S. high-school students who take the PSAT/NMSQT in the required year (usually junior year) and meet the program's requirements.",
+   "cost": "Award",
+   "cost_note": "$2,500 National Merit Scholarships, plus corporate- and college-sponsored awards",
+   "format": "In person",
+   "location": "At your high school (PSAT/NMSQT)",
+   "commitment": "One-off",
+   "commitment_note": "Take the PSAT/NMSQT in October; Semifinalists apply in the fall of senior year",
+   "deadline_note": "Register for the PSAT/NMSQT through your school in the fall of junior year"
+  }
+ },
+ {
+  "external_id": "b3:row-391",
+  "title": "National PTA Reflections Arts Program",
+  "verified": true,
+  "set": {
+   "summary": "National arts program built around a yearly theme, in dance choreography, film, literature, music composition, photography and visual arts. Entries go from local PTAs up to the national level.",
+   "eligibility": "Students in pre-K through grade 12 at a school with a participating PTA.",
+   "cost": "Free",
+   "cost_note": "Free; national winners receive awards and recognition",
+   "format": "Online",
+   "location": "Through your school's PTA",
+   "commitment": "One-off",
+   "commitment_note": "One original artwork per category",
+   "deadline_note": "Set by your local PTA, usually in the fall"
+  }
+ },
+ {
+  "external_id": "b3:row-392",
+  "title": "National Rifle Association Youth Education Summit",
+  "unpublish": "The program's site is offline and current dates couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-393",
+  "title": "National Science Teaching Association Awards Program",
+  "unpublish": "A collection of competitions listed separately, not a single opportunity."
+ },
+ {
+  "external_id": "b3:row-394",
+  "title": "National Society of Black Engineers Pre-College Initiative Scholarships",
+  "unpublish": "Couldn't confirm a current pre-college scholarship on NSBE's site."
+ },
+ {
+  "external_id": "b3:row-395",
+  "title": "National Society of Professional Engineers Scholarships",
+  "unpublish": "NSPE's student scholarships are for college students."
+ },
+ {
+  "external_id": "b3:row-396",
+  "title": "National Speech and Debate Association Scholarships",
+  "verified": true,
+  "set": {
+   "summary": "College scholarships for NSDA members who reach top rounds or win events at the National Speech & Debate Tournament.",
+   "eligibility": "High-school NSDA members who compete at the national tournament.",
+   "cost": "Award",
+   "cost_note": "Up to $10,000 for national champions; smaller awards for finalists",
+   "format": "In person",
+   "location": "National tournament (location changes yearly)",
+   "commitment": "School year",
+   "commitment_note": "Qualify through your district tournament during the season",
+   "deadline_note": "Qualify at your district tournament in the spring",
+   "url": "https://www.speechanddebate.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-397",
+  "title": "Nebraska Opportunity Grant",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "Nebraska residents with high financial need (based on the FAFSA) attending a Nebraska college.",
+   "cost": "Award",
+   "cost_note": "Up to about $4,000 a year, depending on funding",
+   "format": "Online",
+   "location": "Nebraska",
+   "commitment": "One-off",
+   "commitment_note": "The FAFSA is the application",
+   "deadline_note": "File the FAFSA early; funds are limited"
+  }
+ },
+ {
+  "external_id": "b3:row-398",
+  "title": "Nevada Governor Guinn Millennium Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "Nevada high-school graduates who lived in Nevada for at least two high-school years, completed the required core courses and earned a 3.25 GPA.",
+   "cost": "Award",
+   "cost_note": "Up to $10,000 total, paid per credit ($40–$80 a credit by school type)",
+   "format": "Online",
+   "location": "Nevada",
+   "commitment": "One-off",
+   "commitment_note": "Awarded automatically to eligible graduates",
+   "deadline_note": "No application; use it within six years of graduation",
+   "url": "https://nvigate.gov/programs/governor-guinn-millennium-scholarship/"
+  }
+ },
+ {
+  "external_id": "b3:row-399",
+  "title": "New Hampshire Charitable Foundation Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "One application covers many New Hampshire scholarship funds, including the Statewide Student Aid Program.",
+   "eligibility": "New Hampshire students, generally 17–23, enrolling in a four-year degree program (some funds cover other programs), with financial need.",
+   "cost": "Award",
+   "cost_note": "$250 to $10,000, averaging about $4,600",
+   "format": "Online",
+   "location": "New Hampshire",
+   "commitment": "One-off",
+   "commitment_note": "Application, transcript, essay, two recommendations and FAFSA",
+   "deadline_note": "Check the foundation's page for this year's deadline",
+   "url": "https://www.nhcf.org/scholarships"
+  }
+ },
+ {
+  "external_id": "b3:row-400",
+  "title": "New Jersey HESAA State Scholarships and Grants",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-401",
+  "title": "New Mexico Legislative Lottery Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "New Mexico residents who graduate from a New Mexico high school (or homeschool or equivalency) and are U.S. citizens or permanent residents, enrolling full time at a New Mexico public college within 16 months.",
+   "cost": "Award",
+   "cost_note": "Pays tuition at New Mexico public colleges (fees covered by the Opportunity Scholarship)",
+   "format": "Online",
+   "location": "New Mexico",
+   "commitment": "One-off",
+   "commitment_note": "Awarded through your college; keep a 2.5 GPA and full-time credits",
+   "deadline_note": "Enroll within 16 months of graduation; file the FAFSA"
+  }
+ },
+ {
+  "external_id": "b3:row-402",
+  "title": "New York State Higher Education Services Corporation (HESC) Scholarships",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-403",
+  "title": "North Carolina State Education Assistance Authority Grants",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-404",
+  "title": "North Dakota Scholars Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Tuition scholarship for North Dakota's top ACT and SAT scorers who attend a North Dakota college.",
+   "eligibility": "North Dakota students who score in the top tier of state test-takers (about a 30+ ACT composite or SAT equivalent) by July 1 after junior year.",
+   "cost": "Award",
+   "cost_note": "Up to full undergraduate tuition at a North Dakota college",
+   "format": "Online",
+   "location": "North Dakota",
+   "commitment": "One-off",
+   "commitment_note": "No separate application; selected from test scores",
+   "deadline_note": "Take the ACT or SAT before July 1 after junior year",
+   "url": "https://ndus.edu/nd-scholars-program"
+  }
+ },
+ {
+  "external_id": "b3:row-405",
+  "title": "Northrop Grumman Foundation STEM Scholarships",
+  "unpublish": "Northrop Grumman doesn't offer a scholarship students can apply to directly."
+ },
+ {
+  "external_id": "b3:row-406",
+  "title": "Ohio Department of Higher Education Scholarships",
+  "unpublish": "A broken link to a state agency, not a single program."
+ },
+ {
+  "external_id": "b3:row-407",
+  "title": "Oklahoma's Promise (Oklahoma Higher Learning Access Program)",
+  "verified": true,
+  "set": {
+   "eligibility": "Oklahoma residents in grades 8–12 whose family income is $60,000 or less (higher limits for larger families), who complete the required courses with a 2.5 GPA and good conduct.",
+   "cost": "Award",
+   "cost_note": "Covers tuition at Oklahoma public colleges (part of tuition at private ones)",
+   "format": "Online",
+   "location": "Oklahoma",
+   "commitment": "School year",
+   "commitment_note": "Keep up grades, courses and conduct through high school",
+   "deadline_note": "Apply in 8th–11th grade by June 30, or by December 31 of senior year"
+  }
+ },
+ {
+  "external_id": "b3:row-408",
+  "title": "Optimist International Essay Contest",
+  "verified": true,
+  "set": {
+   "summary": "Yearly themed essay contest entered through a local Optimist Club, with scholarships at the district level.",
+   "eligibility": "Students under 19 as of October 1 who haven't finished high school.",
+   "cost": "Award",
+   "cost_note": "$2,500 district scholarships",
+   "format": "Online",
+   "location": "Through local Optimist Clubs",
+   "commitment": "One-off",
+   "commitment_note": "One essay on the year's topic",
+   "deadline_note": "Set by your local club; district entries are usually due in late February",
+   "url": "https://www.optimist.org/member/scholarships1.cfm"
+  }
+ },
+ {
+  "external_id": "b3:row-409",
+  "title": "Optimist International Oratorical Contest",
+  "verified": true,
+  "set": {
+   "summary": "Speech contest on a yearly topic, judged at club and district levels, with a world championship.",
+   "eligibility": "Students under 19 as of October 1 who haven't finished high school.",
+   "cost": "Award",
+   "cost_note": "District prizes of $2,500, $1,500 and $1,000; up to $22,500 at the world level",
+   "format": "In person",
+   "location": "Through local Optimist Clubs",
+   "commitment": "One-off",
+   "commitment_note": "A 4–5 minute speech",
+   "deadline_note": "Club contests are usually held in winter and spring",
+   "url": "https://www.optimist.org/member/scholarships1.cfm"
+  }
+ },
+ {
+  "external_id": "b3:row-410",
+  "title": "Oregon Opportunity Grant",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "eligibility": "Oregon residents with financial need who are U.S. citizens or eligible noncitizens, enrolled at least half time in a first associate or bachelor's degree at an eligible Oregon college.",
+   "cost": "Award",
+   "cost_note": "Up to about $4,320 at community colleges and $8,352 at four-year schools (2026–27)",
+   "format": "Online",
+   "location": "Oregon",
+   "commitment": "One-off",
+   "commitment_note": "No separate application: file the FAFSA or ORSAA",
+   "deadline_note": "File as soon as possible; first-come, first-served until funds run out",
+   "url": "https://oregonstudentaid.gov/grants/oregon-opportunity-grant/"
+  }
+ },
+ {
+  "external_id": "b3:row-411",
+  "title": "Out to Innovate Scholarships (formerly NOGLSTP)",
+  "unpublish": "Requires at least two years of college, so not open to high-school students."
+ },
+ {
+  "external_id": "b3:row-412",
+  "title": "Pennsylvania Higher Education Assistance Agency (PHEAA) State Grant",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Pennsylvania State Grant",
+   "eligibility": "Pennsylvania residents with financial need who have a high-school diploma or GED, enrolled at least half time in an approved undergraduate program.",
+   "cost": "Award",
+   "cost_note": "Up to $6,000 a year (2026–27)",
+   "format": "Online",
+   "location": "Pennsylvania",
+   "commitment": "One-off",
+   "commitment_note": "The FAFSA is the application",
+   "deadline_note": "File the FAFSA by May 1",
+   "url": "https://www.pheaa.org/grants/state-grant-program/"
+  }
+ },
+ {
+  "external_id": "b3:row-413",
+  "title": "Point Foundation Scholarship",
+  "verified": true,
+  "set": {
+   "summary": "Point's Flagship Scholarship for LGBTQ+ students, with funding, mentoring and leadership training.",
+   "eligibility": "LGBTQ+ high-school seniors and college or graduate students with a 3.3+ GPA, enrolling at an accredited U.S. college.",
+   "cost": "Award",
+   "cost_note": "Scholarship plus mentoring; amount varies",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_note": "Usually due in early April",
+   "url": "https://pointfoundation.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-414",
+  "title": "Prudential Spirit of Community Awards",
+  "unpublish": "Discontinued in the U.S. in 2021 and replaced by a different program."
+ },
+ {
+  "external_id": "b3:row-415",
+  "title": "Raytheon Technologies (RTX) STEM Scholarships",
+  "unpublish": "RTX doesn't offer a scholarship students can apply to directly."
+ },
+ {
+  "external_id": "b3:row-416",
+  "title": "Rhode Island Office of the Postsecondary Commissioner Grants",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "Rhode Island Promise",
+   "summary": "Up to two years of free tuition and mandatory fees at the Community College of Rhode Island for new high-school graduates.",
+   "eligibility": "Rhode Island residents who graduate high school (or earn a GED) and enroll full time at CCRI in the term right after graduation.",
+   "cost": "Award",
+   "cost_note": "Free tuition and mandatory fees at CCRI for up to two years",
+   "format": "Online",
+   "location": "Rhode Island",
+   "commitment": "One-off",
+   "commitment_note": "Apply to CCRI and file the FAFSA",
+   "deadline_note": "Enroll at CCRI the fall after graduation; file the FAFSA by the deadline",
+   "url": "https://www.ccri.edu/ripromise/index.html"
+  }
+ },
+ {
+  "external_id": "b3:row-421",
+  "title": "Scouting America Eagle Scout Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "National Eagle Scout Association Scholarships",
+   "eligibility": "Eagle Scouts from their senior year of high school through their junior year of college (or partway through an associate or trade program).",
+   "cost": "Award",
+   "cost_note": "150+ awards from $2,000 to $50,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One online application",
+   "deadline_note": "Opens December 1; due January 31"
+  }
+ },
+ {
+  "external_id": "b3:row-422",
+  "title": "Signet Classics Student Scholarship Essay Contest",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Essay contest on an assigned Signet Classics book, run by Penguin Random House.",
+   "eligibility": "11th and 12th graders who are U.S. citizens or residents in the 50 states or D.C., at a public, private or home school.",
+   "cost": "Award",
+   "cost_note": "Five winners get $1,000 each plus a classics library for their school",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One essay, submitted by a teacher",
+   "deadline_note": "Usually due in mid-April",
+   "url": "https://penguinrandomhousesecondaryeducation.com/"
+  }
+ },
+ {
+  "external_id": "b3:row-423",
+  "title": "Simon Youth Foundation Scholarship",
+  "verified": true,
+  "set": {
+   "title": "Simon Youth Community Scholarship",
+   "eligibility": "Graduating high-school seniors who live near a Simon mall. Separate awards are available for children of Simon employees.",
+   "cost": "Award",
+   "cost_note": "Up to $1,500 (up to $3,000 a year for employee families)",
+   "format": "Online",
+   "location": "Communities with a Simon mall",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_note": "Opens September 1; usually closes in mid-February"
+  }
+ },
+ {
+  "external_id": "b3:row-424",
+  "title": "Society of American Military Engineers Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "SAME and its local posts give scholarships to students heading into engineering and technical fields.",
+   "eligibility": "Graduating high-school seniors who are U.S. citizens with a 3.0+ GPA, planning to study engineering or a related technical field.",
+   "cost": "Award",
+   "cost_note": "One-time awards, commonly $1,000–$4,000",
+   "format": "Online",
+   "location": "Online and through local SAME posts",
+   "commitment": "One-off",
+   "commitment_note": "Online application",
+   "deadline_note": "National high-school applications are usually due in mid-March"
+  }
+ },
+ {
+  "external_id": "b3:row-425",
+  "title": "Society of Automotive Engineers (SAE) Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "SAE International Scholarships",
+   "eligibility": "High-school seniors and college students entering ABET-accredited engineering or technology programs. Some awards need a 3.75 GPA and high test scores.",
+   "cost": "Award",
+   "cost_note": "Awards up to about $5,000; amounts vary",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One online application",
+   "deadline_note": "Applications usually run from January to March"
+  }
+ },
+ {
+  "external_id": "b3:row-426",
+  "title": "Society of Hispanic Professional Engineers Scholarships",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "SHPE ScholarSHPE",
+   "eligibility": "Graduating high-school seniors (and college students) who are active SHPE members with a 2.5+ GPA, starting a STEM degree at an accredited U.S. college. Citizenship isn't required.",
+   "cost": "Award",
+   "cost_note": "Amounts vary by award",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Online application; SHPE membership required",
+   "deadline_note": "Applications usually close in spring",
+   "url": "https://shpe.org/engage/programs/scholarshpe/"
+  }
+ },
+ {
+  "external_id": "b3:row-427",
+  "title": "Society of Women Engineers Scholarships",
+  "verified": true,
+  "set": {
+   "eligibility": "Women entering or enrolled in ABET-accredited bachelor's or graduate programs in engineering or computer science. Graduating seniors apply as Emerging First Year Scholars.",
+   "cost": "Award",
+   "cost_note": "330+ awards a year, commonly $1,500–$3,000 and up",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "One application covers many SWE scholarships",
+   "deadline_note": "The first-year application usually runs from early February to late March"
+  }
+ },
+ {
+  "external_id": "b3:row-428",
+  "title": "South Carolina Commission on Higher Education (LIFE Scholarship)",
+  "verified": true,
+  "set": {
+   "title": "South Carolina LIFE Scholarship",
+   "eligibility": "South Carolina residents who are U.S. citizens or permanent residents with a 3.0 GPA (four-year colleges also need a 1100 SAT/24 ACT or top-30% class rank), enrolling full time at an eligible South Carolina college.",
+   "cost": "Award",
+   "cost_note": "Up to $5,000 a year at four-year colleges, plus extra for some STEM majors",
+   "format": "Online",
+   "location": "South Carolina",
+   "commitment": "One-off",
+   "commitment_note": "No application; your college checks eligibility",
+   "deadline_note": "No application; awarded when you enroll"
+  }
+ },
+ {
+  "external_id": "b3:row-429",
+  "title": "South Dakota Opportunity Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "South Dakota residents attending a South Dakota college with a 24 ACT (1180 SAT), 3.0 GPA and the required courses, or a 28+ ACT on its own.",
+   "cost": "Award",
+   "cost_note": "$7,500 over four years",
+   "format": "Online",
+   "location": "South Dakota",
+   "commitment": "One-off",
+   "commitment_note": "Apply online in senior year",
+   "deadline_note": "Apply by September 1 after graduation"
+  }
+ },
+ {
+  "external_id": "b3:row-430",
+  "title": "Tennessee Student Assistance Corporation (Tennessee Promise)",
+  "verified": true,
+  "set": {
+   "title": "Tennessee Promise",
+   "summary": "Last-dollar scholarship covering tuition and mandatory fees at Tennessee community and technical colleges, with a volunteer mentor.",
+   "eligibility": "Tennessee high-school seniors (or homeschool or GED students under 19) who apply, file the FAFSA, attend required meetings and do community service.",
+   "cost": "Award",
+   "cost_note": "Tuition and mandatory fees not covered by other aid",
+   "format": "Online",
+   "location": "Tennessee",
+   "commitment": "School year",
+   "commitment_note": "Required meetings and 8 hours of community service each term",
+   "deadline_note": "Apply by November 1 of senior year",
+   "url": "https://www.tn.gov/tnpromise.html"
+  }
+ },
+ {
+  "external_id": "b3:row-431",
+  "title": "Texas Higher Education Coordinating Board (TEXAS Grant)",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "title": "TEXAS Grant",
+   "eligibility": "Texas residents with financial need enrolled at least three-quarters time in a first bachelor's degree at a Texas public college.",
+   "cost": "Award",
+   "cost_note": "Up to about $5,400 a semester (2026–27)",
+   "format": "Online",
+   "location": "Texas",
+   "commitment": "One-off",
+   "commitment_note": "File the FAFSA or TASFA; your college awards it",
+   "deadline_note": "Priority deadline January 15 of senior year"
+  }
+ },
+ {
+  "external_id": "b3:row-432",
+  "title": "The Concord Review / Ralph Waldo Emerson Prize",
+  "verified": true,
+  "set": {
+   "summary": "Journal that publishes outstanding high-school history research papers. A few published authors each year win the Ralph Waldo Emerson Prize.",
+   "eligibility": "High-school students (or recent graduates submitting work written in high school) anywhere in the world.",
+   "cost": "Fee",
+   "cost_note": "Submission fee (includes a subscription); Emerson Prize winners get about $3,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "One long history research paper, often 5,000+ words",
+   "deadline_note": "Rolling submissions all year",
+   "url": "https://tcr.org/submit"
+  }
+ },
+ {
+  "external_id": "b3:row-434",
+  "title": "Toyota USA Foundation Scholarships",
+  "unpublish": "The Toyota USA Foundation funds programs and doesn't offer a scholarship students can apply to."
+ },
+ {
+  "external_id": "b3:row-435",
+  "title": "United Negro College Fund Scholarships",
+  "verified": true,
+  "set": {
+   "summary": "UNCF runs hundreds of scholarship programs from many sponsors. Some, like the UNCF/FedEx scholarship, are for graduating seniors heading to HBCUs.",
+   "eligibility": "Mainly Black and other underrepresented students. Each program sets its own GPA (often 2.5–3.0+), need and school requirements; some are open to graduating seniors.",
+   "cost": "Award",
+   "cost_note": "Awards commonly $500–$5,000; some programs are larger",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "One-off",
+   "commitment_note": "Apply to each program through the UNCF portal",
+   "deadline_note": "Deadlines vary by program; many fall in spring",
+   "url": "https://opportunities.uncf.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-436",
+  "title": "Utah System of Higher Education Scholarships",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-437",
+  "title": "Vermont Student Assistance Corporation (VSAC) Grants",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-438",
+  "title": "Virginia Commonwealth Award and State Grants",
+  "unpublish": "A state agency page, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-439",
+  "title": "Washington State Achievers / College Bound Scholarship",
+  "verified": true,
+  "set": {
+   "title": "Washington College Bound Scholarship",
+   "eligibility": "Washington public-school students who qualify for free or reduced-price lunch in 7th or 8th grade (or newly in 9th) are enrolled automatically, as are foster youth. Private and homeschool students can apply.",
+   "cost": "Award",
+   "cost_note": "Covers tuition at public-college rates plus a small book allowance",
+   "format": "Online",
+   "location": "Washington",
+   "commitment": "School year",
+   "commitment_note": "Graduate with a 2.0 GPA, no felonies, and file the FAFSA or WASFA in senior year",
+   "deadline_note": "Enrollment closes after 9th grade",
+   "url": "https://wsac.wa.gov/college-bound"
+  }
+ },
+ {
+  "external_id": "b3:row-440",
+  "title": "We the People: The Citizen and the Constitution",
+  "verified": true,
+  "set": {
+   "summary": "Civics curriculum and competition. Classes hold simulated congressional hearings on the Constitution, competing at state level and then in national finals.",
+   "eligibility": "High-school classes that use the We the People curriculum; students take part through their teacher.",
+   "cost": "Free",
+   "cost_note": "Free to compete; schools may cover travel to finals",
+   "format": "In person",
+   "location": "State competitions, then national finals",
+   "commitment": "School year",
+   "commitment_note": "Class-based preparation over the school year",
+   "deadline_note": "Ask your civics or government teacher; state competitions are usually in winter"
+  }
+ },
+ {
+  "external_id": "b3:row-441",
+  "title": "West Virginia PROMISE Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "West Virginia residents graduating high school with a 3.0 GPA and a 21 ACT (19+ in each section) or 1080 SAT (510+ in each section).",
+   "cost": "Award",
+   "cost_note": "Up to $5,500 a year at West Virginia colleges",
+   "format": "Online",
+   "location": "West Virginia",
+   "commitment": "One-off",
+   "commitment_note": "Promise application plus the FAFSA",
+   "deadline_note": "Apply and file the FAFSA by March 1 of senior year",
+   "url": "https://cfwv.com/promise"
+  }
+ },
+ {
+  "external_id": "b3:row-442",
+  "title": "Wisconsin Higher Educational Aids Board Grants",
+  "unpublish": "A state agency homepage, not a single program students apply to."
+ },
+ {
+  "external_id": "b3:row-443",
+  "title": "Wyoming Hathaway Scholarship",
+  "verified": true,
+  "set": {
+   "eligibility": "Wyoming students who complete the Hathaway success curriculum and meet a GPA and ACT tier: Honors 3.5/25, Performance 3.0/21, Opportunity 2.5/19, Provisional 2.5/17.",
+   "cost": "Award",
+   "cost_note": "$1,180–$2,360 a semester depending on tier, plus need-based aid",
+   "format": "Online",
+   "location": "Wyoming",
+   "commitment": "One-off",
+   "commitment_note": "Plan the required courses from 9th grade",
+   "deadline_note": "Meet curriculum and test requirements by graduation; file the FAFSA",
+   "url": "https://hathawayscholarship.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-444",
+  "title": "AFS-USA Intercultural Programs",
+  "verified": true,
+  "set": {
+   "summary": "Live with a host family abroad and attend local school for a summer, semester or year in 45+ countries.",
+   "eligibility": "U.S. high-school students, generally ages 14–18.",
+   "cost": "Fee",
+   "cost_note": "Costs vary by program (summer programs from about $7,850); $1M+ in partial and full scholarships",
+   "format": "In person",
+   "location": "45+ countries",
+   "commitment": "Flexible",
+   "commitment_note": "Summer, semester or academic year",
+   "deadline_note": "Deadlines vary by program; scholarship deadlines are often in the fall and winter"
+  }
+ },
+ {
+  "external_id": "b3:row-446",
+  "title": "Alexander W. Dreyfoos School of the Arts Summer Intensives",
+  "unpublish": "A general pointer to various schools, not a specific program."
+ },
+ {
+  "external_id": "b3:row-447",
+  "title": "American Councils Flagship Language Programs",
+  "unpublish": "The Flagship programs are for college students."
+ },
+ {
+  "external_id": "b3:row-450",
+  "title": "Amgen Biotech Experience",
+  "unpublish": "A classroom curriculum that teachers sign up for, not something students apply to."
+ },
+ {
+  "external_id": "b3:row-452",
+  "title": "Awesome Math Summer Program",
+  "verified": true,
+  "set": {
+   "summary": "Three-week intensive in problem solving and olympiad-style math: daily lectures, group problem sessions, weekly assessments and homework feedback.",
+   "eligibility": "Mathematically strong students ages 12–18 worldwide. Admission requires an application and a qualifying test.",
+   "cost": "Fee",
+   "cost_note": "About $1,275–$1,575 for the online program; earlier deadlines cost less",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Summer",
+   "commitment_note": "Three-week sessions from June to August",
+   "deadline_note": "Several rolling deadlines in spring",
+   "url": "https://www.awesomemath.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-453",
+  "title": "Berklee College of Music Five-Week Summer Performance Program",
+  "verified": true,
+  "set": {
+   "title": "Berklee Aspire: Five-Week Music Performance Intensive",
+   "summary": "Five weeks of ensembles, private lessons and workshops in songwriting, improvisation and music technology on Berklee's campus.",
+   "eligibility": "Musicians ages 15 and up.",
+   "cost": "Fee",
+   "cost_note": "About $5,430 tuition; housing extra; scholarships available",
+   "format": "In person",
+   "location": "Boston, MA",
+   "commitment": "Summer",
+   "commitment_note": "Five weeks, early July to early August",
+   "deadline_note": "Rolling admission until spots fill",
+   "url": "https://summer.berklee.edu/"
+  }
+ },
+ {
+  "external_id": "b3:row-454",
+  "title": "Blair Academy Summer Programs",
+  "unpublish": "Blair Academy doesn't currently run a summer program."
+ },
+ {
+  "external_id": "b3:row-457",
+  "title": "Boston Leadership Institute",
+  "verified": true,
+  "set": {
+   "summary": "One- and three-week summer programs on themes such as emergency medicine, engineering, astrophysics and business.",
+   "eligibility": "Students entering 8th grade through entering college.",
+   "cost": "Fee",
+   "cost_note": "About $500–$1,500 for one week; $2,500 for three weeks (day), plus about $2,100 for housing",
+   "format": "In person",
+   "location": "Greater Boston, MA",
+   "commitment": "Summer",
+   "commitment_note": "One or three weeks, late June to July",
+   "deadline_note": "Rolling admission until programs fill"
+  }
+ },
+ {
+  "external_id": "b3:row-459",
+  "title": "Boston University RISE Internship",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "title": "Boston University RISE",
+   "summary": "Six-week summer program: a research internship in a BU lab, or a group research practicum.",
+   "eligibility": "Rising high-school seniors who are U.S. citizens or permanent residents.",
+   "cost": "Fee",
+   "cost_note": "About $5,350 tuition plus $3,120 room and board; limited need-based aid",
+   "format": "In person",
+   "location": "Boston, MA",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks, full time",
+   "deadline_note": "Applications (and aid requests) are usually due in early February",
+   "url": "https://www.bu.edu/summer/high-school-programs/research-in-science-engineering/"
+  }
+ },
+ {
+  "external_id": "b3:row-461",
+  "title": "Boys & Girls Clubs of America Keystone Clubs",
+  "verified": true,
+  "set": {
+   "grades": [
+    9,
+    10,
+    11,
+    12
+   ],
+   "summary": "Teen leadership clubs inside Boys & Girls Clubs, focused on service, academic success, career prep and teen-led projects.",
+   "eligibility": "Teens ages 14–18 who are members of a local Boys & Girls Club.",
+   "cost": "Free",
+   "cost_note": "Free or low-cost club membership",
+   "format": "In person",
+   "location": "Local Boys & Girls Clubs nationwide",
+   "commitment": "School year",
+   "commitment_note": "Regular club meetings through the year",
+   "deadline_note": "Join through your local club at any time"
+  }
+ },
+ {
+  "external_id": "b3:row-462",
+  "title": "Bridges to Prosperity Design Program",
+  "unpublish": "The organization has rebranded and no longer lists a youth design program."
+ },
+ {
+  "external_id": "b3:row-463",
+  "title": "Broad Summer Scholars Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "summary": "Paid six-week research program in genomics and biomedical science at the Broad Institute.",
+   "eligibility": "Rising seniors at Massachusetts high schools within commuting distance of the Broad, with B or better in math and science. U.S. citizens, permanent residents or work-authorized (e.g. DACA).",
+   "cost": "Award",
+   "cost_note": "$3,600 stipend",
+   "format": "In person",
+   "location": "Cambridge, MA",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks, late June to early August",
+   "deadline_note": "Applications open mid-November and close in mid-to-late January",
+   "url": "https://www.broadinstitute.org/bssp"
+  }
+ },
+ {
+  "external_id": "b3:row-465",
+  "title": "CIEE High School Study Abroad",
+  "verified": true,
+  "set": {
+   "summary": "Three- to four-week summer abroad programs: language and culture programs with homestays, or topic-based programs.",
+   "eligibility": "High-school students, typically ages 15–18.",
+   "cost": "Fee",
+   "cost_note": "About $4,500–$8,500; scholarships available",
+   "format": "In person",
+   "location": "Destinations worldwide",
+   "commitment": "Summer",
+   "commitment_note": "Three or four weeks",
+   "deadline_note": "Rolling admission; scholarship deadlines are earlier",
+   "url": "https://www.ciee.org/go-abroad/high-school-study-abroad"
+  }
+ },
+ {
+  "external_id": "b3:row-466",
+  "title": "California State Summer School for the Arts (CSSSA)",
+  "verified": true,
+  "set": {
+   "grades": [
+    9,
+    10,
+    11,
+    12
+   ],
+   "eligibility": "California residents in grades 8–12. About 20 out-of-state students are admitted each year.",
+   "cost": "Fee",
+   "cost_note": "About $5,174 for California residents; need-based aid covers much of the cost for nearly half of students",
+   "format": "In person",
+   "location": "Cal Poly Pomona, Pomona, CA",
+   "commitment": "Summer",
+   "commitment_note": "Four-week residential program, July",
+   "deadline_note": "Applications open November 1; due in late February",
+   "url": "https://www.csssa.ca.gov/"
+  }
+ },
+ {
+  "external_id": "b3:row-469",
+  "title": "Carnegie Mellon University Pre-College Programs",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "summary": "Summer programs in areas such as computer science, engineering, art, drama, music and writing. Free programs include SAMS, AI Scholars and CS Scholars.",
+   "eligibility": "Rising juniors and seniors who are at least 16 by June 20. SAMS, AI Scholars and CS Scholars are only for U.S. citizens and permanent residents.",
+   "cost": "Varies",
+   "cost_note": "About $7,400–$14,700 for most programs; SAMS, AI Scholars and CS Scholars are free; need-based scholarships available",
+   "format": "In person",
+   "location": "Pittsburgh, PA",
+   "commitment": "Summer",
+   "commitment_note": "Three to six weeks, depending on the program",
+   "deadline_note": "Early deadline February 1 (needed for scholarships and free programs); final deadline March 1",
+   "url": "https://www.cmu.edu/pre-college/"
+  }
+ },
+ {
+  "external_id": "b3:row-470",
+  "title": "Center for Talented Youth (CTY) at Johns Hopkins",
+  "verified": true,
+  "set": {
+   "eligibility": "Advanced students in grades 2–12 (residential courses for grades 5–12) who qualify with high test scores, such as the SCAT, PSAT, SAT or ACT.",
+   "cost": "Fee",
+   "cost_note": "About $3,000–$7,800 depending on the course; need-based aid available",
+   "format": "Hybrid",
+   "location": "Online and college campuses",
+   "commitment": "Summer",
+   "commitment_note": "Three-week sessions, plus online courses year-round",
+   "deadline_note": "Enrollment opens in January; courses fill on a rolling basis"
+  }
+ },
+ {
+  "external_id": "b3:row-471",
+  "title": "Chewonki Semester School",
+  "verified": true,
+  "set": {
+   "title": "Maine Coast Semester at Chewonki",
+   "summary": "Semester-long boarding program combining academics with environmental studies, farm work and outdoor leadership on the Maine coast.",
+   "eligibility": "High-school juniors and seniors.",
+   "cost": "Fee",
+   "cost_note": "About $37,800 a semester; need-blind admission and about 40% get aid",
+   "format": "In person",
+   "location": "Wiscasset, ME",
+   "commitment": "School year",
+   "commitment_note": "One full semester (fall or spring)",
+   "deadline_note": "Apply in the fall or winter before your semester",
+   "url": "https://mainecoastsemester.chewonki.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-475",
+  "title": "Coding for Good",
+  "unpublish": "The program's site is offline and the program couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-476",
+  "title": "Colorado School of Mines Summer Programs",
+  "unpublish": "Links to the university homepage rather than a specific program."
+ },
+ {
+  "external_id": "b3:row-477",
+  "title": "Columbia Scholastic Press Association Summer Journalism Workshops",
+  "verified": true,
+  "set": {
+   "summary": "Week-long workshops for student journalists in reporting, writing, design, photography and yearbook, in person at Columbia or online.",
+   "eligibility": "High-school students, especially those on school newspaper, yearbook or media staffs.",
+   "cost": "Fee",
+   "cost_note": "About $1,100 a week online, $1,700 commuting, or $3,000 residential",
+   "format": "Hybrid",
+   "location": "New York, NY and online",
+   "commitment": "Summer",
+   "commitment_note": "One-week sessions in late June and July",
+   "deadline_note": "Register by late May (residential) or June (commuter and online)",
+   "url": "https://precollege.sps.columbia.edu/columbia-scholastic-press-association/cspa-summer-journalism-workshop"
+  }
+ },
+ {
+  "external_id": "b3:row-479",
+  "title": "Congress-Bundestag Youth Exchange (CBYX)",
+  "verified": true,
+  "set": {
+   "summary": "U.S. government scholarship for a full academic year in Germany: live with a host family, attend a German school, and start with a language camp.",
+   "eligibility": "U.S. citizens in high school with a 2.5+ GPA, within the program's birth-date window (roughly ages 15–18). No German required.",
+   "cost": "Free",
+   "cost_note": "Full scholarship covering travel, tuition, host family and insurance",
+   "format": "In person",
+   "location": "Germany",
+   "commitment": "School year",
+   "commitment_note": "About 10 months, August to June",
+   "deadline_date": "2026-11-03",
+   "deadline_note": "Applications for 2027–28 close November 3, 2026"
+  }
+ },
+ {
+  "external_id": "b3:row-480",
+  "title": "Cornell Cooperative Extension 4-H Programs",
+  "verified": true,
+  "set": {
+   "title": "4-H Clubs",
+   "summary": "County-based youth clubs run through each state's land-grant university, with projects in STEM, agriculture, civic leadership and healthy living.",
+   "eligibility": "Youth ages 5–18 (ages vary by state).",
+   "cost": "Free",
+   "cost_note": "Free or low-cost; some projects have small fees",
+   "format": "In person",
+   "location": "Local 4-H clubs nationwide",
+   "commitment": "School year",
+   "commitment_note": "Regular club meetings and projects, plus summer camps",
+   "deadline_note": "Join through your county extension office at any time"
+  }
+ },
+ {
+  "external_id": "b3:row-481",
+  "title": "Cornell Cooperative Youth STEM Programs",
+  "unpublish": "Links to the university homepage rather than a specific program."
+ },
+ {
+  "external_id": "b3:row-483",
+  "title": "Deerfield Academy Summer Programs",
+  "unpublish": "Couldn't confirm a current summer program for outside students; the link goes to the school homepage."
+ },
+ {
+  "external_id": "b3:row-485",
+  "title": "Duke TIP (Talent Identification Program) Alumni Programs",
+  "unpublish": "Duplicate of the Duke Pre-College Programs listing."
+ },
+ {
+  "external_id": "b3:row-489",
+  "title": "Garcia Research Scholars Program",
+  "verified": true,
+  "set": {
+   "title": "Garcia Summer Research Program",
+   "summary": "Seven-week polymer and materials science research with Stony Brook faculty; students often enter research competitions afterward.",
+   "eligibility": "Students who are 16 by July 4, with a 3.8 unweighted GPA (95/100), at least three advanced science, math or English courses, and test scores at the 60th percentile or above.",
+   "cost": "Fee",
+   "cost_note": "$4,000 lab fee plus optional housing (about $2,600)",
+   "format": "In person",
+   "location": "Stony Brook, NY",
+   "commitment": "Summer",
+   "commitment_note": "Seven weeks, late June to early August",
+   "deadline_note": "Applications usually close in late winter",
+   "url": "https://www.stonybrook.edu/commcms/garcia/summer_program/apply.php"
+  }
+ },
+ {
+  "external_id": "b3:row-490",
+  "title": "Genentech Futurelab",
+  "unpublish": "A partnership with specific local schools, not open for students to apply to."
+ },
+ {
+  "external_id": "b3:row-492",
+  "title": "Georgia Tech Young Scholars Program",
+  "unpublish": "Couldn't confirm this program; the link is dead."
+ },
+ {
+  "external_id": "b3:row-493",
+  "title": "Global Young Leaders Conference",
+  "unpublish": "Couldn't confirm current sessions; the program page is gone."
+ },
+ {
+  "external_id": "b3:row-494",
+  "title": "Governor's School for the Arts (various states)",
+  "unpublish": "A general pointer to various state programs, not a specific opportunity."
+ },
+ {
+  "external_id": "b3:row-497",
+  "title": "Governor's School programs (various states)",
+  "unpublish": "A general pointer to various state programs, not a specific opportunity."
+ },
+ {
+  "external_id": "b3:row-498",
+  "title": "HCSSiM (Hampshire College Summer Studies in Mathematics)",
+  "verified": true,
+  "set": {
+   "summary": "Six-week residential program in college-level math: number theory, proofs and problem solving in small classes, with time to explore your own questions.",
+   "eligibility": "High-school students with strong interest in math. Admission is by application, a sponsor's recommendation and the 'Interesting Test'.",
+   "cost": "Fee",
+   "cost_note": "About $7,200; substantial financial aid available",
+   "format": "In person",
+   "location": "Amherst, MA",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks, late June to early August",
+   "deadline_note": "Applications usually close in mid-April; the Interesting Test is due soon after",
+   "url": "https://www.hcssim.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-500",
+  "title": "High Mountain Institute Semester",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school juniors and some seniors.",
+   "cost": "Fee",
+   "cost_note": "About $38,800 a semester; need-based aid (about 40% receive it, averaging 70% of tuition)",
+   "format": "In person",
+   "location": "Leadville, CO",
+   "commitment": "School year",
+   "commitment_note": "One full semester: honors-level classes plus backpacking expeditions",
+   "deadline_note": "Apply by February 15 (or March 15) for the following year",
+   "url": "https://hminet.org/semester/"
+  }
+ },
+ {
+  "external_id": "b3:row-501",
+  "title": "Idyllwild Arts Summer Program",
+  "verified": true,
+  "set": {
+   "summary": "Summer workshops and high-school intensives in visual art, Native American arts, fashion, music, theater, film, dance and creative writing.",
+   "eligibility": "Students in grades 1–12 (high-school intensives for ages 13–18), plus adult programs.",
+   "cost": "Fee",
+   "cost_note": "About $900–$2,750 a week; scholarships available",
+   "format": "In person",
+   "location": "Idyllwild, CA",
+   "commitment": "Summer",
+   "commitment_note": "One- and two-week sessions, June to late July",
+   "deadline_note": "Rolling registration until sessions fill"
+  }
+ },
+ {
+  "external_id": "b3:row-502",
+  "title": "Indiana Academy for Science, Mathematics, and Humanities Summer Programs",
+  "unpublish": "The program page is gone and no current summer program could be confirmed."
+ },
+ {
+  "external_id": "b3:row-503",
+  "title": "Inspirit AI Scholars Program",
+  "verified": true,
+  "set": {
+   "summary": "Online AI bootcamp taught by Stanford and MIT alumni and graduate students in groups of about five, ending in a project.",
+   "eligibility": "High-school students in grades 9–12 worldwide; no AI experience needed.",
+   "cost": "Fee",
+   "cost_note": "About $1,400 for the summer bootcamp; need-based aid and payment plans",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "10 sessions of 2.5 hours (25 hours)",
+   "deadline_note": "Rolling admissions for each cohort",
+   "url": "https://www.inspiritai.com/"
+  }
+ },
+ {
+  "external_id": "b3:row-504",
+  "title": "Iolani School Summer Programs",
+  "verified": true,
+  "set": {
+   "summary": "Summer enrichment and credit courses at 'Iolani School, open to students from other schools.",
+   "eligibility": "Students in grades 7–12 for upper-school courses; some credit courses are limited to specific grades.",
+   "cost": "Fee",
+   "cost_note": "Varies by course",
+   "format": "In person",
+   "location": "Honolulu, HI",
+   "commitment": "Summer",
+   "commitment_note": "Five-week core program mid-June to mid-July, plus shorter terms",
+   "deadline_note": "Public registration usually opens in March and closes in May"
+  }
+ },
+ {
+  "external_id": "b3:row-505",
+  "title": "Iowa Governor's STEM Advisory Council Programs",
+  "unpublish": "The link is dead and no specific student program could be confirmed."
+ },
+ {
+  "external_id": "b3:row-506",
+  "title": "Island School Semester",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "summary": "14-week semester at The Island School combining classes with marine science research, diving and sustainability work.",
+   "eligibility": "Rising sophomores and juniors for fall and spring semesters; a summer term is also open to rising seniors.",
+   "cost": "Fee",
+   "cost_note": "About $34,650 a semester; need-blind admission and need-based aid",
+   "format": "In person",
+   "location": "Eleuthera, Bahamas",
+   "commitment": "School year",
+   "commitment_note": "14 weeks, fall (late August to December) or spring (late January to May)",
+   "deadline_note": "Apply in the year before your semester",
+   "url": "https://islandschool.org/the-island-school"
+  }
+ },
+ {
+  "external_id": "b3:row-507",
+  "title": "Jackson Laboratory Summer Student Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    12
+   ],
+   "summary": "Paid 10-week genetics and genomics research program at JAX, where each student runs an independent project with a mentor.",
+   "eligibility": "Graduating high-school seniors and college undergraduates.",
+   "cost": "Award",
+   "cost_note": "$7,000 stipend plus room, board and travel",
+   "format": "In person",
+   "location": "Bar Harbor, ME or Farmington, CT",
+   "commitment": "Summer",
+   "commitment_note": "About 10 weeks, late May to early August",
+   "deadline_note": "Applications are usually due in late January",
+   "url": "https://www.jax.org/education-and-learning/high-school-students-and-undergraduates/learn-earn-and-explore"
+  }
+ },
+ {
+  "external_id": "b3:row-512",
+  "title": "LaunchX",
+  "unpublish": "Duplicate of the LaunchX listing."
+ },
+ {
+  "external_id": "b3:row-513",
+  "title": "Lawrenceville School Summer Scholars",
+  "verified": true,
+  "set": {
+   "grades": [
+    9
+   ],
+   "summary": "Three-week boarding-school experience with academic classes and activities. Mostly for middle schoolers.",
+   "eligibility": "Students entering grades 6–9.",
+   "cost": "Fee",
+   "cost_note": "About $4,600 day or $7,100 residential",
+   "format": "In person",
+   "location": "Lawrenceville, NJ",
+   "commitment": "Summer",
+   "commitment_note": "Three weeks in July",
+   "deadline_note": "Rolling admission until spots fill",
+   "url": "https://summerscholars.lawrenceville.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-514",
+  "title": "Louisiana State University Summer Scholars",
+  "unpublish": "The link is dead and the program couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-515",
+  "title": "Lumiere Research Scholar Program",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school students worldwide with strong academics; no prior research needed.",
+   "cost": "Fee",
+   "cost_note": "About $2,990 (12-week program) up to $8,900; need-based aid for families under $80,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "12 weeks to 12 months depending on the track",
+   "deadline_note": "Rolling cohorts with deadlines throughout the year"
+  }
+ },
+ {
+  "external_id": "b3:row-516",
+  "title": "MIT Beaverworks Summer Institute",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "title": "MIT Beaver Works Summer Institute",
+   "summary": "Four-week project-based STEM program in areas like autonomous vehicles, cybersecurity, microelectronics and medical analytics, after an online prerequisite course.",
+   "eligibility": "Rising high-school seniors attending school in the U.S.",
+   "cost": "Free",
+   "cost_note": "Free for most families; about $2,350 for families earning over $150,000",
+   "format": "Hybrid",
+   "location": "Cambridge, MA and online",
+   "commitment": "Summer",
+   "commitment_note": "Online course in spring, then four weeks in July",
+   "deadline_note": "Applications are usually due in early spring",
+   "url": "https://beaverworks.ll.mit.edu/CMS/bw/bwsi"
+  }
+ },
+ {
+  "external_id": "b3:row-518",
+  "title": "Medill Cherubs Journalism Program",
+  "unpublish": "Duplicate: this is the journalism division of Northwestern's National High School Institute, listed separately."
+ },
+ {
+  "external_id": "b3:row-519",
+  "title": "Michigan State University High School Honors Science Program",
+  "unpublish": "MSU isn't running HSHSP in summer 2026."
+ },
+ {
+  "external_id": "b3:row-520",
+  "title": "Monterey Bay Aquarium Research Institute Internships",
+  "unpublish": "MBARI's summer internships are for college students."
+ },
+ {
+  "external_id": "b3:row-521",
+  "title": "NASA High School Aerospace Scholars (HAS)",
+  "verified": true,
+  "set": {
+   "title": "NASA Texas Aerospace Scholars",
+   "summary": "Year-long NASA program: a five-month online course on space exploration, then a virtual summer design challenge. Top teams visit Johnson Space Center.",
+   "eligibility": "Texas high-school juniors who are U.S. citizens and Texas residents.",
+   "cost": "Free",
+   "cost_note": "Free; the Johnson Space Center trip is paid for",
+   "format": "Hybrid",
+   "location": "Online, then Houston, TX",
+   "commitment": "School year",
+   "commitment_note": "Online coursework in fall and winter, then summer events",
+   "deadline_note": "Applications usually run July to mid-September, at the start of junior year",
+   "url": "https://www.nasa.gov/learning-resources/texas-aerospace-scholars/"
+  }
+ },
+ {
+  "external_id": "b3:row-523",
+  "title": "National High School Institute (Cherubs) at Northwestern",
+  "verified": true,
+  "set": {
+   "summary": "Northwestern's summer 'Cherubs' programs in debate, speech, journalism, film and video, and theatre arts.",
+   "eligibility": "High-school students, mostly rising juniors and seniors depending on the division.",
+   "cost": "Fee",
+   "cost_note": "About $3,750–$8,800 depending on division; financial aid available",
+   "format": "In person",
+   "location": "Evanston, IL",
+   "commitment": "Summer",
+   "commitment_note": "Four to six weeks depending on division",
+   "deadline_note": "Applications open in November; deadlines vary by division",
+   "url": "https://nhsi.northwestern.edu/"
+  }
+ },
+ {
+  "external_id": "b3:row-525",
+  "title": "National Student Leadership Conference (NSLC)",
+  "verified": true,
+  "set": {
+   "summary": "Career-themed summer programs on college campuses in fields like medicine, law, business, engineering and diplomacy, with simulations and workshops.",
+   "eligibility": "Middle- and high-school students.",
+   "cost": "Fee",
+   "cost_note": "About $2,600–$6,800 depending on length and location",
+   "format": "In person",
+   "location": "College campuses nationwide",
+   "commitment": "Summer",
+   "commitment_note": "6, 9 or 18 days",
+   "deadline_note": "Rolling admission until programs fill"
+  }
+ },
+ {
+  "external_id": "b3:row-526",
+  "title": "National Youth Leadership Forum (Envision)",
+  "verified": true,
+  "set": {
+   "summary": "Short career-exploration programs (medicine, law, STEM, national security and more) on college campuses, run by Envision/WorldStrides.",
+   "eligibility": "High-school students in grades 9–12.",
+   "cost": "Fee",
+   "cost_note": "About $3,800 commuter to $4,600 residential",
+   "format": "In person",
+   "location": "University campuses nationwide",
+   "commitment": "Summer",
+   "commitment_note": "6–9 days",
+   "deadline_note": "Rolling enrollment until sessions fill",
+   "url": "https://www.envisionexperience.com/explore-our-programs/national-youth-leadership-forum-medicine"
+  }
+ },
+ {
+  "external_id": "b3:row-527",
+  "title": "National Youth Science Camp",
+  "verified": true,
+  "set": {
+   "summary": "Free residential STEAM program with lectures, research directives and outdoor adventures. About two delegates are selected from each state.",
+   "eligibility": "Graduating high-school seniors with strong STEM records and interests.",
+   "cost": "Free",
+   "cost_note": "Free, including travel",
+   "format": "In person",
+   "location": "West Virginia",
+   "commitment": "Summer",
+   "commitment_note": "About three to four weeks in late June and July",
+   "deadline_note": "Applications usually close in late February or March of senior year",
+   "url": "https://www.nysc.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-529",
+  "title": "New York Film Academy High School Summer Camp",
+  "verified": true,
+  "set": {
+   "summary": "Hands-on teen camps in filmmaking, acting for film, photography and other media.",
+   "eligibility": "Teens ages 14–17 (separate kids' camps).",
+   "cost": "Fee",
+   "cost_note": "About $1,300–$1,700 for one week up to $7,300 for six weeks",
+   "format": "In person",
+   "location": "NYFA campuses (New York, Los Angeles and others)",
+   "commitment": "Summer",
+   "commitment_note": "One-, three- or six-week camps",
+   "deadline_note": "Rolling enrollment until camps fill"
+  }
+ },
+ {
+  "external_id": "b3:row-530",
+  "title": "North Carolina School of Science and Mathematics Summer Programs",
+  "verified": true,
+  "set": {
+   "summary": "Summer STEM enrichment for North Carolina students, including the Summer Accelerator, on NCSSM's Durham and Morganton campuses.",
+   "eligibility": "North Carolina middle- and high-school students (varies by program).",
+   "cost": "Varies",
+   "cost_note": "Varies by program",
+   "format": "In person",
+   "location": "Durham and Morganton, NC",
+   "commitment": "Summer",
+   "commitment_note": "One- to two-week sessions",
+   "deadline_note": "Registration usually opens in spring"
+  }
+ },
+ {
+  "external_id": "b3:row-532",
+  "title": "Northwestern University Center for Talent Development Summer Programs",
+  "verified": true,
+  "set": {
+   "summary": "One- and three-week day and residential courses for advanced students, including honors, AP and college-level options.",
+   "eligibility": "Academically advanced students in grades 6–12 (younger grades in other programs).",
+   "cost": "Fee",
+   "cost_note": "About $1,000 (one week, day) to $5,430 (three weeks, residential); aid limited",
+   "format": "In person",
+   "location": "Evanston, IL",
+   "commitment": "Summer",
+   "commitment_note": "One or three weeks, late June to early August",
+   "deadline_note": "Rolling enrollment; prices rise after May 31",
+   "url": "https://www.ctd.northwestern.edu/3-week-academic-summer-camps"
+  }
+ },
+ {
+  "external_id": "b3:row-533",
+  "title": "Notre Dame Leadership Seminars",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "summary": "Competitive 10-day seminars at Notre Dame for about 150 students with strong leadership records. Students can earn one college credit.",
+   "eligibility": "Rising high-school seniors with strong academics and leadership in their communities.",
+   "cost": "Free",
+   "cost_note": "Tuition, housing and meals are covered; about $225 in application and enrollment fees",
+   "format": "In person",
+   "location": "Notre Dame, IN",
+   "commitment": "Summer",
+   "commitment_note": "10 days in late July",
+   "deadline_note": "Applications are usually due in late January",
+   "url": "https://precollege.nd.edu/leadership-seminars/"
+  }
+ },
+ {
+  "external_id": "b3:row-534",
+  "title": "Ohio Governor's Youth Leadership Academy",
+  "unpublish": "Links to a state agency homepage; the program couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-536",
+  "title": "Peddie School Summer Programs",
+  "verified": true,
+  "set": {
+   "summary": "Peddie Summer Day School: credit math courses (Algebra I through Precalculus), build-your-own enrichment, and a short STEM program.",
+   "eligibility": "Students in grades 6–12.",
+   "cost": "Fee",
+   "cost_note": "Varies by course and schedule",
+   "format": "In person",
+   "location": "Hightstown, NJ",
+   "commitment": "Summer",
+   "commitment_note": "Two to six weeks, late June to early August",
+   "deadline_note": "Rolling registration",
+   "url": "https://peddie.org/summer-at-peddie/peddie-summer-school/"
+  }
+ },
+ {
+  "external_id": "b3:row-537",
+  "title": "Pennsylvania Governor's School for the Sciences",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "summary": "Five-week residential science program at Carnegie Mellon with courses in biology, chemistry, computer science, math and physics, plus team research projects.",
+   "eligibility": "Pennsylvania high-school juniors (public, private or homeschooled) at the time of application.",
+   "cost": "Free",
+   "cost_note": "Full scholarship covering housing, meals and materials",
+   "format": "In person",
+   "location": "Pittsburgh, PA",
+   "commitment": "Summer",
+   "commitment_note": "About five weeks in July",
+   "deadline_note": "Applications usually open in late October and are due in late January",
+   "url": "https://www.cmu.edu/mcs/pgss/"
+  }
+ },
+ {
+  "external_id": "b3:row-538",
+  "title": "Pioneer Research Program",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school students worldwide with strong academic records.",
+   "cost": "Fee",
+   "cost_note": "About $7,465; meets 100% of verified need for admitted students",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "12 weeks (summer) or 25 weeks (spring–summer); four college credits through Oberlin College",
+   "deadline_note": "Several application rounds through the year"
+  }
+ },
+ {
+  "external_id": "b3:row-539",
+  "title": "Polygence",
+  "verified": true,
+  "set": {
+   "eligibility": "High-school students in grades 9–12 worldwide; no prior research needed.",
+   "cost": "Fee",
+   "cost_note": "From about $2,895; full scholarships for families under $50,000, aid under $90,000",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "Ten one-hour mentor sessions over about 3–6 months",
+   "deadline_note": "Rolling admissions, with monthly deadlines on the 15th"
+  }
+ },
+ {
+  "external_id": "b3:row-540",
+  "title": "Poynter Institute High School Journalism Programs",
+  "unpublish": "Couldn't confirm a current program for high-school students; the link goes to Poynter's homepage."
+ },
+ {
+  "external_id": "b3:row-542",
+  "title": "Purdue Summer Residential Governor's School (Indiana Academy alt.)",
+  "unpublish": "Couldn't confirm this program; the link goes to the Indiana state homepage."
+ },
+ {
+  "external_id": "b3:row-543",
+  "title": "Purdue University Summer Engineering Workshops",
+  "unpublish": "The program page is gone and the program couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-544",
+  "title": "Radio/TV/Film Summer Workshops (various universities)",
+  "unpublish": "A general pointer to various schools, not a specific program."
+ },
+ {
+  "external_id": "b3:row-545",
+  "title": "Rice University Summer Pre-College Programs",
+  "unpublish": "The link is dead; Rice's summer offerings are run by several outside providers."
+ },
+ {
+  "external_id": "b3:row-546",
+  "title": "Ross Mathematics Program",
+  "verified": true,
+  "set": {
+   "summary": "Six-week residential program in number theory and proof writing, built around 'think deeply about simple things.'",
+   "eligibility": "Motivated pre-college students (usually ages 15–18) who complete the application problem set.",
+   "cost": "Fee",
+   "cost_note": "About $7,500 including room and board; need-based aid so admitted students can attend",
+   "format": "In person",
+   "location": "Ohio (Otterbein University) and Indiana (Rose-Hulman)",
+   "commitment": "Summer",
+   "commitment_note": "Six weeks, mid-June to late July",
+   "deadline_note": "Applications usually close in early March",
+   "url": "https://rossprogram.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-547",
+  "title": "Rotary Youth Exchange",
+  "verified": true,
+  "set": {
+   "summary": "Spend a school year abroad with host families, sponsored by a local Rotary club. Short-term summer exchanges are also offered.",
+   "eligibility": "High-school students, usually ages 15–18 at departure, sponsored by a local Rotary club after interviews.",
+   "cost": "Varies",
+   "cost_note": "Host club covers room, board, school and a monthly allowance; families pay flights, insurance and district fees",
+   "format": "In person",
+   "location": "Countries worldwide",
+   "commitment": "School year",
+   "commitment_note": "About 10–11 months (long-term) or a few weeks (short-term)",
+   "deadline_note": "Applications are usually due in the fall, a year before departure; contact your local Rotary club"
+  }
+ },
+ {
+  "external_id": "b3:row-548",
+  "title": "Rutgers Governor's School of Engineering and Technology",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "summary": "Four-week residential engineering program at Rutgers with courses, labs and a team research project. Fewer than 100 students are admitted.",
+   "eligibility": "New Jersey residents in their junior year, nominated by their high school.",
+   "cost": "Free",
+   "cost_note": "Free; tuition, room and board are sponsored",
+   "format": "In person",
+   "location": "New Brunswick, NJ",
+   "commitment": "Summer",
+   "commitment_note": "About four weeks in July",
+   "deadline_note": "Your school nominates applicants in winter; ask your counselor",
+   "url": "https://soe.rutgers.edu/gset"
+  }
+ },
+ {
+  "external_id": "b3:row-551",
+  "title": "School for Ethics and Global Leadership (SEGL)",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "Boarding semester on Capitol Hill for about 25 students: honors classes plus ethics and leadership work with policy leaders.",
+   "eligibility": "High-school juniors and seniors.",
+   "cost": "Fee",
+   "cost_note": "Semester tuition with need-based aid; check the school for current rates",
+   "format": "In person",
+   "location": "Washington, DC",
+   "commitment": "School year",
+   "commitment_note": "One semester, late January to May",
+   "deadline_note": "Applications are usually due February 15",
+   "url": "https://schoolforethics.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-552",
+  "title": "Scripps Institution of Oceanography Research Experience",
+  "unpublish": "Links to the institution's homepage; no specific high-school program could be confirmed."
+ },
+ {
+  "external_id": "b3:row-553",
+  "title": "Sea Education Association SEA Semester (high school pathways)",
+  "verified": true,
+  "set": {
+   "title": "SEA High School Summer Programs",
+   "summary": "Two- to three-week oceanography and marine biology programs on Cape Cod and at sea, plus a short virtual option.",
+   "eligibility": "Students ages 14–18 in grades 9–12 (and post-graduates).",
+   "cost": "Fee",
+   "cost_note": "About $7,000–$7,500 for residential programs; $1,100 virtual",
+   "format": "In person",
+   "location": "Woods Hole, MA and at sea",
+   "commitment": "Summer",
+   "commitment_note": "Two to three weeks, June to August",
+   "deadline_note": "Rolling admission until programs fill (max 25 students each)",
+   "url": "https://sea.edu/admissions/high-school-costs"
+  }
+ },
+ {
+  "external_id": "b3:row-554",
+  "title": "South Carolina Governor's School for Science and Mathematics",
+  "verified": true,
+  "set": {
+   "grades": [
+    10
+   ],
+   "summary": "Two-year, tuition-free residential public high school in Hartsville for South Carolina juniors and seniors strong in STEM, with research opportunities.",
+   "eligibility": "South Carolina students applying in 10th grade to attend for 11th and 12th grades.",
+   "cost": "Free",
+   "cost_note": "Tuition and housing free; families pay part of meal costs, with aid available",
+   "format": "In person",
+   "location": "Hartsville, SC",
+   "commitment": "School year",
+   "commitment_note": "Junior and senior years in residence",
+   "deadline_note": "Applications are due February 15 of sophomore year; no application fee",
+   "url": "https://scgssm.org/admissions/apply-residential"
+  }
+ },
+ {
+  "external_id": "b3:row-555",
+  "title": "Stanford Medical Youth Science Program (SMYSP)",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "summary": "Fully funded five-week residential program in science and medicine at Stanford, with hospital internships and a research project. About 24 students.",
+   "eligibility": "Low-income, first-generation high-school juniors who live in Northern California.",
+   "cost": "Free",
+   "cost_note": "Fully funded",
+   "format": "In person",
+   "location": "Stanford, CA",
+   "commitment": "Summer",
+   "commitment_note": "Five weeks, late June to late July",
+   "deadline_note": "Applications are usually due in March",
+   "url": "https://med.stanford.edu/education/high-school-and-undergraduate-programs.html"
+  }
+ },
+ {
+  "external_id": "b3:row-558",
+  "title": "Summer Program in Quantitative Sciences (SPQS)",
+  "unpublish": "Couldn't confirm a current high-school version; Harvard's quantitative summer programs are for college students."
+ },
+ {
+  "external_id": "b3:row-560",
+  "title": "Tanglewood Music Center Young Artists Programs",
+  "unpublish": "The Tanglewood Music Center is for college-age and older musicians."
+ },
+ {
+  "external_id": "b3:row-562",
+  "title": "Texas A&M High School Summer Programs",
+  "unpublish": "Links to the university homepage rather than a specific program."
+ },
+ {
+  "external_id": "b3:row-563",
+  "title": "Texas Governor's School (various university hosts)",
+  "unpublish": "Couldn't confirm a current Texas Governor's School; the link goes to the state agency homepage."
+ },
+ {
+  "external_id": "b3:row-564",
+  "title": "The Hotchkiss School Summer Portals",
+  "verified": true,
+  "set": {
+   "summary": "Residential summer program with hands-on courses in areas like environmental science, leadership, writing and the arts.",
+   "eligibility": "Middle- and high-school students.",
+   "cost": "Fee",
+   "cost_note": "All-inclusive tuition (room, board, courses and activities); check Hotchkiss for current rates",
+   "format": "In person",
+   "location": "Lakeville, CT",
+   "commitment": "Summer",
+   "commitment_note": "Two two-week sessions from late June to late July (one or both)",
+   "deadline_note": "Rolling admission once the application opens",
+   "url": "https://www.hotchkiss.org/our-school/summer-programs"
+  }
+ },
+ {
+  "external_id": "b3:row-565",
+  "title": "The Mountain School",
+  "verified": true,
+  "set": {
+   "title": "The Mountain School of Milton Academy",
+   "summary": "Semester for 45 high-school juniors on a working farm in rural Vermont, combining rigorous classes with farm work and outdoor education.",
+   "eligibility": "High-school juniors from around the country.",
+   "cost": "Fee",
+   "cost_note": "About $37,000 a semester; need-based financial aid available",
+   "format": "In person",
+   "location": "Vershire, VT",
+   "commitment": "School year",
+   "commitment_note": "One semester (fall or spring) of junior year",
+   "deadline_note": "Apply during sophomore year"
+  }
+ },
+ {
+  "external_id": "b3:row-569",
+  "title": "UCSF Science and Health Education Partnership High School Internship",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "title": "UCSF High School Intern Program",
+   "summary": "Paid eight-week summer internship where students do a biomedical research project with a UCSF scientist mentor.",
+   "eligibility": "High-school juniors at San Francisco Unified or SF public charter schools only. Admission doesn't depend on grades.",
+   "cost": "Award",
+   "cost_note": "Paid internship",
+   "format": "In person",
+   "location": "San Francisco, CA",
+   "commitment": "Summer",
+   "commitment_note": "Eight weeks, early June to late July",
+   "deadline_note": "Applications are usually due in winter of junior year",
+   "url": "https://sep.ucsf.edu/programs/high-school-students/intern-program/"
+  }
+ },
+ {
+  "external_id": "b3:row-570",
+  "title": "University of Chicago Insight Program",
+  "unpublish": "The program page is gone and the program couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-571",
+  "title": "University of Chicago Research in the Biological Sciences (RIBS)",
+  "unpublish": "The listed site is gone and current eligibility and cost couldn't be confirmed. It isn't free as listed."
+ },
+ {
+  "external_id": "b3:row-572",
+  "title": "University of Florida Student Science Training Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11
+   ],
+   "summary": "Seven-week residential research program at UF: students work in a faculty lab, take a science seminar and live on campus.",
+   "eligibility": "Students entering senior year who are at least 16 by the start of the program.",
+   "cost": "Fee",
+   "cost_note": "About $5,500 (meals not included); limited need-based aid for Florida students",
+   "format": "In person",
+   "location": "Gainesville, FL",
+   "commitment": "Summer",
+   "commitment_note": "Seven weeks, early June to late July",
+   "deadline_note": "Applications are usually due in mid-March",
+   "url": "https://cpet.ufl.edu/students/uf-cpet-summer-programs/student-science-training-program/"
+  }
+ },
+ {
+  "external_id": "b3:row-573",
+  "title": "University of Georgia Young Dawgs / Summer Academy",
+  "unpublish": "Links to the university homepage rather than a specific program."
+ },
+ {
+  "external_id": "b3:row-574",
+  "title": "University of Illinois Worldwide Youth in Science and Engineering (WYSE)",
+  "verified": true,
+  "set": {
+   "summary": "Week-long engineering summer camps at UIUC, such as Discover Engineering (grades 9–10) and Exploring Your Options (grades 11–12).",
+   "eligibility": "High-school students (separate middle-school camps). Admission is merit-based.",
+   "cost": "Fee",
+   "cost_note": "About $1,500 residential or $750 commuter; scholarships cover up to 100%",
+   "format": "In person",
+   "location": "Urbana-Champaign, IL",
+   "commitment": "Summer",
+   "commitment_note": "One week",
+   "deadline_note": "Applications open early in spring; usually due in March",
+   "url": "https://wyse.grainger.illinois.edu/summer-programs"
+  }
+ },
+ {
+  "external_id": "b3:row-575",
+  "title": "University of Iowa Belin-Blank Center Summer Programs",
+  "unpublish": "The program page is gone; the Belin-Blank summer institute is for 8th graders."
+ },
+ {
+  "external_id": "b3:row-576",
+  "title": "University of Miami Summer Scholars Programs",
+  "unpublish": "Links to the university homepage rather than a specific program."
+ },
+ {
+  "external_id": "b3:row-577",
+  "title": "University of Michigan Summer Institutes",
+  "unpublish": "The link is dead and no specific program could be confirmed."
+ },
+ {
+  "external_id": "b3:row-578",
+  "title": "University of Minnesota Talented Youth Mathematics Program (UMTYMP)",
+  "unpublish": "Students join UMTYMP in grades 5–7, so high-school students can't apply."
+ },
+ {
+  "external_id": "b3:row-579",
+  "title": "University of Texas at Austin Pre-College Programs",
+  "unpublish": "The link is dead and no specific program could be confirmed."
+ },
+ {
+  "external_id": "b3:row-580",
+  "title": "University of Washington Robinson Center Summer Programs",
+  "verified": true,
+  "set": {
+   "grades": [
+    9,
+    10
+   ],
+   "summary": "Summer Stretch: accelerated summer courses for advanced students in grades 7–10 at UW.",
+   "eligibility": "Advanced students currently in grades 7–10 (Summer Challenge serves grades 5–6).",
+   "cost": "Fee",
+   "cost_note": "Varies by course; financial aid available",
+   "format": "In person",
+   "location": "Seattle, WA",
+   "commitment": "Summer",
+   "commitment_note": "Multi-week summer sessions",
+   "deadline_note": "Registration usually opens in spring"
+  }
+ },
+ {
+  "external_id": "b3:row-581",
+  "title": "University of Wisconsin-Madison Pre-College Programs",
+  "unpublish": "Links to the university homepage rather than a specific program."
+ },
+ {
+  "external_id": "b3:row-582",
+  "title": "Virginia Governor's School Programs",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11
+   ],
+   "title": "Virginia Summer Residential Governor's Schools",
+   "summary": "State-funded summer residential programs in humanities, math, science and technology, the arts, agriculture, and mentorships in engineering and marine science.",
+   "eligibility": "Virginia 11th graders and some 10th graders, nominated through their school division (students can be nominated by teachers, counselors, peers or themselves).",
+   "cost": "Free",
+   "cost_note": "Free for public-school students; costs are shared by the state and school division",
+   "format": "In person",
+   "location": "Virginia college campuses",
+   "commitment": "Summer",
+   "commitment_note": "About three to five weeks",
+   "deadline_note": "School nominations happen in fall and winter; ask your counselor"
+  }
+ },
+ {
+  "external_id": "b3:row-584",
+  "title": "Waksman Student Scholars Program",
+  "verified": true,
+  "set": {
+   "summary": "Year-long molecular biology and bioinformatics research done at participating New Jersey high schools, starting with a summer institute at Rutgers. Students can publish their findings.",
+   "eligibility": "Students at the 35 or so New Jersey high schools selected each year; a teacher and one or two students attend the summer institute.",
+   "cost": "Varies",
+   "cost_note": "Through participating schools",
+   "format": "In person",
+   "location": "Piscataway, NJ and participating schools",
+   "commitment": "School year",
+   "commitment_note": "Summer institute, then research in a class or club during the year",
+   "deadline_note": "Schools apply; ask your science teacher",
+   "url": "https://wssp.rutgers.edu/"
+  }
+ },
+ {
+  "external_id": "b3:row-590",
+  "title": "Wharton Global Youth Program: Leadership in the Business World",
+  "verified": true,
+  "set": {
+   "summary": "Three-week residential program at Wharton on business and leadership, with lectures, company visits and a team business plan.",
+   "eligibility": "Current 11th graders with a 3.5+ unweighted GPA and leadership experience.",
+   "cost": "Fee",
+   "cost_note": "About $11,900 plus a $100 application fee; need-based aid available",
+   "format": "In person",
+   "location": "Philadelphia, PA",
+   "commitment": "Summer",
+   "commitment_note": "Three weeks (three sessions, June to August)",
+   "deadline_note": "Priority deadline in late January; final deadline in mid-March",
+   "url": "https://globalyouth.wharton.upenn.edu/"
+  }
+ },
+ {
+  "external_id": "b3:row-591",
+  "title": "Woods Hole Oceanographic Institution Partnership Education Program (PEP)",
+  "unpublish": "PEP is for college students."
+ },
+ {
+  "external_id": "b3:row-592",
+  "title": "YMCA Teen Leaders Club",
+  "unpublish": "Links to the national YMCA homepage; programs vary by local Y and couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-593",
+  "title": "Yale Young Global Scholars",
+  "verified": true,
+  "set": {
+   "grades": [
+    10,
+    11,
+    12
+   ],
+   "summary": "Two-week academic program at Yale with lectures, seminars and a capstone project, for students from 150+ countries.",
+   "eligibility": "Students ages 16–18 (by the start of the last session) from any country who can study in English.",
+   "cost": "Fee",
+   "cost_note": "About $7,000; need-based aid up to 100% for U.S. and international students",
+   "format": "In person",
+   "location": "New Haven, CT",
+   "commitment": "Summer",
+   "commitment_note": "Two weeks (several sessions in June and July)",
+   "deadline_note": "Applications are usually due in mid-January"
+  }
+ },
+ {
+  "external_id": "b3:row-594",
+  "title": "American Cancer Society Youth Volunteering",
+  "verified": true,
+  "set": {
+   "title": "American Cancer Society Relay For Life (Youth)",
+   "summary": "Volunteer with the American Cancer Society by organizing or joining a Relay For Life event, often through a school club, to raise money and awareness.",
+   "eligibility": "High-school students; many schools have Relay For Life clubs.",
+   "cost": "Free",
+   "cost_note": "Free to volunteer",
+   "format": "In person",
+   "location": "Local events nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Club meetings plus event day",
+   "deadline_note": "Join or start a team at any time",
+   "url": "https://www.relayforlife.org/"
+  }
+ },
+ {
+  "external_id": "b3:row-595",
+  "title": "Boy Scouts of America / Scouting America Venturing",
+  "verified": true,
+  "set": {
+   "summary": "Scouting America's coed program for older teens: crews plan high-adventure trips, service projects and leadership activities.",
+   "eligibility": "Young people ages 14–20 (or 13 after finishing 8th grade).",
+   "cost": "Fee",
+   "cost_note": "Annual registration fee plus crew activity costs",
+   "format": "In person",
+   "location": "Local crews nationwide",
+   "commitment": "School year",
+   "commitment_note": "Regular crew meetings and outings",
+   "deadline_note": "Join a local crew at any time"
+  }
+ },
+ {
+  "external_id": "b3:row-596",
+  "title": "Civil Air Patrol Cadet Program",
+  "verified": true,
+  "set": {
+   "summary": "Air Force Auxiliary youth program with aerospace education, leadership training, orientation flights and emergency-services volunteering.",
+   "eligibility": "Young people who join between ages 12 and 18 (cadets can stay until 21).",
+   "cost": "Fee",
+   "cost_note": "Annual membership dues plus uniform costs",
+   "format": "In person",
+   "location": "Local squadrons nationwide",
+   "commitment": "School year",
+   "commitment_note": "Weekly squadron meetings plus optional weekend and summer activities",
+   "deadline_note": "Join a local squadron at any time",
+   "url": "https://www.gocivilairpatrol.com/programs/cadets"
+  }
+ },
+ {
+  "external_id": "b3:row-597",
+  "title": "DoSomething.org Campaigns",
+  "verified": true,
+  "set": {
+   "summary": "Online campaigns where young people take action on causes like climate, justice and mental health, some with scholarship drawings.",
+   "eligibility": "Young people ages 13–25 in the U.S.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "Online",
+   "location": "Online",
+   "commitment": "Flexible",
+   "commitment_note": "Campaigns take minutes to a few hours",
+   "deadline_note": "Campaigns open year-round"
+  }
+ },
+ {
+  "external_id": "b3:row-598",
+  "title": "Girl Scouts Ambassador Program",
+  "verified": true,
+  "set": {
+   "grades": [
+    11,
+    12
+   ],
+   "summary": "The oldest Girl Scout level, where members lead service projects and travel, and can earn the Gold Award, Girl Scouts' highest honor.",
+   "eligibility": "Girl Scouts in grades 11–12 (Seniors are grades 9–10).",
+   "cost": "Fee",
+   "cost_note": "Annual membership fee; financial aid available through local councils",
+   "format": "In person",
+   "location": "Local troops nationwide",
+   "commitment": "School year",
+   "commitment_note": "Troop meetings and projects through the year",
+   "deadline_note": "Join through your local council at any time"
+  }
+ },
+ {
+  "external_id": "b3:row-599",
+  "title": "Habitat for Humanity ReStore Volunteering",
+  "verified": true,
+  "set": {
+   "eligibility": "Teens who meet the local store's minimum age (often 14–16, sometimes with an adult).",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "850+ ReStores in North America",
+   "commitment": "Flexible",
+   "commitment_note": "Volunteer shifts on your schedule",
+   "deadline_note": "Sign up with your local ReStore any time"
+  }
+ },
+ {
+  "external_id": "b3:row-600",
+  "title": "Habitat for Humanity Youth Programs",
+  "verified": true,
+  "set": {
+   "summary": "Youth can volunteer on Habitat build sites, start a campus chapter, or join youth build events with their local affiliate.",
+   "eligibility": "Teens, usually 16+ for construction sites (younger teens can help in other ways). Rules vary by affiliate.",
+   "cost": "Free",
+   "cost_note": "Free to volunteer locally",
+   "format": "In person",
+   "location": "Local Habitat affiliates nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Single build days or ongoing chapter involvement",
+   "deadline_note": "Contact your local affiliate any time",
+   "url": "https://www.habitat.org/volunteer/near-you/youth-programs"
+  }
+ },
+ {
+  "external_id": "b3:row-601",
+  "title": "Junior Optimist Octagon International Clubs (JOOI)",
+  "unpublish": "The program page is gone and current clubs couldn't be confirmed."
+ },
+ {
+  "external_id": "b3:row-602",
+  "title": "Junior ROTC Programs (Army, Navy, Air Force, Marine Corps)",
+  "verified": true,
+  "set": {
+   "summary": "In-school leadership and citizenship course taught by retired military instructors, with drill, service and competitions. There's no obligation to join the military.",
+   "eligibility": "Students at high schools that host a JROTC unit.",
+   "cost": "Free",
+   "cost_note": "Free as a school class; uniforms are provided",
+   "format": "In person",
+   "location": "Participating high schools",
+   "commitment": "School year",
+   "commitment_note": "A class elective, plus optional teams and events",
+   "deadline_note": "Sign up during course registration at your school",
+   "url": "https://www.army.mil/jrotc"
+  }
+ },
+ {
+  "external_id": "b3:row-603",
+  "title": "Lions Clubs International Leo Clubs",
+  "verified": true,
+  "set": {
+   "summary": "Youth service clubs sponsored by local Lions Clubs, where members plan and run community service projects.",
+   "eligibility": "Young people roughly 12–30, with Alpha clubs for teens; clubs are often based at schools.",
+   "cost": "Free",
+   "cost_note": "Usually free or low-cost",
+   "format": "In person",
+   "location": "Local clubs worldwide",
+   "commitment": "School year",
+   "commitment_note": "Regular club meetings and service projects",
+   "deadline_note": "Join or start a club at any time"
+  }
+ },
+ {
+  "external_id": "b3:row-604",
+  "title": "Local animal shelter and humane society volunteering",
+  "unpublish": "A general pointer to local shelters rather than a specific opportunity; the link goes to an unrelated national homepage."
+ },
+ {
+  "external_id": "b3:row-605",
+  "title": "Local food bank youth volunteering",
+  "verified": true,
+  "set": {
+   "title": "Feeding America Food Bank Volunteering",
+   "summary": "Volunteer at your local Feeding America food bank sorting and packing food. Use the finder to locate yours.",
+   "eligibility": "Teens; many food banks accept volunteers from about age 14, younger with an adult. Rules vary by food bank.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "200+ food banks nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Shifts of a few hours",
+   "deadline_note": "Sign up with your local food bank any time"
+  }
+ },
+ {
+  "external_id": "b3:row-606",
+  "title": "Local hospital junior volunteer / candy striper programs",
+  "unpublish": "A general pointer to local hospitals rather than a specific opportunity; the link goes to a trade association."
+ },
+ {
+  "external_id": "b3:row-607",
+  "title": "Local museum docent-in-training / teen programs",
+  "unpublish": "A general pointer to local museums rather than a specific opportunity; the link goes to a trade association."
+ },
+ {
+  "external_id": "b3:row-608",
+  "title": "Local nursing home / assisted living volunteer programs",
+  "unpublish": "A general pointer to local facilities rather than a specific opportunity; the link goes to an unrelated organization."
+ },
+ {
+  "external_id": "b3:row-609",
+  "title": "Local public library teen volunteer programs",
+  "unpublish": "A general pointer to local libraries rather than a specific opportunity; the link goes to a professional association."
+ },
+ {
+  "external_id": "b3:row-610",
+  "title": "Local zoo and aquarium teen volunteer programs",
+  "unpublish": "A general pointer to local zoos rather than a specific opportunity; the link goes to a professional association."
+ },
+ {
+  "external_id": "b3:row-611",
+  "title": "Make-A-Wish Foundation Youth Volunteering",
+  "verified": true,
+  "set": {
+   "summary": "Teens can support Make-A-Wish by running fundraisers and awareness events at school or in the community. Wish-granting volunteer roles are for adults.",
+   "eligibility": "High-school students for fundraising; direct volunteer roles usually require age 18+.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Local chapters nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Event-based",
+   "deadline_note": "Start a fundraiser any time through your local chapter"
+  }
+ },
+ {
+  "external_id": "b3:row-612",
+  "title": "Meals on Wheels Youth Volunteering",
+  "verified": true,
+  "set": {
+   "eligibility": "Teens; age rules vary by local program, and younger volunteers often help with packing or ride along with an adult driver.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Local programs nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Shifts of an hour or two",
+   "deadline_note": "Contact your local Meals on Wheels program any time"
+  }
+ },
+ {
+  "external_id": "b3:row-613",
+  "title": "National Charity League",
+  "verified": true,
+  "set": {
+   "summary": "Mother–daughter service organization: chapters do philanthropy, leadership development and cultural activities together.",
+   "eligibility": "Girls in grades 7–12 with their mothers or female guardians, joining through a local chapter.",
+   "cost": "Fee",
+   "cost_note": "Chapter membership dues",
+   "format": "In person",
+   "location": "Local chapters nationwide",
+   "commitment": "School year",
+   "commitment_note": "A six-year program with required service hours",
+   "deadline_note": "Chapters usually take new members once a year, often in 7th grade"
+  }
+ },
+ {
+  "external_id": "b3:row-614",
+  "title": "National Honor Society Community Service Requirement Partners",
+  "unpublish": "A general pointer to local nonprofits rather than a specific opportunity."
+ },
+ {
+  "external_id": "b3:row-615",
+  "title": "Ocean Conservancy International Coastal Cleanup",
+  "verified": true,
+  "set": {
+   "summary": "The world's largest volunteer cleanup of beaches and waterways. Volunteers log what they collect to help track ocean trash.",
+   "eligibility": "Anyone; minors usually join with a group or adult.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Cleanup sites worldwide",
+   "commitment": "One-off",
+   "commitment_note": "A few hours at a cleanup event",
+   "deadline_note": "The main cleanup is each September; the app supports cleanups year-round"
+  }
+ },
+ {
+  "external_id": "b3:row-616",
+  "title": "Ronald McDonald House Charities Youth Volunteering",
+  "verified": true,
+  "set": {
+   "summary": "Volunteer at a local Ronald McDonald House by cooking meals, running activities or collecting donations for families with hospitalized children.",
+   "eligibility": "Teens; many chapters accept individual volunteers at 16+, and younger teens in supervised groups. Rules vary by chapter.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Local chapters nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Shifts, group meals or donation drives",
+   "deadline_note": "Contact your local chapter any time"
+  }
+ },
+ {
+  "external_id": "b3:row-617",
+  "title": "Rotary Interact Clubs",
+  "verified": true,
+  "set": {
+   "summary": "Service clubs sponsored by local Rotary clubs. Members run community and international service projects and build leadership skills.",
+   "eligibility": "Young people ages 12–18; clubs are usually based at schools.",
+   "cost": "Free",
+   "cost_note": "Usually free",
+   "format": "In person",
+   "location": "School and community clubs worldwide",
+   "commitment": "School year",
+   "commitment_note": "Regular club meetings and service projects",
+   "deadline_note": "Join or start a club at any time"
+  }
+ },
+ {
+  "external_id": "b3:row-618",
+  "title": "Sierra Club Youth Volunteer and Outdoor Programs",
+  "unpublish": "Links to the Sierra Club homepage; no specific youth program could be confirmed."
+ },
+ {
+  "external_id": "b3:row-620",
+  "title": "Special Olympics Youth Volunteering",
+  "verified": true,
+  "set": {
+   "summary": "Volunteer at Special Olympics events, coach or be a Unified Sports partner, or join a Unified Champion Schools program at your school.",
+   "eligibility": "Teens; some roles have minimum ages or need an adult. Unified Champion Schools is through participating schools.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Local programs nationwide",
+   "commitment": "Flexible",
+   "commitment_note": "Single events or a full sports season",
+   "deadline_note": "Sign up any time"
+  }
+ },
+ {
+  "external_id": "b3:row-621",
+  "title": "St. Baldrick's Foundation Youth Fundraising",
+  "verified": true,
+  "set": {
+   "summary": "Organize or join a head-shaving event or other fundraiser at school to raise money for childhood cancer research.",
+   "eligibility": "Anyone; student-run events usually need a school adviser.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "In person",
+   "location": "Events nationwide",
+   "commitment": "One-off",
+   "commitment_note": "Event-based, with planning beforehand",
+   "deadline_note": "Register an event any time"
+  }
+ },
+ {
+  "external_id": "b3:row-622",
+  "title": "St. Jude Children's Research Hospital Youth Fundraising",
+  "verified": true,
+  "set": {
+   "summary": "Raise money for St. Jude through school and youth fundraisers, or your own event built around a hobby.",
+   "eligibility": "Students of any age; school programs run through participating schools.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "Hybrid",
+   "location": "Online and local events",
+   "commitment": "Flexible",
+   "commitment_note": "Event-based",
+   "deadline_note": "Start a fundraiser any time"
+  }
+ },
+ {
+  "external_id": "b3:row-623",
+  "title": "The Nature Conservancy Volunteer Programs",
+  "verified": true,
+  "set": {
+   "summary": "Volunteer on habitat restoration and conservation projects at Nature Conservancy preserves, in person or virtually.",
+   "eligibility": "Teens; many in-person events need a parent or guardian for volunteers under 18.",
+   "cost": "Free",
+   "cost_note": "Free",
+   "format": "Hybrid",
+   "location": "Preserves nationwide and online",
+   "commitment": "Flexible",
+   "commitment_note": "Single events or ongoing roles",
+   "deadline_note": "Sign up for events any time"
+  }
+ },
+ {
+  "external_id": "b3:row-624",
+  "title": "YMCA Youth in Government",
+  "verified": true,
+  "set": {
+   "summary": "State-run YMCA civic simulation where students serve as legislators, lawyers, judges, journalists and officials, ending in a model government session at the state capitol.",
+   "eligibility": "High-school students (sometimes middle school) in states with a YMCA Youth and Government program.",
+   "cost": "Fee",
+   "cost_note": "Program and conference fees vary by state; scholarships often available",
+   "format": "In person",
+   "location": "State programs nationwide",
+   "commitment": "School year",
+   "commitment_note": "Weekly delegation meetings, then a multi-day state conference",
+   "deadline_note": "Join a local delegation in the fall",
+   "url": "https://www.ymca.org/what-we-do/youth-development/youth-and-government"
+  }
+ },
+ {
+  "external_id": "j1:job-003",
+  "title": "Student Custodian/Substitute Custodian",
+  "verified": true,
+  "set": {
+   "deadline_note": "Apply while the posting is open on the district's site"
+  }
+ },
+ {
+  "external_id": "j1:job-022",
+  "title": "Crew Member",
+  "unpublish": "Seasonal summer 2026 posting; the season is over and the employer's site is unreachable."
+ },
+ {
+  "external_id": "j1:job-023",
+  "title": "Counselor-in-Training",
+  "unpublish": "Summer 2026 camp role; the season is over and the employer's site is unreachable."
+ },
+ {
+  "external_id": "j1:job-024",
+  "title": "Counselor-in-Training",
+  "unpublish": "Summer 2026 camp role; the season is over and the employer's site is unreachable."
+ },
+ {
+  "external_id": "j1:job-025",
+  "title": "Counselor-in-Training",
+  "unpublish": "Summer 2026 camp role; the season is over and the employer's site is unreachable."
+ },
+ {
+  "external_id": "j1:job-029",
+  "title": "Store Team Member - #955",
+  "verified": true,
+  "set": {
+   "url": "https://jobs.sheetz.com/",
+   "deadline_note": "Apply while the posting is open on Sheetz's careers site"
+  }
+ },
+ {
+  "external_id": "j1:job-031",
+  "title": "Youth Soccer Referee",
+  "unpublish": "The employer's site is offline and the posting couldn't be confirmed."
  }
 ]
