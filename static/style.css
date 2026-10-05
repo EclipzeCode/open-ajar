@@ -477,16 +477,14 @@ textarea { resize: none; }
   background: var(--warn-soft); border-radius: 16px; color: #78350F; }
 .acct-banner p { margin: 2px 0 0; font-size: .92rem; }
 .acct-body { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 28px; }
-.acct-nav { align-self: stretch; display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 20px;
-  background: var(--accent);
-  box-shadow: 0 12px 28px rgba(31, 92, 70, .22); }
-/* the panel runs the full height of the cards; the section links stay pinned while you scroll */
+.acct-nav { align-self: stretch; display: flex; flex-direction: column; gap: 4px; }
+/* the panel runs the full height of the cards; its links stay pinned while the page scrolls */
 .acct-nav__links { position: sticky; top: 100px; display: grid; gap: 4px; }
 /* shared by the account, tracker, submit and intern pages */
 .acct-avatar__icon { width: 30px; height: 30px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.acct-nav__n { margin-left: auto; min-width: 24px; padding: 1px 7px; border-radius: 99px; background: rgba(255, 255, 255, .18); font-size: .75rem; text-align: center; }
+.acct-nav__n { margin-left: auto; min-width: 24px; padding: 1px 7px; border-radius: 99px; background: var(--soft); font-size: .75rem; text-align: center; }
 .acct-nav a[aria-current="true"] .acct-nav__n { background: var(--accent-soft); }
-.acct-nav__steps { margin: 6px 0 10px; padding-left: 18px; font-size: .82rem; line-height: 1.5; color: rgba(255, 255, 255, .9); }
+.acct-nav__steps { margin: 6px 0 10px; padding-left: 18px; font-size: .82rem; line-height: 1.5; color: var(--muted); }
 .acct-nav__steps li { margin-bottom: 4px; }
 .acct-note--warn { background: var(--warn-soft); color: #78350F; }
 .acct-card--solo { max-width: 720px; }
@@ -498,20 +496,20 @@ textarea { resize: none; }
 .track__links { display: inline-flex; align-items: center; gap: 16px; }
 .subs__side--row { flex-direction: row; align-items: center; }
 /* help card pinned to the bottom of the panel, above Delete account */
-.acct-nav__help { margin-top: auto; position: sticky; bottom: 24px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, .14); color: #fff; }
+.acct-nav__help { margin-top: auto; position: sticky; bottom: 24px; padding: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); color: var(--ink); }
 .acct-nav__help strong { display: block; font: 600 .95rem var(--display); margin-bottom: 4px; }
-.acct-nav__help p { margin: 0 0 12px; font-size: .82rem; line-height: 1.5; color: rgba(255, 255, 255, .85); }
-.acct-nav .acct-nav__mail { display: inline-flex; padding: 7px 12px; border-radius: 10px; background: #fff; color: var(--accent); font-size: .82rem; font-weight: 600; }
+.acct-nav__help p { margin: 0 0 12px; font-size: .82rem; line-height: 1.5; color: var(--muted); }
+.acct-nav .acct-nav__mail { display: inline-flex; padding: 7px 12px; border-radius: 10px; background: var(--accent); color: #fff; font-size: .82rem; font-weight: 600; }
 .acct-nav .acct-nav__mail::before { display: none; }
-.acct-nav .acct-nav__mail:hover { background: #fff; color: var(--accent); }
+.acct-nav .acct-nav__mail:hover { background: var(--accent-hover); color: #fff; }
 .acct-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; text-decoration: none;
-  color: rgba(255, 255, 255, .85); font: 500 .92rem var(--display); transition: background .15s, color .15s; }
+  color: var(--ink); font: 500 .92rem var(--display); transition: background .15s, color .15s; }
 .acct-nav a::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .45; flex: none; }
-.acct-nav a:hover { background: rgba(255, 255, 255, .14); color: #fff; }
-.acct-nav a[aria-current="true"] { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(28, 25, 23, .12); }
+.acct-nav a:hover { background: var(--soft); color: var(--ink-strong); }
+.acct-nav a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
 .acct-nav a[aria-current="true"]::before { opacity: 1; }
 .acct-nav__danger { margin-top: 4px; }
-.acct-nav__danger:not([aria-current="true"]) { color: #FECACA !important; }
+.acct-nav__danger:not([aria-current="true"]) { color: var(--danger) !important; }
 .acct-sections { display: grid; gap: 32px; }
 .acct-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 0 28px 28px; scroll-margin-top: 100px; overflow: hidden;
   box-shadow: 0 1px 2px rgba(28, 25, 23, .04); }
@@ -555,7 +553,7 @@ textarea { resize: none; }
   .acct-nav__help { display: none; }
   .acct-nav__n { margin-left: 6px; }
   .acct-nav__links { display: contents; }
-  .acct-nav { position: sticky; top: 84px; z-index: 5; height: auto; min-height: 0; flex-direction: row; display: flex; overflow-x: auto; gap: 4px; padding: 6px; border-radius: 16px; scrollbar-width: none; }
+  .acct-nav { position: sticky; top: 84px; z-index: 5; height: auto; min-height: 0; flex-direction: row; display: flex; overflow-x: auto; gap: 4px; padding: 6px; border-radius: 16px; scrollbar-width: none; background: var(--surface); border: 1px solid var(--line); }
   .acct-nav::-webkit-scrollbar { display: none; }
   .acct-nav a { flex: none; padding: 7px 12px; border-radius: 10px; }
   .acct-nav a::before { display: none; }
@@ -632,24 +630,6 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .quote blockquote { font-size: .93rem; }
 }
 
-/* account page on wider screens: the page itself doesn't scroll; the header and side panel stay put
-   and only the column of cards scrolls inside its own container. Phones keep normal page scrolling. */
-@media (min-width: 861px) {
-  body.page-panel { height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
-  body.page-panel .topbar { flex: none; }
-  body.page-panel main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  body.page-panel main > .wrap:not(.acct) { flex: none; }
-  body.page-panel .footer { display: none; }
-  .page-panel .acct { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 24px 0; }
-  .page-panel .acct-head, .page-panel .acct-banner { flex: none; }
-  .page-panel .acct-body { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
-  .page-panel .acct-sections { overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; align-content: start; grid-auto-rows: max-content;
-    padding: 0 10px 4px 2px; margin-right: -10px; scrollbar-width: thin; scrollbar-color: #D6D3D1 transparent; }
-  .page-panel .acct-sections::-webkit-scrollbar { width: 8px; }
-  .page-panel .acct-sections::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 99px; }
-  .page-panel .acct-nav__links, .page-panel .acct-nav__help { position: static; }
-  .page-panel .acct-card { scroll-margin-top: 0; }
-}
 
 /* Filter options with no results under the current filters */
 .fopt.is-empty { color: var(--muted); }
