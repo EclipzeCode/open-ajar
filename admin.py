@@ -110,7 +110,7 @@ def review(opp_id):
                       'interests': request.form.getlist('interests')}
         else:
             err = decide(opp, request.form.get('action', ''), request.form.get('message', ''))
-            flash(err or 'Done.')
+            flash(err, 'error') if err else flash('Done.')
             return redirect(url_for('admin.review', opp_id=opp_id))
     submitter = one('SELECT name, email FROM users WHERE id=?', (opp['submitted_by'],)) if opp['submitted_by'] else None
     actions = [a for a, (allowed, _, _) in TRANSITIONS.items() if opp['status'] in allowed]
@@ -132,9 +132,9 @@ def users():
         loses_admin = target['role'] == 'admin' and (role != 'admin' or disabled)
         admins = one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n']
         if target['id'] == me['id'] and loses_admin:
-            flash('You can’t demote or disable your own account.')
+            flash('You can’t demote or disable your own account.', 'error')
         elif loses_admin and admins <= 1:
-            flash('That would leave no active admin.')
+            flash('That would leave no active admin.', 'error')
         elif (role, disabled) != (target['role'], target['disabled']):
             # changing a role or disabling signs that person out everywhere, so new permissions apply immediately
             run('UPDATE users SET role=?, disabled=?, session_version=session_version+1 WHERE id=?', (role, disabled, target['id']))

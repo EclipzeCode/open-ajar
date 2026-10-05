@@ -127,6 +127,7 @@ def create_app(test_config=None):
         return request.path + '?' + urlencode(args)
 
     app.jinja_env.add_extension('jinja2.ext.do')
+    app.jinja_env.tests['section_message'] = lambda m: ' ' in m[0]  # category like 'error profile'
     app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url)
     app.jinja_env.filters['fromjson'] = json.loads
     app.jinja_env.filters['day'] = lambda iso: (iso or '')[:10]
@@ -213,12 +214,65 @@ def register_cli(app):
             for path in files:
                 click.echo(f'{path}: ' + import_rows(list(csv.DictReader(open(path, encoding='utf-8-sig'))), approve, Path(path).stem))
 
+    @app.cli.command('apply-corrections')
+    @click.argument('path', type=click.Path(exists=True, dir_okay=False))
+    def apply_corrections(path):
+        """Apply researched fixes to listings (see data/corrections.json). Safe to run more than once."""
+        with app.app_context():
+            click.echo(apply_correction_file(json.load(open(path, encoding='utf-8'))))
+
     @app.cli.command('send-reminders')
     def send_reminders():
         """Run today's deadline reminder pass now (it normally runs on its own)."""
         db = connect(app.config['DB_PATH'])
         db.execute("DELETE FROM app_meta WHERE key='reminders'")
         click.echo(f'Sent {mail.run_reminders(db, app.config)} digest(s).')
+
+
+def apply_correction_file(fixes):
+    """Each fix: {external_id, title (as a safety check), set: {field: value}} or {..., unpublish: reason}.
+    Edits go through the same validation as the admin editor; a fix that doesn't validate is reported, not saved."""
+    from werkzeug.datastructures import MultiDict
+    from core import get_db, opp_dict
+    db = get_db()
+    changed = unpublished = 0
+    problems = []
+    for fx in fixes:
+        row = opp_dict(db.execute('SELECT * FROM opportunities WHERE external_id=?', (fx['external_id'],)).fetchone())
+        if not row or row['title'] not in (fx['title'], fx.get('set', {}).get('title')):  # new title = already renamed
+            problems.append(f"{fx['external_id']}: not found or title differs")
+            continue
+        if fx.get('unpublish'):
+            if row['status'] == 'approved':
+                db.execute("UPDATE opportunities SET status='rejected', reviewer_message=?, updated_at=? WHERE id=?",
+                           (fx['unpublish'], data.now_iso(), row['id']))
+                add_event(row['id'], None, 'reject', 'rejected', 'Research pass: ' + fx['unpublish'])
+                unpublished += 1
+            continue
+        if all(row.get(k) == v for k, v in fx.get('set', {}).items()) and (not fx.get('verified') or row['verification'] == 'verified'):
+            continue  # already applied
+        merged = {**row, **fx.get('set', {})}
+        form = MultiDict([(k, v) for k, v in merged.items() if k not in ('grades', 'interests', 'requirements') and v is not None])
+        form.setlist('grades', [str(g) for g in merged['grades']])
+        form.setlist('interests', merged['interests'])
+        form['requirements'] = '\n'.join(merged['requirements'])
+        form['expires_at'] = (row['expires_at'] or '')[:10]
+        clean, errors = data.validate_opportunity(form, admin=True)
+        if errors:
+            problems.append(f"{fx['external_id']} ({row['title']}): {errors}")
+            continue
+        if fx.get('set', {}).get('deadline_date') and not row['expires_at']:
+            from datetime import date, timedelta
+            clean['expires_at'] = (date.fromisoformat(clean['deadline_date']) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+        update_opp(db, row['id'], clean)
+        if fx.get('verified'):
+            db.execute("UPDATE opportunities SET verification='verified' WHERE id=?", (row['id'],))
+        add_event(row['id'], None, 'edited', row['status'], 'Research pass: ' + fx.get('note', 'details checked against the official page'))
+        changed += 1
+    db.commit()
+    for p in problems:
+        click.echo('  problem ' + p)
+    return f'{changed} updated, {unpublished} unpublished, {len(problems)} problems'
 
 
 def import_rows(rows, approve=False, batch=''):

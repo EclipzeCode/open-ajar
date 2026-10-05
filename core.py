@@ -161,8 +161,8 @@ def _like(s):
     return '%' + s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%'
 
 
-def search_public(f, limit=20, offset=0):
-    """f: dict with q, grade, state, sort, sector, and lists type/cost/format/commitment/interest. Returns (rows, total)."""
+def _filters(f, skip=None):
+    """SQL WHERE clause and params for filter dict f, leaving out filter `skip` (so a facet can count its own options)."""
     where, params = [PUBLIC], [now_iso()]
     tokens = f.get('q', '').lower().split()[:8]
     for t in tokens:
@@ -170,20 +170,25 @@ def search_public(f, limit=20, offset=0):
         where.append('(' + ' OR '.join(f"lower({c}) LIKE ? ESCAPE '\\'" for c in cols) + ')')
         params += [_like(t)] * len(cols)
     for key, col in (('type', 'o.type'), ('cost', 'o.cost'), ('format', 'o.format'), ('commitment', 'o.commitment')):
-        if f.get(key):
+        if f.get(key) and key != skip:
             where.append(f"{col} IN ({','.join('?' * len(f[key]))})")
             params += f[key]
-    if f.get('interest'):
+    if f.get('interest') and skip != 'interest':
         where.append(f"EXISTS (SELECT 1 FROM json_each(o.interests) i WHERE i.value IN ({','.join('?' * len(f['interest']))}))")
         params += f['interest']
-    if f.get('grade'):
+    if f.get('grade') and skip != 'grade':
         where.append('EXISTS (SELECT 1 FROM json_each(o.grades) g WHERE g.value = ?)')
         params.append(f['grade'])
-    if f.get('state'):
+    if f.get('state') and skip != 'state':
         where.append('o.state = ?')
         params.append(f['state'])
     where.append(SECTOR_SQL.get(f.get('sector'), '1'))
+    return ' AND '.join(where), params, tokens
 
+
+def search_public(f, limit=20, offset=0):
+    """f: dict with q, grade, state, sort, sector, and lists type/cost/format/commitment/interest. Returns (rows, total)."""
+    w, params, tokens = _filters(f)
     order, order_params = 'o.published_at DESC', []
     if f.get('sort') == 'deadline':
         order = '(o.deadline_date IS NULL OR o.deadline_date < date()), o.deadline_date, o.title'
@@ -192,7 +197,6 @@ def search_public(f, limit=20, offset=0):
     elif tokens:
         order = "(lower(o.title) LIKE ? ESCAPE '\\') DESC, " + order
         order_params.append(_like(tokens[0]))
-    w = ' AND '.join(where)
     total = one(f'SELECT COUNT(*) n FROM opportunities o WHERE {w}', params)['n']
     rows = all_(f'SELECT o.* FROM opportunities o WHERE {w} ORDER BY {order} LIMIT ? OFFSET ?', params + order_params + [limit, offset])
     return [opp_dict(r) for r in rows], total
@@ -201,15 +205,18 @@ def search_public(f, limit=20, offset=0):
 SECTOR_SQL = {'jobs': "o.type = 'Job'", 'opportunities': "o.type <> 'Job'"}
 
 
-def facets(sector=None):
-    """Counts per filter value among live listings, for the filter sidebar."""
-    w = PUBLIC + ' AND ' + SECTOR_SQL.get(sector, '1')
-    t = (now_iso(),)
-    scalar = lambda col: {r['v']: r['n'] for r in all_(f'SELECT o.{col} v, COUNT(*) n FROM opportunities o WHERE {w} GROUP BY v', t)}
-    arr = lambda col: {r['v']: r['n'] for r in all_(f'SELECT j.value v, COUNT(*) n FROM opportunities o, json_each(o.{col}) j WHERE {w} GROUP BY v', t)}
-    return {'type': scalar('type'), 'cost': scalar('cost'), 'format': scalar('format'), 'commitment': scalar('commitment'),
-            'interest': arr('interests'), 'grade': arr('grades'),
-            'state': {k: v for k, v in scalar('state').items() if k}}
+def facets(f=None):
+    """Live-listing counts per filter value. Each filter's counts apply every other active filter in f (search, sector,
+    the other pills) but not its own, so they say how many results you'd get by picking that option."""
+    f = f or {}
+
+    def count(key, col, is_list=False):
+        w, p, _ = _filters(f, skip=key)
+        src = f'opportunities o, json_each(o.{col}) j' if is_list else 'opportunities o'
+        return {r['v']: r['n'] for r in all_(f"SELECT {'j.value' if is_list else 'o.' + col} v, COUNT(*) n FROM {src} WHERE {w} GROUP BY v", p)}
+    return {'type': count('type', 'type'), 'cost': count('cost', 'cost'), 'format': count('format', 'format'),
+            'commitment': count('commitment', 'commitment'), 'interest': count('interest', 'interests', True),
+            'grade': count('grade', 'grades', True), 'state': {k: v for k, v in count('state', 'state').items() if k}}
 
 
 def expire_due(db):

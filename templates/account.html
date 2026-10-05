@@ -1,84 +1,153 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
 {% block title %}Your account{% endblock %}
+{% block body_class %}page-panel{% endblock %}
+
+{# A success or error message for one card, set by account.back() in account.py #}
+{% macro note(section) %}
+  {% for cat, msg in get_flashed_messages(with_categories=true) if cat.endswith(' ' + section) %}
+    <p class="acct-note acct-note--{{ cat.split()[0] }}" role="{{ 'alert' if cat.startswith('error') else 'status' }}">{{ msg }}</p>
+  {% endfor %}
+{% endmacro %}
+
 {% block content %}
-<div class="wrap">
-  <header class="page-head">
-    <p class="eyebrow">Account</p>
-    <h1>Hi, {{ u.name.split()[0] }}.</h1>
-    <p class="muted">{{ u.email }}{% if u.email_verified %} · confirmed{% endif %}</p>
+<div class="wrap acct">
+  <header class="acct-head">
+    <div class="acct-head__who">
+      <span class="acct-avatar" aria-hidden="true">{{ u.name.split()|map('first')|join|upper|truncate(2, True, '') }}</span>
+      <div>
+        <h1>{{ u.name }}</h1>
+        <p class="acct-head__meta">
+          <span>{{ u.email }}</span>
+          {% if u.email_verified %}<span class="pill pill--approved">Confirmed</span>{% else %}<span class="pill pill--changes_requested">Not confirmed</span>{% endif %}
+          {% if u.role != 'student' %}<span class="pill">{{ u.role|capitalize }}</span>{% endif %}
+        </p>
+        <p class="muted small">Member since {{ u.created_at[:10]|replace('-', '/') }}</p>
+      </div>
+    </div>
+    <div class="acct-stats">
+      <a href="{{ url_for('account.tracker') }}"><strong>{{ counts.tracking }}</strong><span>Tracking</span></a>
+      <a href="{{ url_for('account.tracker') }}"><strong>{{ counts.saved }}</strong><span>Saved</span></a>
+      <a href="#submissions"><strong>{{ counts.submitted }}</strong><span>Submitted</span></a>
+    </div>
   </header>
 
   {% if not u.email_verified %}
-  <div class="alert">
-    <strong>Confirm your email.</strong> We sent a link to {{ u.email }}. You’ll need it to submit opportunities and get deadline reminders.
-    <form method="post" action="{{ url_for('account.resend_verification') }}" class="inline">{{ m.csrf() }}<button class="btn btn--sm" type="submit">Send it again</button></form>
+  <div class="acct-banner" role="note">
+    <div><strong>Confirm your email</strong><p>We sent a link to {{ u.email }}. You need it to submit opportunities and get deadline reminders.</p></div>
+    <form method="post" action="{{ url_for('account.resend_verification') }}">{{ m.csrf() }}<button class="btn btn--sm" type="submit">Resend link</button></form>
   </div>
   {% endif %}
 
-  <div class="account">
-    <section class="panel">
-      <h2>Your profile</h2>
-      <form class="form" method="post" action="{{ url_for('account.save_profile') }}">
-        {{ m.csrf() }}
-        {{ m.input('name', 'Name', u, errors, required=True, max=80, auto='name') }}
-        <div class="row2">
-          {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, u, errors) }}
-          {{ m.input('location', 'City or area', u, errors, max=120) }}
+  <div class="acct-body">
+    <nav class="acct-nav" aria-label="Account sections">
+      <div class="acct-nav__links">
+        <a href="#profile">Profile</a>
+        <a href="#submissions">Submissions</a>
+        <a href="#story">Your story</a>
+        <a href="#security">Security</a>
+      </div>
+      <div class="acct-nav__help">
+        <strong>Need a hand?</strong>
+        <p>Questions about your account or a listing? We usually reply within a day.</p>
+        <a class="acct-nav__mail" href="mailto:{{ contact_email }}">Email us</a>
+      </div>
+      <a href="#delete" class="acct-nav__danger">Delete account</a>
+    </nav>
+
+    <div class="acct-sections">
+      <section class="acct-card" id="profile" aria-labelledby="profile-h">
+        <div class="acct-card__head"><h2 id="profile-h">Profile</h2><p>Helps us point you to opportunities that fit.</p></div>
+        {{ note('profile') }}
+        <form class="form" method="post" action="{{ url_for('account.save_profile') }}">
+          {{ m.csrf() }}
+          <div class="row2">
+            {{ m.input('name', 'Name', u, errors, required=True, max=80, auto='name') }}
+            {{ m.input('location', 'City or area', u, errors, max=120, placeholder='e.g. Austin, TX') }}
+          </div>
+          <div class="row2">
+            {{ m.select('grade', 'Grade', {'9': 'Grade 9', '10': 'Grade 10', '11': 'Grade 11', '12': 'Grade 12'}, u, errors, placeholder='Not set') }}
+            <div class="field">
+              <span class="label">Deadline reminders</span>
+              <label class="switch"><input type="checkbox" name="email_reminders" value="1" {% if u.email_reminders %}checked{% endif %}>
+                <span class="switch__track" aria-hidden="true"></span><span>Email me a week before deadlines</span></label>
+            </div>
+          </div>
+          {{ m.checks('interests', 'Interests', D.INTERESTS, interests, errors) }}
+          <div class="acct-card__foot"><button class="btn" type="submit">Save profile</button></div>
+        </form>
+      </section>
+
+      <section class="acct-card" id="submissions" aria-labelledby="subs-h">
+        <div class="acct-card__head acct-card__head--row">
+          <div><h2 id="subs-h">Submissions</h2><p>Opportunities you’ve shared and where they are in review.</p></div>
+          <a class="btn btn--ghost btn--sm" href="{{ url_for('site.submit') }}">Submit one</a>
         </div>
-        {{ m.checks('interests', 'Interests', D.INTERESTS, interests, errors) }}
-        <label class="check"><input type="checkbox" name="email_reminders" value="1" {% if u.email_reminders %}checked{% endif %}>
-          <span>Email me when a deadline for something I’m tracking is a week away</span></label>
-        <button class="btn" type="submit">Save profile</button>
-      </form>
-    </section>
+        {% if submissions %}
+          <ul class="subs">
+            {% for s in submissions %}
+            <li class="subs__item">
+              <div class="subs__main">
+                <strong>{% if s.status == 'approved' %}<a href="{{ url_for('site.detail', opp_id=s.id) }}">{{ s.title }}</a>{% else %}{{ s.title }}{% endif %}</strong>
+                <span class="muted small">{{ s.org }} · updated {{ s.updated_at[:10] }}</span>
+                {% for e in s.events %}<p class="note"><strong>Reviewer:</strong> {{ e.message }}</p>{% endfor %}
+              </div>
+              <div class="subs__side">
+                <span class="pill pill--{{ s.status }}">{{ D.STATUSES[s.status] }}</span>
+                {% if s.status == 'changes_requested' %}<a class="btn btn--sm" href="{{ url_for('site.submit', opp_id=s.id) }}">Revise</a>{% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="acct-empty">Nothing yet. Know a program other students should hear about? <a href="{{ url_for('site.submit') }}">Share it</a>.</p>
+        {% endif %}
+      </section>
 
-    <section class="panel">
-      <h2>Your submissions</h2>
-      {% for s in submissions %}
-        <div class="sub">
-          <p><strong>{{ s.title }}</strong> <span class="pill pill--{{ s.status }}">{{ D.STATUSES[s.status] }}</span></p>
-          {% if s.status == 'approved' %}<p><a href="{{ url_for('site.detail', opp_id=s.id) }}">View the live listing →</a></p>{% endif %}
-          {% for e in s.events %}<p class="note"><strong>Reviewer:</strong> {{ e.message }}</p>{% endfor %}
-          {% if s.status == 'changes_requested' %}<p><a class="btn btn--sm" href="{{ url_for('site.submit', opp_id=s.id) }}">Revise and resubmit</a></p>{% endif %}
+      <section class="acct-card" id="story" aria-labelledby="story-h">
+        <div class="acct-card__head acct-card__head--row">
+          <div><h2 id="story-h">Your story</h2><p>A short quote about Open Ajar. Approved quotes appear on the home page.</p></div>
+          {% if quote %}<span class="pill pill--{{ quote.status }}">{{ quote.status|capitalize }}</span>{% endif %}
         </div>
-      {% else %}
-        <p class="muted">Nothing yet. <a href="{{ url_for('site.submit') }}">Share an opportunity</a> other students should know about.</p>
-      {% endfor %}
-    </section>
+        {{ note('story') }}
+        <form class="form" method="post" action="{{ url_for('account.save_quote') }}">
+          {{ m.csrf() }}
+          {{ m.textarea('quote', 'Your quote', quote or {}, {}, required=True, max=400, rows=3) }}
+          {{ m.input('role_label', 'How should we describe you?', quote or {}, {}, max=80, placeholder='e.g. Junior, Lincoln High') }}
+          <div class="acct-card__foot"><button class="btn btn--ghost" type="submit">{{ 'Update quote' if quote else 'Send quote' }}</button></div>
+        </form>
+      </section>
 
-    <section class="panel">
-      <h2>Share your story</h2>
-      <p class="muted">Has Open Ajar helped you? A short quote may appear on the home page after a reviewer approves it.</p>
-      {% if quote %}<p class="small">Status: <span class="pill pill--{{ quote.status }}">{{ quote.status|capitalize }}</span></p>{% endif %}
-      <form class="form" method="post" action="{{ url_for('account.save_quote') }}">
-        {{ m.csrf() }}
-        {{ m.textarea('quote', 'Your quote', quote or {}, {}, required=True, max=400, rows=3) }}
-        {{ m.input('role_label', 'How should we describe you?', quote or {}, {}, max=80, placeholder='e.g. Junior, Austin TX') }}
-        <button class="btn btn--ghost" type="submit">{{ 'Update quote' if quote else 'Send quote' }}</button>
-      </form>
-    </section>
+      <section class="acct-card" id="security" aria-labelledby="security-h">
+        <div class="acct-card__head"><h2 id="security-h">Security</h2><p>Changing your password signs you out on every other device.</p></div>
+        {{ note('security') }}
+        <form class="form" method="post" action="{{ url_for('account.change_password') }}">
+          {{ m.csrf() }}
+          <div class="row2">
+            <div class="field"><label for="current">Current password</label><input id="current" name="current" type="password" required autocomplete="current-password"></div>
+            <div class="field"><label for="new">New password</label><input id="new" name="new" type="password" required minlength="10" maxlength="128" autocomplete="new-password"></div>
+          </div>
+          <div class="acct-card__foot acct-card__foot--split">
+            <span class="muted small">At least 10 characters. A short phrase works well.</span>
+            <button class="btn btn--ghost" type="submit">Change password</button>
+          </div>
+        </form>
+        <div class="acct-row">
+          <div><strong>Signed in on this device</strong><p class="muted small">Sign out here when you’re done on a shared computer.</p></div>
+          <form method="post" action="{{ url_for('account.logout') }}">{{ m.csrf() }}<button class="btn btn--ghost btn--sm" type="submit">Sign out</button></form>
+        </div>
+      </section>
 
-    <section class="panel">
-      <h2>Change password</h2>
-      <form class="form" method="post" action="{{ url_for('account.change_password') }}">
-        {{ m.csrf() }}
-        <div class="field"><label for="current">Current password</label><input id="current" name="current" type="password" required autocomplete="current-password"></div>
-        <div class="field"><label for="new">New password</label><input id="new" name="new" type="password" required minlength="10" autocomplete="new-password"></div>
-        <button class="btn btn--ghost" type="submit">Change password</button>
-      </form>
-      <form method="post" action="{{ url_for('account.logout') }}" class="spaced">{{ m.csrf() }}<button class="btn btn--ghost" type="submit">Sign out</button></form>
-    </section>
-
-    <section class="panel panel--danger">
-      <h2>Delete account</h2>
-      <p>This permanently removes your profile, saved opportunities and tracked applications. Listings you submitted stay up.</p>
-      <form class="form" method="post" action="{{ url_for('account.delete_account') }}" data-confirm="Delete your account for good? This can’t be undone.">
-        {{ m.csrf() }}
-        <div class="field"><label for="del-pw">Current password</label><input id="del-pw" name="password" type="password" required autocomplete="current-password"></div>
-        <button class="btn btn--danger" type="submit">Delete my account</button>
-      </form>
-    </section>
+      <section class="acct-card acct-card--danger" id="delete" aria-labelledby="delete-h">
+        <div class="acct-card__head"><h2 id="delete-h">Delete account</h2><p>Permanently removes your profile, saved opportunities and tracker. Listings you submitted stay up.</p></div>
+        {{ note('delete') }}
+        <form class="form acct-delete" method="post" action="{{ url_for('account.delete_account') }}" data-confirm="Delete your account for good? This can’t be undone.">
+          {{ m.csrf() }}
+          <div class="field"><label for="del-pw">Confirm with your password</label><input id="del-pw" name="password" type="password" required autocomplete="current-password"></div>
+          <button class="btn btn--danger" type="submit">Delete my account</button>
+        </form>
+      </section>
+    </div>
   </div>
 </div>
 {% endblock %}

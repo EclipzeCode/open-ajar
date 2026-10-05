@@ -130,11 +130,11 @@ def resend_verification():
     if u['email_verified']:
         flash('Your email is already confirmed.')
     elif limited('verify:' + u['id'], 4, 3600):
-        flash('We’ve sent several emails recently. Check your inbox and spam folder, or try again in an hour.')
+        flash('We’ve sent several emails recently. Check your inbox and spam folder, or try again in an hour.', 'error')
     elif send_verification(u):
         flash(f"Sent. Check {u['email']} for the link.")
     else:
-        flash('We couldn’t send the email just now. Please try again in a few minutes.')
+        flash('We couldn’t send the email just now. Please try again in a few minutes.', 'error')
     return redirect(url_for('account.account'))
 
 
@@ -194,7 +194,15 @@ def account():
         s['events'] = [e for e in events_for(s['id']) if e['message'] and e['action'] != 'imported']
     quote = one('SELECT quote, role_label, status FROM testimonials WHERE user_id=?', (u['id'],))
     quote = dict(quote) if quote else None
-    return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), submissions=subs, quote=quote, errors={})
+    counts = one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracking, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved''', {'u': u['id']})
+    return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), submissions=subs, quote=quote,
+                           counts=dict(counts, submitted=len(subs)), errors={})
+
+
+def back(section, msg, ok=False):
+    """Show a message inside one card of the account page and scroll back to it."""
+    flash(msg, f"{'ok' if ok else 'error'} {section}")
+    return redirect(url_for('account.account') + '#' + section)
 
 
 @bp.post('/account/profile')
@@ -206,14 +214,11 @@ def save_profile():
     f.grade()
     f.text('location', 'Location', max=120, required=False)
     if f.errors:
-        for msg in f.errors.values():
-            flash(msg)
-        return redirect(url_for('account.account'))
+        return back('profile', ' '.join(f.errors.values()))
     run('UPDATE users SET name=?, grade=?, location=?, interests=?, email_reminders=? WHERE id=?',
         (f.out['name'], f.out['grade'], f.out['location'], json.dumps(f.many('interests', data.INTERESTS)),
          1 if request.form.get('email_reminders') else 0, u['id']))
-    flash('Saved.')
-    return redirect(url_for('account.account'))
+    return back('profile', 'Profile saved.', ok=True)
 
 
 @bp.post('/account/password')
@@ -223,15 +228,14 @@ def change_password():
     if too_many_auth():
         abort(429, 'Too many attempts. Please wait a few minutes and try again.')
     if not check_password_hash(u['password_hash'], request.form.get('current', '')[:128]):
-        flash('That isn’t your current password.')
-    elif data.password_problem(request.form.get('new', ''), u['email']):
-        flash(data.password_problem(request.form.get('new', ''), u['email']))
-    else:
-        run('UPDATE users SET password_hash=?, session_version=session_version+1 WHERE id=?', (generate_password_hash(request.form['new']), u['id']))
-        audit(u['id'], 'password_changed', 'user ' + u['id'])
-        sign_in(one('SELECT * FROM users WHERE id=?', (u['id'],)))  # keep this device, sign out the rest
-        flash('Password changed. Other devices have been signed out.')
-    return redirect(url_for('account.account'))
+        return back('security', 'That isn’t your current password.')
+    problem = data.password_problem(request.form.get('new', ''), u['email'])
+    if problem:
+        return back('security', problem)
+    run('UPDATE users SET password_hash=?, session_version=session_version+1 WHERE id=?', (generate_password_hash(request.form['new']), u['id']))
+    audit(u['id'], 'password_changed', 'user ' + u['id'])
+    sign_in(one('SELECT * FROM users WHERE id=?', (u['id'],)))  # keep this device, sign out the rest
+    return back('security', 'Password changed. Other devices have been signed out.', ok=True)
 
 
 @bp.post('/account/quote')
@@ -241,15 +245,14 @@ def save_quote():
     quote = data.clean(request.form.get('quote', ''), multiline=True)
     role = data.clean(request.form.get('role_label', ''))[:80]
     if not 15 <= len(quote) <= 400:
-        flash('Your quote needs 15 to 400 characters.')
-    elif limited('quote:' + u['id'], 12, 3600):
-        flash('You’ve saved your quote a few times just now. Please try again later.')
-    else:  # each student has one quote; editing it sends it back for review
-        run('''INSERT INTO testimonials (id, user_id, name, role_label, quote, status, updated_at) VALUES (?,?,?,?,?, 'pending', ?)
-               ON CONFLICT(user_id) DO UPDATE SET name=excluded.name, role_label=excluded.role_label, quote=excluded.quote,
-               status='pending', updated_at=excluded.updated_at''', (new_id(), u['id'], u['name'], role, quote, data.now_iso()))
-        flash('Thanks! Your quote will appear on the home page once a reviewer approves it.')
-    return redirect(url_for('account.account'))
+        return back('story', 'Your quote needs 15 to 400 characters.')
+    if limited('quote:' + u['id'], 12, 3600):
+        return back('story', 'You’ve saved your quote a few times just now. Please try again later.')
+    # each student has one quote; editing it sends it back for review
+    run('''INSERT INTO testimonials (id, user_id, name, role_label, quote, status, updated_at) VALUES (?,?,?,?,?, 'pending', ?)
+           ON CONFLICT(user_id) DO UPDATE SET name=excluded.name, role_label=excluded.role_label, quote=excluded.quote,
+           status='pending', updated_at=excluded.updated_at''', (new_id(), u['id'], u['name'], role, quote, data.now_iso()))
+    return back('story', 'Thanks! Your quote will appear on the home page once a reviewer approves it.', ok=True)
 
 
 @bp.post('/account/delete')
@@ -260,11 +263,9 @@ def delete_account():
     if too_many_auth():
         abort(429, 'Too many attempts. Please wait a few minutes and try again.')
     if not check_password_hash(u['password_hash'], request.form.get('password', '')[:128]):
-        flash('Enter your current password to delete your account.')
-        return redirect(url_for('account.account'))
+        return back('delete', 'Enter your current password to delete your account.')
     if u['role'] == 'admin' and one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n'] <= 1:
-        flash('You are the only admin. Make someone else an admin before deleting your account.')
-        return redirect(url_for('account.account'))
+        return back('delete', 'You are the only admin. Make someone else an admin before deleting your account.')
     audit(u['id'], 'account_deleted', u['email'])
     run('DELETE FROM users WHERE id=?', (u['id'],))
     session.clear()
@@ -292,11 +293,13 @@ def tracker():
         o = opp_dict(r)
         o['checklist'] = json.loads(r['checklist'] or '[]')
         items.append(o)
-    stage = request.args.get('stage')
+    stage = request.args.get('stage') if request.args.get('stage') in data.STAGES else None
     tracked = [o for o in items if o['is_tracked']]
+    saved = [o for o in items if o['is_saved'] and not o['is_tracked']]
+    due_soon = sum(data.deadline_info(o['own_deadline'] or o['deadline_date'])[1] for o in tracked)
     return render_template('tracker.html', tracked=[o for o in tracked if not stage or o['stage'] == stage],
                            counts={s: sum(o['stage'] == s for o in tracked) for s in data.STAGES}, stage=stage,
-                           saved=[o for o in items if o['is_saved'] and not o['is_tracked']])
+                           total=len(tracked), due_soon=due_soon, saved=saved)
 
 
 @bp.post('/tracker/<opp_id>')

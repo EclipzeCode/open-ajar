@@ -1,42 +1,105 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
 {% block title %}Submit an opportunity{% endblock %}
+{% block body_class %}page-panel{% endblock %}
 {% block content %}
-<div class="wrap">
-  <header class="page-head">
-    <p class="eyebrow">Submit</p>
-    <h1>{% if existing %}Revise your submission.{% else %}Share an opportunity.{% endif %}</h1>
-    <p class="lead">Know a program, internship or job that high-school students should hear about? Send it in. A reviewer checks every listing before it goes live.</p>
+<div class="wrap acct">
+  <header class="acct-head">
+    <div class="acct-head__who">
+      <span class="acct-avatar" aria-hidden="true"><svg class="acct-avatar__icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+      <div>
+        <h1>{% if existing %}Revise your submission{% else %}Share an opportunity{% endif %}</h1>
+        <p class="acct-head__meta"><span class="pill pill--approved">Free to list</span><span class="pill">Reviewed before it goes live</span></p>
+        <p class="muted small">Know a program, internship or job high-school students should hear about? Send it in.</p>
+      </div>
+    </div>
   </header>
 
   {% if unverified %}
-    <div class="panel">
-      <h2>Confirm your email first.</h2>
-      <p>We need a reachable, real person behind every submission. Check {{ user.email }} for the link we sent when you signed up.</p>
-      <form method="post" action="{{ url_for('account.resend_verification') }}">{{ m.csrf() }}<button class="btn" type="submit">Send the link again</button></form>
-    </div>
+    <section class="acct-card acct-card--solo">
+      <div class="acct-card__head"><h2>Confirm your email first</h2><p>We need a reachable, real person behind every submission.</p></div>
+      <p>Check <strong>{{ user.email }}</strong> for the link we sent when you signed up.</p>
+      <form method="post" action="{{ url_for('account.resend_verification') }}" class="acct-card__foot">{{ m.csrf() }}<button class="btn" type="submit">Send the link again</button></form>
+    </section>
   {% else %}
-  <div class="form-layout">
-    <aside class="form-layout__aside">
-      <h2>What happens next</h2>
-      <ol>
-        <li>Your listing goes into the review queue.</li>
-        <li>A reviewer checks the official page.</li>
-        <li>It’s approved, or they ask you for changes. You’ll see their note on your account page.</li>
-      </ol>
-      {% if existing and existing.reviewer_message %}
-        <div class="alert"><strong>Reviewer’s note:</strong> {{ existing.reviewer_message }}</div>
-      {% endif %}
-    </aside>
-    <form class="form" method="post" novalidate>
+  <div class="acct-body">
+    <nav class="acct-nav" aria-label="Form sections">
+      <div class="acct-nav__links">
+        <a href="#basics">The basics</a>
+        <a href="#who">Who it’s for</a>
+        <a href="#format">Format &amp; cost</a>
+        <a href="#dates">Dates &amp; link</a>
+        <a href="#you">About you</a>
+      </div>
+      <div class="acct-nav__help">
+        <strong>What happens next</strong>
+        <ol class="acct-nav__steps">
+          <li>It joins the review queue.</li>
+          <li>A reviewer checks the official page.</li>
+          <li>It goes live, or they ask you for changes on your account page.</li>
+        </ol>
+      </div>
+    </nav>
+
+    <form class="acct-sections" method="post" novalidate>
       {{ m.csrf() }}
-      {{ m.summary(errors) }}
-      {{ m.opp_fields(values, errors, D) }}
-      <h2 class="form__section">About you</h2>
-      <p class="muted">Only reviewers see this. It’s never shown publicly.</p>
-      {{ m.select('relationship', 'How are you connected to it?', D.RELATIONSHIPS, values, errors, required=True) }}
-      {{ m.input('contact_email', 'Email a reviewer can reach', values if values.get('contact_email') else {'contact_email': user.email}, errors, type='email', required=True, auto='email') }}
-      <button class="btn" type="submit">{{ 'Send for review again' if existing else 'Submit for review' }}</button>
+      {% if existing and existing.reviewer_message %}<div class="acct-note acct-note--warn" role="note"><strong>Reviewer’s note:</strong> {{ existing.reviewer_message }}</div>{% endif %}
+      {% if errors %}<div class="acct-note acct-note--error" role="alert">Please fix the highlighted fields{% if errors.get('_') %}: {{ errors['_'] }}{% else %}.{% endif %}</div>{% endif %}
+
+      <section class="acct-card" id="basics" aria-labelledby="basics-h">
+        <div class="acct-card__head"><h2 id="basics-h">The basics</h2><p>What it is and who runs it.</p></div>
+        {{ m.input('title', 'Title', values, errors, required=True, max=140, placeholder='e.g. Summer Research Internship') }}
+        <div class="row2">
+          {{ m.input('org', 'Organization', values, errors, required=True, max=140) }}
+          {{ m.select('type', 'Type', D.TYPES, values, errors, required=True) }}
+        </div>
+        {{ m.textarea('summary', 'Summary', values, errors, required=True, max=600, help='What it is, in a few plain sentences (20–600 characters).') }}
+      </section>
+
+      <section class="acct-card" id="who" aria-labelledby="who-h">
+        <div class="acct-card__head"><h2 id="who-h">Who it’s for</h2><p>Eligibility, requirements and the interests it fits.</p></div>
+        {{ m.textarea('eligibility', 'Who can apply', values, errors, required=True, max=600, rows=3) }}
+        {{ m.textarea('requirements', 'What applicants need', values, errors, max=4000, rows=4, help='One per line, e.g. “Short essay”. These become each student’s checklist.') }}
+        {{ m.checks('grades', 'Grades', {9: 'Grade 9', 10: 'Grade 10', 11: 'Grade 11', 12: 'Grade 12'}, values.get('grades'), errors) }}
+        {{ m.checks('interests', 'Interests', D.INTERESTS, values.get('interests'), errors) }}
+      </section>
+
+      <section class="acct-card" id="format" aria-labelledby="format-h">
+        <div class="acct-card__head"><h2 id="format-h">Format &amp; cost</h2><p>Where it happens, what it costs and how much time it takes.</p></div>
+        <div class="row2">
+          {{ m.select('cost', 'Cost', D.COSTS, values, errors, required=True) }}
+          {{ m.input('cost_note', 'Cost detail', values, errors, max=200, placeholder='e.g. $15/hour, or need-based aid') }}
+        </div>
+        <div class="row2">
+          {{ m.select('format', 'Format', D.FORMATS, values, errors, required=True) }}
+          {{ m.input('location', 'Location', values, errors, required=True, max=200, placeholder='e.g. Austin, TX, or Online') }}
+        </div>
+        <div class="row2">
+          {{ m.select('commitment', 'Commitment', D.COMMITMENTS, values, errors, required=True) }}
+          {{ m.input('commitment_note', 'Commitment detail', values, errors, max=200, placeholder='e.g. 6 weeks, 20 hours/week') }}
+        </div>
+      </section>
+
+      <section class="acct-card" id="dates" aria-labelledby="dates-h">
+        <div class="acct-card__head"><h2 id="dates-h">Dates &amp; link</h2><p>When applications close and where students apply.</p></div>
+        <div class="row2">
+          {{ m.input('deadline_date', 'Deadline', values, errors, type='date') }}
+          {{ m.input('deadline_note', 'Deadline note', values, errors, max=200, placeholder='e.g. Rolling, or priority deadline') }}
+        </div>
+        {{ m.input('url', 'Official link', values, errors, type='url', max=500, placeholder='https://', help='Use the organization’s own page, where students actually apply.') }}
+      </section>
+
+      <section class="acct-card" id="you" aria-labelledby="you-h">
+        <div class="acct-card__head"><h2 id="you-h">About you</h2><p>Only reviewers see this. It’s never shown publicly.</p></div>
+        <div class="row2">
+          {{ m.select('relationship', 'How are you connected to it?', D.RELATIONSHIPS, values, errors, required=True) }}
+          {{ m.input('contact_email', 'Email a reviewer can reach', values if values.get('contact_email') else {'contact_email': user.email}, errors, type='email', required=True, auto='email') }}
+        </div>
+        <div class="acct-card__foot acct-card__foot--split">
+          <span class="muted small">You can follow its review on your account page.</span>
+          <button class="btn" type="submit">{{ 'Send for review again' if existing else 'Submit for review' }}</button>
+        </div>
+      </section>
     </form>
   </div>
   {% endif %}
