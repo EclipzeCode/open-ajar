@@ -6,7 +6,7 @@
 {% macro pill(title, key, options, kind='checkbox', labels=None, any_label=None) %}
   {% set chosen = f[key] if kind == 'checkbox' else ([f[key]] if f[key] else []) %}
   {% set opts = [] %}
-  {% for v in options if facets[key].get(v) or v in chosen %}{% do opts.append(v) %}{% endfor %}
+  {% for v in options if all_opts[key].get(v) or v in chosen %}{% do opts.append(v) %}{% endfor %}
   {% if opts %}
   <details class="fpop{% if chosen %} is-active{% endif %}">
     <summary class="fpop__btn">{{ title }}{% if chosen %} <span class="fpop__n">{{ chosen|length if kind == 'checkbox' else '1' }}</span>{% endif %}</summary>
@@ -15,8 +15,9 @@
         <label class="fopt"><input type="radio" name="{{ key }}" value="" {% if not chosen %}checked{% endif %}><span>{{ any_label }}</span></label>
       {% endif %}
       {% for v in opts %}
-        <label class="fopt"><input type="{{ kind }}" name="{{ key }}" value="{{ v }}" {% if v in chosen %}checked{% endif %}>
-          <span>{{ labels[v] if labels else v }}</span><span class="fopt__n">{{ facets[key].get(v, 0) }}</span></label>
+        {% set n = facets[key].get(v, 0) %}
+        <label class="fopt{% if not n and v not in chosen %} is-empty{% endif %}"><input type="{{ kind }}" name="{{ key }}" value="{{ v }}" {% if v in chosen %}checked{% endif %}>
+          <span>{{ labels[v] if labels else v }}</span><span class="fopt__n">{{ '{:,}'.format(n) }}</span></label>
       {% endfor %}
       <button class="btn btn--sm btn--block fpop__done" type="button">Done</button>
       <noscript><button class="btn btn--sm btn--block" type="submit">Apply</button></noscript>

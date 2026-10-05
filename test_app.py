@@ -128,6 +128,21 @@ class Flows(unittest.TestCase):
         self.assertEqual(o['status'], 'pending_review')
         self.assertEqual(o['interests'], '["Computer science"]')
 
+    def test_filter_counts_follow_other_filters(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer'}
+        rows = [{**base, 'id': '1', 'title': 'Free Comp', 'type': 'Competition', 'cost': 'Free'},
+                {**base, 'id': '2', 'title': 'Paid Comp', 'type': 'Competition', 'cost': 'Fee'},
+                {**base, 'id': '3', 'title': 'Free Camp', 'type': 'Summer program', 'cost': 'Free'}]
+        with self.app.app_context():
+            import_rows(rows, approve=True)
+            from core import facets
+            f = facets({'sector': 'opportunities', 'cost': ['Free'], 'type': ['Competition']})
+        self.assertEqual(f['type'], {'Competition': 1, 'Summer program': 1})  # counts apply cost, not their own pick
+        self.assertEqual(f['cost'], {'Free': 1, 'Fee': 1})
+        page = self.c.get('/opportunities?cost=Free').get_data(as_text=True)
+        self.assertIn('2 results', page)
+
     def test_reminders_send_once(self):
         from datetime import date, timedelta
         self.register()

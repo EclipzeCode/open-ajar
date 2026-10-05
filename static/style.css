@@ -650,3 +650,7 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .page-panel .acct-nav__links, .page-panel .acct-nav__help { position: static; }
   .page-panel .acct-card { scroll-margin-top: 0; }
 }
+
+/* Filter options with no results under the current filters */
+.fopt.is-empty { color: var(--muted); }
+.fopt.is-empty .fopt__n { opacity: .6; }

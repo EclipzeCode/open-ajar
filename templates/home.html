@@ -17,8 +17,8 @@
     {% if total and states > 1 %}
     <div class="stats-strip reveal d3">
       <div><strong data-count="{{ total }}">{{ '{:,}'.format(total) }}</strong><span>opportunities</span></div>
+      {% if jobs %}<div><strong data-count="{{ jobs }}">{{ '{:,}'.format(jobs) }}</strong><span>teen jobs</span></div>{% endif %}
       <div><strong data-count="{{ states }}">{{ states }}</strong><span>states covered</span></div>
-      <div><strong>$0</strong><span>free for students</span></div>
     </div>
     {% endif %}
   </div>
@@ -87,7 +87,7 @@
   <div class="wrap">
     <div class="section__head">
       <div><span class="eyebrow">Just added</span><h2>Open right now.</h2></div>
-      <a class="link" href="{{ url_for('site.browse') }}">See all {{ total }} →</a>
+      <a class="link" href="{{ url_for('site.browse') }}">See all {{ '{:,}'.format(total) }} →</a>
     </div>
     <div class="grid">{% for o in featured %}{{ m.card(o, D) }}{% endfor %}</div>
   </div>

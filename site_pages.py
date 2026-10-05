@@ -21,11 +21,11 @@ def healthz():
 
 @bp.get('/')
 def home():
-    total = search_public({}, limit=1)[1]
-    items = search_public({'sector': 'opportunities'}, limit=3)[0]
+    items, total = search_public({'sector': 'opportunities'}, limit=3)
+    jobs = search_public({'sector': 'jobs'}, limit=1)[1]
     states = len(facets()['state'])
     voices = all_("SELECT name, role_label, quote FROM testimonials WHERE status='approved' ORDER BY updated_at DESC LIMIT 6")
-    return render_template('home.html', featured=items, total=total, states=states, voices=voices)
+    return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices)
 
 
 SECTORS = {
@@ -64,7 +64,7 @@ def _browse(sector):
     items, total = search_public(f, PAGE, (page - 1) * PAGE)
     active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest')) + bool(f['grade']) + bool(f['state'])
     return render_template('browse.html', sector=sector, copy=SECTORS[sector], f=f, items=items, total=total, page=page,
-                           pages=max(1, -(-total // PAGE)), facets=facets(sector), active=active, saved=_saved_ids(),
+                           pages=max(1, -(-total // PAGE)), facets=facets(f), all_opts=facets({'sector': sector}), active=active, saved=_saved_ids(),
                            chips=_chips(f))
 
 
