@@ -2,7 +2,7 @@
    Look: Inter only, warm stone text, flat evergreen accent, white cards with hairline borders, floating pill header. */
 :root {
   --bg: #FFFFFF; --surface: #FFFFFF; --soft: #FAFAF9; --ink: #44403C; --ink-strong: #1C1917; --muted: #78716C; --line: #E7E5E4;
-  --accent: #1F5C46; --accent-2: #2E7D5B; --accent-ink: #FFFFFF; --accent-soft: #EEF5F1; --brass: #E8A33D;
+  --accent: #1F5C46; --accent-2: #2E7D5B; --accent-ink: #FFFFFF; --accent-soft: #EEF5F1; --accent-hover: #174A38; --brass: #E8A33D;
   --grad: var(--accent); /* flat on purpose: gradients read as template-y */
   --warn: #B45309; --warn-soft: #FEF3C7; --danger: #DC2626; --danger-soft: #FEE2E2; --ok: #047857; --ok-soft: #D1FAE5;
   --radius: 20px; --sans: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
@@ -65,6 +65,7 @@ img { max-width: 100%; height: auto; display: block; }
 .nav a:hover { background: var(--soft); }
 .nav a[aria-current="page"] { color: var(--accent); }
 .nav .btn { color: #fff; margin-left: 8px; }
+.nav .btn:hover { background: var(--accent-hover); }
 .nav__account { display: inline-flex; align-items: center; gap: 8px; }
 .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--grad); color: #fff; display: inline-grid; place-items: center; font-size: .78rem; font-weight: 600; }
 .menu-btn { display: none; }
@@ -177,7 +178,7 @@ textarea { resize: none; }
 .spaced { margin-top: 16px; }
 
 /* home: grid + aurora hero */
-.hero { position: relative; overflow: hidden; margin-top: -88px; padding: 120px 0 72px; text-align: center; isolation: isolate;
+.hero { position: relative; overflow: hidden; margin-top: -72px; padding: 104px 0 72px; text-align: center; isolation: isolate;
   min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
 /* cursor effect: the grid square under the pointer lifts; the ones it leaves fade out (app.js adds them) */
 .hero__cells { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
@@ -195,6 +196,8 @@ textarea { resize: none; }
 .aurora--1 { width: 520px; height: 520px; left: -120px; top: -60px; background: radial-gradient(circle, rgba(206, 228, 215, .9), rgba(185, 211, 198, .35) 55%, transparent 70%); }
 .aurora--2 { width: 600px; height: 600px; right: -160px; top: 40px; background: radial-gradient(circle, rgba(160, 200, 178, .8), rgba(220, 234, 226, .3) 55%, transparent 70%); animation-delay: -5s; }
 .aurora--3 { width: 420px; height: 420px; left: 35%; bottom: -200px; background: radial-gradient(circle, rgba(232, 214, 170, .6), rgba(245, 237, 218, .28) 55%, transparent 70%); animation-delay: -9s; }
+/* fade the glows into the page so the hero has no hard bottom edge */
+.hero::after { content: ''; position: absolute; inset: auto 0 0; height: 220px; z-index: -1; pointer-events: none; background: linear-gradient(transparent, var(--bg)); }
 @keyframes drift { to { transform: translate(40px, 30px) scale(1.08); } }
 .hero h1 { font-size: clamp(2.6rem, 7vw, 4.6rem); max-width: 15ch; margin: 0 auto 20px; }
 .hero .lead { margin: 0 auto 28px; }
