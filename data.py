@@ -13,6 +13,7 @@ INTERESTS = ['STEM', 'Computer science', 'Research', 'Health & medicine', 'Busin
              'Writing & humanities', 'Civics & law', 'Service', 'Leadership', 'Career exploration', 'Environment',
              'Sports & outdoors', 'Academics & college prep']
 STAGES = ['Interested', 'Preparing', 'Applied', 'Interview', 'Accepted', 'Completed']
+WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on Open Ajar
 VERIFICATION = {'unreviewed': 'Unreviewed', 'source': 'Source-linked', 'verified': 'Verified'}
 RELATIONSHIPS = {'organization_rep': 'I represent the organization', 'counselor_teacher': 'I’m a counselor or teacher',
                  'student_or_parent': 'I’m a student or parent', 'other': 'Something else'}

@@ -331,5 +331,9 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
     } catch { status.textContent = 'Couldn’t save. Check your connection and try again.'; }
   };
   form.addEventListener('change', (e) => { if (e.target.name !== 'new_item') { clearTimeout(timer); save(); } });
+  // Ask "found it here?" as soon as the stage moves to Accepted/Completed
+  const stage = form.querySelector('select[name="stage"]');
+  const found = form.querySelector('[data-found]');
+  if (stage && found) stage.addEventListener('change', () => { found.hidden = !stage.dataset.won.split('|').includes(stage.value); });
   form.querySelector('textarea')?.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(save, 800); });
 });

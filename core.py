@@ -66,6 +66,10 @@ def load_user():
         u = one('SELECT * FROM users WHERE id=?', (uid,))
         if u and not u['disabled'] and u['session_version'] == session.get('ver'):
             g.user = u
+            today = now_iso()[:10]
+            if session.get('seen') != today:  # one write per user per day, for active-user stats
+                run('INSERT OR IGNORE INTO user_days (user_id, day) VALUES (?,?)', (uid, today))
+                session['seen'] = today
         else:
             session.clear()
 

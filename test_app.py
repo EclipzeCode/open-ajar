@@ -6,6 +6,7 @@ from pathlib import Path
 
 from werkzeug.security import generate_password_hash
 
+import core
 import mail
 from app import create_app, import_rows
 from core import connect
@@ -25,6 +26,7 @@ class Flows(unittest.TestCase):
         self.app = create_app({'TESTING': True, 'DB_PATH': str(Path(self.tmp.name) / 't.db')})
         self.c = self.app.test_client()
         mail.OUTBOX.clear()
+        core._hits.clear()  # the sign-in rate limit is per process; don't let one test's logins count against the next
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -142,6 +144,28 @@ class Flows(unittest.TestCase):
         self.assertEqual(f['cost'], {'Free': 1, 'Fee': 1})
         page = self.c.get('/opportunities?cost=Free').get_data(as_text=True)
         self.assertIn('2 results', page)
+
+    def test_outcome_and_reach_stats(self):
+        self.post('/register', {'name': 'Sam Rivera', 'email': 'sam@example.org', 'password': PW, 'school': 'Lincoln High'})
+        admin = self.make_admin()
+        with self.app.app_context():
+            import_rows([{'id': '1', 'title': 'Essay Prize', 'organization': 'Org', 'type': 'Competition',
+                          'summary': 'An essay competition for high-school writers.', 'eligibility': 'Any high schooler',
+                          'grades': '9;10', 'cost': 'Award', 'format': 'Online', 'location': 'Online', 'commitment': 'One-off'}], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        opp_id = db.execute('SELECT id FROM opportunities').fetchone()['id']
+        self.post(f'/o/{opp_id}/track')
+        self.post(f'/tracker/{opp_id}', {'stage': 'Accepted'}, headers={'X-Requested-With': 'fetch'})
+        self.assertIn('Did you find this opportunity on Open Ajar?', self.c.get('/tracker').get_data(as_text=True))
+        self.post(f'/tracker/{opp_id}', {'stage': 'Accepted', 'found': '1'})
+        self.assertNotIn('Did you find this opportunity on Open Ajar?', self.c.get('/tracker').get_data(as_text=True))
+        page = admin.get('/admin/stats').get_data(as_text=True)
+        self.assertIn('Lincoln High', page)
+        n = lambda label: re.search(r'stat__n">([\d,]+)</div><p>' + label, page).group(1)
+        self.assertEqual(n('acceptances found on Open Ajar'), '1')
+        self.assertEqual(n('engaged members'), '1')
+        self.assertEqual(n('active in the last 30 days'), '2')  # Sam and the admin
+        self.assertEqual(self.c.get('/admin/stats').status_code, 403)
 
     def test_reminders_send_once(self):
         from datetime import date, timedelta

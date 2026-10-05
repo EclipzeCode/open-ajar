@@ -11,6 +11,7 @@
     <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
     {{ m.input('name', 'Your name', values, errors, required=True, max=80, auto='name') }}
     {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
+    {{ m.input('school', 'Your school', values, errors, max=120, auto='organization', placeholder='e.g. Lincoln High School', help='Helps us bring Open Ajar to more schools.') }}
     <div class="field{% if errors.get('password') %} has-error{% endif %}">
       <label for="password">Password</label>
       <p class="field__help">At least 10 characters. A short phrase works well.</p>

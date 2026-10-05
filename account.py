@@ -62,6 +62,7 @@ def register():
     f = data.Form(request.form)
     f.text('name', 'Your name', min=1, max=80)
     f.email('email')
+    f.text('school', 'School', max=120, required=False)
     problem = data.password_problem(request.form.get('password', ''), f.out.get('email', ''))
     if problem:
         f.errors['password'] = problem
@@ -72,8 +73,8 @@ def register():
     if f.errors:
         return render_template('auth/register.html', values=request.form, errors=f.errors), 422
     uid = new_id()  # self-registration is always a student; roles are only changed by admins
-    run('INSERT INTO users (id, email, password_hash, name, created_at) VALUES (?,?,?,?,?)',
-        (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], data.now_iso()))
+    run('INSERT INTO users (id, email, password_hash, name, school, created_at) VALUES (?,?,?,?,?,?)',
+        (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], f.out.get('school', ''), data.now_iso()))
     user = one('SELECT * FROM users WHERE id=?', (uid,))
     sign_in(user)
     send_verification(user)
@@ -213,10 +214,11 @@ def save_profile():
     f.text('name', 'Name', min=1, max=80)
     f.grade()
     f.text('location', 'Location', max=120, required=False)
+    f.text('school', 'School', max=120, required=False)
     if f.errors:
         return back('profile', ' '.join(f.errors.values()))
-    run('UPDATE users SET name=?, grade=?, location=?, interests=?, email_reminders=? WHERE id=?',
-        (f.out['name'], f.out['grade'], f.out['location'], json.dumps(f.many('interests', data.INTERESTS)),
+    run('UPDATE users SET name=?, grade=?, location=?, school=?, interests=?, email_reminders=? WHERE id=?',
+        (f.out['name'], f.out['grade'], f.out['location'], f.out['school'], json.dumps(f.many('interests', data.INTERESTS)),
          1 if request.form.get('email_reminders') else 0, u['id']))
     return back('profile', 'Profile saved.', ok=True)
 
@@ -280,7 +282,7 @@ def delete_account():
 @login_required
 def tracker():
     u = current_user()
-    rows = all_('''SELECT o.*, t.stage, t.notes, t.deadline own_deadline, t.checklist, t.added_at,
+    rows = all_('''SELECT o.*, t.stage, t.found_here, t.notes, t.deadline own_deadline, t.checklist, t.added_at,
                           (s.user_id IS NOT NULL) is_saved, (t.user_id IS NOT NULL) is_tracked,
                           (o.status='approved' AND (o.expires_at IS NULL OR o.expires_at > ?)) available
                    FROM opportunities o
@@ -327,8 +329,11 @@ def update_tracked(opp_id):
         checklist.append({'text': new_item, 'done': False})
     stage = form.get('stage') if form.get('stage') in data.STAGES else t['stage']
     deadline = form.get('deadline', '') if data.parse_date(form.get('deadline', '')) else ''
-    run('UPDATE tracked SET stage=?, notes=?, deadline=?, checklist=? WHERE user_id=? AND opportunity_id=?',
-        (stage, data.clean(form.get('notes', ''), multiline=True)[:2000], deadline, json.dumps(checklist), u['id'], opp_id))
+    found = {'1': 1, '0': 0}.get(form.get('found'), t['found_here'])
+    run('UPDATE tracked SET stage=?, notes=?, deadline=?, checklist=?, found_here=? WHERE user_id=? AND opportunity_id=?',
+        (stage, data.clean(form.get('notes', ''), multiline=True)[:2000], deadline, json.dumps(checklist), found, u['id'], opp_id))
+    if form.get('found') in ('0', '1'):
+        flash('Thanks! Congratulations on getting in.' if stage in data.WON_STAGES else 'Thanks for letting us know.')
     if request.headers.get('X-Requested-With') == 'fetch':
         return '', 204
     return redirect(url_for('account.tracker', stage=request.args.get('stage')) + f'#t-{opp_id}')

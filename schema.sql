@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
   grade            INTEGER,
   interests        TEXT NOT NULL DEFAULT '[]',
   location         TEXT NOT NULL DEFAULT '',
+  school           TEXT NOT NULL DEFAULT '',
   created_at       TEXT NOT NULL
 );
 
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS tracked (
   deadline       TEXT NOT NULL DEFAULT '',
   checklist      TEXT NOT NULL DEFAULT '[]',
   reminded_for   TEXT,                -- the deadline we last emailed about, so each deadline is reminded once
+  found_here     INTEGER,             -- once Accepted: did they find it on Open Ajar? 1 yes, 0 no, NULL not asked yet
   added_at       TEXT NOT NULL,
   PRIMARY KEY (user_id, opportunity_id)
 );
@@ -133,4 +135,11 @@ CREATE TABLE IF NOT EXISTS testimonials (
   quote      TEXT NOT NULL,
   status     TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','declined')),
   updated_at TEXT NOT NULL
+);
+
+-- One row per user per day they used the site while signed in, for active-user stats.
+CREATE TABLE IF NOT EXISTS user_days (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day     TEXT NOT NULL,
+  PRIMARY KEY (user_id, day)
 );
