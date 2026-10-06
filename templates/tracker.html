@@ -4,15 +4,19 @@
 {% block body_class %}page-panel{% endblock %}
 {% block content %}
 <div class="wrap acct">
-  <header class="intro">
-    <p class="eyebrow">Tracker</p>
-    <h1>Your applications</h1>
-    <p class="lead">Move each one along as you go. Changes save as you make them.</p>
-    <ul class="intro__meta">
-      <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><strong>{{ total }}</strong> tracking</li>
-      <li{% if due_soon %} class="is-soon"{% endif %}><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><strong>{{ due_soon }}</strong> due soon</li>
-      <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><a href="#saved"><strong>{{ saved|length }}</strong> saved</a></li>
-    </ul>
+  <header class="acct-head">
+    <div class="acct-head__who">
+      <span class="acct-avatar" aria-hidden="true"><svg class="acct-avatar__icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span>
+      <div>
+        <h1>Your applications</h1>
+        <p class="muted small">Move each one along as you go. Changes save as you make them.</p>
+      </div>
+    </div>
+    <div class="acct-stats">
+      <a href="{{ url_for('account.tracker') }}"><strong>{{ total }}</strong><span>Tracking</span></a>
+      <a href="{{ url_for('account.tracker') }}"><strong class="{% if due_soon %}is-soon{% endif %}">{{ due_soon }}</strong><span>Due soon</span></a>
+      <a href="#saved"><strong>{{ saved|length }}</strong><span>Saved</span></a>
+    </div>
   </header>
 
   <div class="acct-body">

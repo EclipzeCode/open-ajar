@@ -566,9 +566,6 @@ body.page-focus .page-head { padding-top: 0; }
 .intro__meta li { display: inline-flex; align-items: center; gap: 8px; }
 .icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .intro__meta .icon { color: var(--accent); }
-.intro__meta a { color: inherit; text-decoration: none; }
-.intro__meta a:hover { color: var(--accent); }
-.intro__meta .is-soon .icon { color: var(--danger); }
 /* numbered stepper: circles joined by a thin rail */
 .acct-nav--steps .acct-nav__links { counter-reset: step; }
 .acct-nav--steps .acct-nav__links::before { content: ''; position: absolute; left: 26px; top: 24px; bottom: 24px; width: 1px; background: var(--line-strong); }
