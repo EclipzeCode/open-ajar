@@ -183,8 +183,20 @@ textarea { resize: none; }
 .form-layout__aside ol { padding-left: 20px; color: var(--muted); }
 .form-layout > .form { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px; }
 @media (max-width: 860px) { .form-layout { grid-template-columns: 1fr; } .form-layout__aside { position: static; } }
-.auth { max-width: 440px; padding: 64px 0 24px; }
+.auth { max-width: 440px; padding: 32px 0 48px; }
 .auth h1 { font-size: 2.4rem; }
+.auth .form { margin-top: 28px; gap: 8px; }
+.auth .btn--block { margin-top: 8px; padding-block: 12px; }
+.auth__alt { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--line); text-align: center; color: var(--muted); font-size: .93rem; }
+/* label with a link on the same line (Password / Forgot your password?) */
+.field__top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.field__top a { margin-bottom: 6px; }
+/* short single-purpose pages (sign in, confirmations, errors): centered in the window, no footer,
+   so they don't scroll unless the content is genuinely taller than the screen */
+body.page-focus { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+body.page-focus main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+body.page-focus .footer { display: none; }
+body.page-focus .page-head { padding-top: 0; }
 .inline-form { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .inline-form select, .inline-form input:not([type=checkbox]) { width: auto; flex: 1 1 140px; }
 .spaced { margin-top: 16px; }

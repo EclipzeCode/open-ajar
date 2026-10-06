@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}{{ {404: 'Not found', 403: 'Not allowed', 429: 'Slow down'}.get(code, 'Something went wrong') }}{% endblock %}
+{% block body_class %}page-focus{% endblock %}
 {% block content %}
 <div class="wrap narrow">
   <header class="page-head">
