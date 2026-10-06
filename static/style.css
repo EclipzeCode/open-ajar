@@ -260,7 +260,7 @@ body.page-focus .page-head { padding-top: 0; }
 .arrow { display: inline-block; transition: transform .2s; }
 .typer:hover .arrow, .btn:hover .arrow, .link:hover .arrow { transform: translateX(3px); }
 @media (max-width: 520px) { .typer { padding-left: 14px; } .typer__prefix { display: none; } .typer__go { padding: 10px 14px; } }
-@media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .faq details[open] p, .explore__grid .card { animation: none !important; } .faq details::details-content, .explore__glider, .explore__grid { transition: none !important; } .js .feature__icon svg * { stroke-dashoffset: 0; transition: none; } .js .reveal { opacity: 1; transform: none; transition: none; } .feature:hover .feature__icon, .typer:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .explore__grid .card { animation: none !important; } .faq details::details-content, .explore__glider, .explore__grid { transition: none !important; } .js .feature__icon svg * { stroke-dashoffset: 0; transition: none; } .js .reveal { opacity: 1; transform: none; transition: none; } .feature:hover .feature__icon, .typer:hover { transform: none; } }
 
 .features { margin-top: 40px; text-align: left; }
 .feature { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -278,6 +278,10 @@ body.page-focus .page-head { padding-top: 0; }
 .marquee__track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
 .marquee:hover .marquee__track, .marquee:focus-within .marquee__track { animation-play-state: paused; }
 @keyframes marquee { to { transform: translateX(-50%); } }
+.marquee__nav { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
+html:not(.js) .marquee__nav { display: none; }
+.marquee__btn { width: 40px; height: 40px; padding: 0; }
+.marquee__btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .quote { flex: none; width: 330px; margin: 0 10px; background: #fff; border: 1px solid var(--line); border-radius: 28px; padding: 26px; display: flex; flex-direction: column; text-align: left; }
 .quote--placeholder { border-style: dashed; }
 .quote__mark { width: 30px; height: 22px; fill: var(--accent); }
@@ -381,7 +385,7 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 @keyframes card-in { from { opacity: 0; transform: translateY(10px); } }
 /* FAQ answers slide open where the browser can animate to height: auto */
 :root { interpolate-size: allow-keywords; }
-.faq details::details-content { height: 0; overflow: clip; transition: height .3s ease, content-visibility .3s allow-discrete; }
+.faq details::details-content { height: 0; overflow: clip; transition: height .2s cubic-bezier(.2, .7, .2, 1), content-visibility .2s allow-discrete; }
 .faq details[open]::details-content { height: auto; }
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .js .reveal.is-in { opacity: 1; transform: none; }
@@ -390,8 +394,6 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .feature:hover { border-color: #B9D3C6; transform: translateY(-3px); box-shadow: 0 14px 34px rgba(31, 92, 70, .08); }
 .feature__icon { transition: transform .3s cubic-bezier(.3, 1.5, .6, 1); }
 .feature:hover .feature__icon { transform: translateY(-4px) rotate(-4deg); }
-.faq details[open] p { animation: faq-in .3s ease; }
-@keyframes faq-in { from { opacity: 0; transform: translateY(-6px); } }
 .quote { transition: transform .25s, border-color .25s; }
 .quote:hover { transform: translateY(-3px); border-color: #B9D3C6; }
 
@@ -399,7 +401,7 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .searchbar { position: relative; display: flex; gap: 8px; padding: 6px; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px rgba(28, 25, 23, .04); }
 .searchbar input { flex: 1; border: 0 !important; box-shadow: none !important; padding-left: 40px !important; }
 .searchbar__icon { position: absolute; left: 20px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
-.fbar { margin: 16px 0 14px; }
+.fbar { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; margin: 16px 0 14px; }
 .fbar__pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .fpop { position: relative; }
 .fpop__btn { list-style: none; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; background: #fff; border: 1px solid var(--line);
@@ -723,15 +725,15 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .stats-strip span { font-size: .78rem; }
   .section__head .link { width: 100%; }
   /* browse: one swipeable row of filter pills; count + sort on one line, chips below */
-  .fbar { margin: 14px -16px 10px; }
-  .fbar__pills { flex-wrap: nowrap; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none;
+  .fbar { margin: 14px -16px 10px; flex-wrap: nowrap; gap: 8px; }
+  .fbar .results__sort { flex: none; padding-right: 16px; }
+  .fbar__pills { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none;
     -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
   .fbar__pills::-webkit-scrollbar { display: none; }
   .fpop { flex: none; }
   .results__head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 12px; }
   .results__left { display: contents; }
   .results__count { order: 1; }
-  .results__sort { order: 2; }
   .chips { order: 3; grid-column: 1 / -1; }
   .quote { width: 270px; padding: 22px; }
   .quote blockquote { font-size: .93rem; }

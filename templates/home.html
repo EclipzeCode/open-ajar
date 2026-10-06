@@ -170,6 +170,10 @@
       {% for t in shown %}{{ quote_card(t, hidden=True) }}{% endfor %}
     </div>
   </div>
+  <div class="marquee__nav">
+    <button class="btn btn--ghost marquee__btn" type="button" data-dir="-1" aria-label="Previous testimonials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="btn btn--ghost marquee__btn" type="button" data-dir="1" aria-label="Next testimonials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+  </div>
 </section>
 {% endif %}
 
