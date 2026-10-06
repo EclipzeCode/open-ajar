@@ -45,6 +45,77 @@ const counter = new IntersectionObserver((entries) => entries.forEach((e) => {
 }));
 document.querySelectorAll('[data-count]').forEach((el) => counter.observe(el));
 
+// Home: the headline's words rise into place one after another
+const headline = document.querySelector('.hero h1');
+if (headline && !calm) {
+  let i = 0;
+  const split = (node) => [...node.childNodes].forEach((n) => {
+    if (n.nodeType !== 3) return split(n);
+    const frag = document.createDocumentFragment();
+    n.textContent.split(/(\s+)/).forEach((part) => {
+      if (!part.trim()) return frag.append(part);
+      const w = document.createElement('span'), inner = document.createElement('span');
+      w.className = 'word'; inner.textContent = part; inner.style.animationDelay = `${120 + i++ * 70}ms`;
+      w.append(inner); frag.append(w);
+    });
+    n.replaceWith(frag);
+  });
+  split(headline);
+  headline.classList.remove('reveal');
+  headline.classList.add('is-split');
+}
+
+// Home: feature icons draw their outlines when the card scrolls in
+document.querySelectorAll('.feature__icon svg *').forEach((p) => p.setAttribute('pathLength', '1'));
+
+// Home: interest tabs swap the three "open right now" cards in place (each tab is still a normal link)
+const explore = document.querySelector('[data-explore]');
+if (explore) {
+  const grid = document.querySelector('.explore__grid');
+  const all = document.querySelector('[data-explore-all]');
+  const glider = explore.querySelector('.explore__glider');
+  const tabs = [...explore.querySelectorAll('a')];
+  const cache = new Map();
+  const place = (a) => {
+    glider.style.width = `${a.offsetWidth}px`;
+    glider.style.transform = `translateX(${a.offsetLeft}px)`;
+  };
+  const load = async (url) => {
+    if (!cache.has(url)) {
+      cache.set(url, fetch(url).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return { cards: [...doc.querySelectorAll('.grid .card')].slice(0, 3), count: doc.querySelector('.results__count')?.textContent.trim() };
+      }).catch((e) => { cache.delete(url); throw e; }));
+    }
+    return cache.get(url);
+  };
+  tabs.forEach((a) => {
+    a.addEventListener('pointerenter', () => load(a.href).catch(() => {})); // warm the cache before the click
+    a.addEventListener('click', async (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || a.getAttribute('aria-current') === 'true') return;
+      e.preventDefault();
+      tabs.forEach((t) => t.setAttribute('aria-current', t === a ? 'true' : 'false'));
+      place(a);
+      explore.scrollTo({ left: a.offsetLeft - (explore.clientWidth - a.offsetWidth) / 2, behavior: calm ? 'auto' : 'smooth' }); // keep the chosen tab in view on phones
+      grid.style.minHeight = `${grid.offsetHeight}px`; // no jump while the cards change
+      grid.classList.add('is-leaving');
+      try {
+        const [{ cards, count }] = await Promise.all([load(a.href), new Promise((r) => setTimeout(r, calm ? 0 : 180))]);
+        if (!cards.length) { location.href = a.href; return; }
+        grid.replaceChildren(...cards.map((c) => document.importNode(c, true)));
+        all.href = a.href;
+        all.textContent = `See all ${(count || '').replace(/ results?$/, '')} →`.replace('See all  →', 'See all →');
+      } catch { location.href = a.href; return; }
+      grid.classList.remove('is-leaving');
+      grid.classList.add('is-swapped');
+      grid.style.minHeight = '';
+    });
+  });
+  place(tabs[0]);
+  addEventListener('resize', () => place(explore.querySelector('[aria-current="true"]')));
+  requestAnimationFrame(() => explore.classList.add('is-ready')); // the glider only animates after its first placement
+}
+
 // Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer
 const doorway = document.querySelector('.doorway');
 if (doorway && !calm) {
@@ -69,6 +140,53 @@ if (doorway && !calm) {
     });
     doorway.addEventListener('pointerleave', () => { doorway.style.setProperty('--mx', 0); doorway.style.setProperty('--my', 0); });
   }
+}
+
+// Home: once the door is open, its light continues as a ribbon that widens as it curves off the left edge,
+// revealed in step with the scroll. It sits behind the content.
+const trail = document.querySelector('.trail');
+if (trail && doorway) {
+  const sec = trail.parentElement, wrap = sec.querySelector('.wrap'), target = wrap.querySelector('h2');
+  const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
+  const ribbon = trail.querySelector('.trail__ribbon'), reveal = trail.querySelector('.trail__reveal'), grad = trail.querySelector('linearGradient');
+  reveal.setAttribute('pathLength', '1');
+  let top = 0, span = 1, queued = false;
+  const draw = () => {
+    queued = false;
+    const p = calm ? 1 : Math.min(1, Math.max(0, (innerHeight * .85 - (sec.getBoundingClientRect().top + top)) / span));
+    reveal.style.strokeDashoffset = (1 - p).toFixed(4);
+  };
+  const layout = () => {
+    const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
+    // where the spill sits once the sticky door scene has scrolled to the end of its section
+    const sx = sp.left + sp.width / 2 - s.left;
+    top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
+    const w = s.width, end = Math.max(40, Math.min(110, w * .08)); // final width
+    const h = Math.max(120, wrap.offsetTop + target.offsetTop + target.offsetHeight / 2 - top); // level with the heading
+    // centerline: straight down out of the light, then a long sweep left until it's past the edge
+    const d = `M${sx} 0 C${sx} ${h * .55} ${sx * .55} ${h} ${-end} ${h}`;
+    reveal.setAttribute('d', d);
+    reveal.style.strokeWidth = `${end * 1.4}px`;
+    // outline: walk the centerline and offset each side by half the width, which grows from 3px to `end`
+    const len = reveal.getTotalLength(), n = 120, left = [], right = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, a = reveal.getPointAtLength(len * t), b = reveal.getPointAtLength(Math.min(len, len * t + 1)), c = reveal.getPointAtLength(Math.max(0, len * t - 1));
+      const dx = b.x - c.x, dy = b.y - c.y, m = Math.hypot(dx, dy) || 1, half = (1.5 + (end / 2 - 1.5) * Math.pow(t, 1.4));
+      left.push(`${(a.x - dy / m * half).toFixed(1)} ${(a.y + dx / m * half).toFixed(1)}`);
+      right.push(`${(a.x + dy / m * half).toFixed(1)} ${(a.y - dx / m * half).toFixed(1)}`);
+    }
+    ribbon.setAttribute('d', `M${left.join(' L')} L${right.reverse().join(' L')} Z`);
+    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', h);
+    trail.style.top = `${top}px`;
+    trail.style.height = `${h + end}px`;
+    trail.setAttribute('viewBox', `0 0 ${w} ${h + end}`);
+    span = h + w * .35; // a bit more scrolling than its height, since the last stretch runs sideways
+    draw();
+  };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(draw); } }, { passive: true });
+  addEventListener('resize', layout);
+  addEventListener('load', layout); // fonts and images can shift the heading
+  layout();
 }
 
 // Home: the hero grid square under the pointer lifts; squares it leaves fade out behind it
