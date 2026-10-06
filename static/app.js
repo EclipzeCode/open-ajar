@@ -144,7 +144,7 @@ const messageFor = (el) => {
   if (v.badInput || v.patternMismatch) return 'That doesn’t look right. Check it and try again';
   return el.validationMessage;
 };
-const shownOn = (el) => (el.classList.contains('dd__native') ? el.parentElement.querySelector('.dd__btn') : el);
+const shownOn = (el) => (el.matches('.dd__native, .dp__native') ? el.parentElement.querySelector('.dd__btn') : el);
 function clearError(el) {
   const target = shownOn(el);
   target.removeAttribute('aria-invalid');
@@ -304,6 +304,119 @@ function enhanceSelect(sel) {
 }
 document.querySelectorAll('select:not([multiple])').forEach(enhanceSelect);
 document.addEventListener('click', (e) => document.querySelectorAll('.dd.is-open').forEach((d) => { if (!d.contains(e.target)) d.dispatchEvent(new Event('dd:close')); }));
+
+// Styled date picker. Each <input type=date> gets a button + calendar; the real input stays (hidden) so forms submit
+// the same YYYY-MM-DD value. Keyboard: arrows move a day/week, PageUp/PageDown a month, Enter picks, Escape closes.
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const parseIso = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? new Date(+m[1], m[2] - 1, +m[3]) : null; };
+const longDate = (d) => d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+function enhanceDate(input) {
+  const id = input.id || `dp-${++ddCount}`;
+  const label = document.querySelector(`label[for="${id}"]`);
+  const wrap = document.createElement('div');
+  wrap.className = 'dd dp';
+  input.replaceWith(wrap);
+  input.id = `${id}-native`;
+  input.classList.add('dp__native');
+  input.tabIndex = -1;
+  input.setAttribute('aria-hidden', 'true');
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = id;
+  btn.className = 'dd__btn dp__btn';
+  btn.setAttribute('aria-haspopup', 'dialog');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.innerHTML = '<span class="dd__value"></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+  const value = btn.firstChild;
+  value.id = `${id}-value`;
+  if (label) { label.id ||= `${id}-label`; btn.setAttribute('aria-labelledby', `${label.id} ${value.id}`); }
+  ['aria-invalid', 'aria-describedby'].forEach((a) => { if (input.hasAttribute(a)) btn.setAttribute(a, input.getAttribute(a)); });
+
+  const pop = document.createElement('div');
+  pop.className = 'dp__pop';
+  pop.setAttribute('role', 'dialog');
+  pop.setAttribute('aria-label', 'Choose a date');
+  pop.hidden = true;
+  pop.innerHTML = `<div class="dp__head"><button type="button" class="dp__nav" data-step="-1" aria-label="Previous month">‹</button>
+    <span class="dp__title" aria-live="polite"></span><button type="button" class="dp__nav" data-step="1" aria-label="Next month">›</button></div>
+    <div class="dp__grid" role="grid"></div>
+    <div class="dp__foot"><button type="button" class="dp__link" data-act="clear">Clear</button><button type="button" class="dp__link" data-act="today">Today</button></div>`;
+  wrap.append(input, btn, pop);
+  const title = pop.querySelector('.dp__title'), grid = pop.querySelector('.dp__grid');
+
+  let focus = new Date();
+  const render = () => {
+    const sel = parseIso(input.value), today = iso(new Date());
+    title.textContent = `${MONTHS[focus.getMonth()]} ${focus.getFullYear()}`;
+    const start = new Date(focus.getFullYear(), focus.getMonth(), 1);
+    start.setDate(1 - start.getDay()); // back up to Sunday
+    grid.innerHTML = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => `<span class="dp__dow" aria-hidden="true">${d}</span>`).join('');
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'dp__day';
+      b.textContent = d.getDate();
+      b.dataset.date = iso(d);
+      b.setAttribute('aria-label', longDate(d));
+      b.tabIndex = iso(d) === iso(focus) ? 0 : -1;
+      if (d.getMonth() !== focus.getMonth()) b.classList.add('is-out');
+      if (iso(d) === today) b.classList.add('is-today');
+      if (sel && iso(d) === iso(sel)) { b.classList.add('is-selected'); b.setAttribute('aria-pressed', 'true'); }
+      grid.append(b);
+    }
+  };
+  const sync = () => {
+    const d = parseIso(input.value);
+    value.textContent = d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pick a date';
+    btn.classList.toggle('is-placeholder', !d);
+  };
+  const set = (v) => {
+    if (input.value !== v) { input.value = v; ['input', 'change'].forEach((t) => input.dispatchEvent(new Event(t, { bubbles: true }))); }
+    sync();
+  };
+  const moveTo = (d) => { focus = d; render(); grid.querySelector('[tabindex="0"]').focus(); };
+  const open = () => {
+    document.querySelectorAll('.dd.is-open').forEach((d) => d !== wrap && d.dispatchEvent(new Event('dd:close')));
+    focus = parseIso(input.value) || new Date();
+    render();
+    pop.hidden = false; wrap.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true');
+    grid.querySelector('[tabindex="0"]').focus();
+  };
+  const close = (refocus) => {
+    pop.hidden = true; wrap.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false');
+    if (refocus) btn.focus();
+  };
+  wrap.addEventListener('dd:close', () => close(false));
+  btn.addEventListener('click', () => (pop.hidden ? open() : close(true)));
+  btn.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); open(); } });
+  pop.addEventListener('click', (e) => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    if (t.dataset.step) { focus = new Date(focus.getFullYear(), focus.getMonth() + +t.dataset.step, 1); render(); }
+    else if (t.dataset.date) { set(t.dataset.date); close(true); }
+    else if (t.dataset.act === 'clear') { set(''); close(true); }
+    else if (t.dataset.act === 'today') { set(iso(new Date())); close(true); }
+  });
+  pop.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(true); return; }
+    if (!e.target.dataset.date) return;
+    const y = focus.getFullYear(), m = focus.getMonth(), d = focus.getDate();
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    if (step) moveTo(new Date(y, m, d + step));
+    else if (e.key === 'PageUp' || e.key === 'PageDown') moveTo(new Date(y, m + (e.key === 'PageUp' ? -1 : 1), Math.min(d, 28)));
+    else if (e.key === 'Home') moveTo(new Date(y, m, d - focus.getDay()));
+    else if (e.key === 'End') moveTo(new Date(y, m, d + 6 - focus.getDay()));
+    else return;
+    e.preventDefault();
+  });
+  pop.addEventListener('focusout', (e) => { if (!wrap.contains(e.relatedTarget) && e.relatedTarget) close(false); });
+  input.form?.addEventListener('reset', () => setTimeout(sync));
+  sync();
+}
+document.querySelectorAll('input[type=date]').forEach(enhanceDate);
 
 // Admin queue: select-all checkbox
 document.querySelector('[data-select-all]')?.addEventListener('change', (e) => {
