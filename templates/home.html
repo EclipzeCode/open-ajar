@@ -28,7 +28,6 @@
 <section class="doorway" aria-labelledby="doorway-h">
   <div class="doorway__sticky wrap">
     <div class="doorway__copy">
-      <span class="eyebrow">Why “ajar”</span>
       <div class="doorway__lines">
         <h2 class="doorway__line doorway__line--closed" aria-hidden="true">Most doors to opportunity are <em>closed.</em></h2>
         <h2 class="doorway__line doorway__line--open" id="doorway-h">We open them <em>a little wider.</em></h2>
@@ -54,9 +53,13 @@
   </div>
 </section>
 
-<section class="section center">
+<section class="section center mission">
+  {# A line of light from the open door down to this heading; app.js sizes it and draws it with the scroll. #}
+  <svg class="trail" aria-hidden="true" focusable="false">
+    <defs><linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop offset="1" stop-color="#1F5C46"/></linearGradient></defs>
+    <path class="trail__glow"/><path class="trail__line"/><circle class="trail__dot" r="4"/>
+  </svg>
   <div class="wrap">
-    <span class="eyebrow">Our mission</span>
     <h2 class="reveal">Open the door a little wider.</h2>
     <p class="lead reveal">Opportunities live in counselor emails, company career pages, nonprofit newsletters and word of mouth. If you’re well connected, some reach you. Open Ajar puts them all in one place.</p>
     <div class="features">
@@ -86,7 +89,7 @@
 <section class="section section--tight">
   <div class="wrap">
     <div class="section__head">
-      <div><span class="eyebrow">Just added</span><h2>Open right now.</h2></div>
+      <div><h2>Open right now.</h2></div>
       <a class="link" href="{{ url_for('site.browse') }}" data-explore-all>See all {{ '{:,}'.format(total) }} →</a>
     </div>
     {# Plain links without JS; app.js swaps the three cards in place instead. #}
@@ -105,13 +108,11 @@
 <section class="section">
   <div class="wrap panel panel--accent reveal">
     <div>
-      <span class="eyebrow">For students</span>
       <h2>Want real experience? Intern with us.</h2>
       <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
       <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
     </div>
     <div>
-      <span class="eyebrow">For businesses</span>
       <h2>Host a high-school intern.</h2>
       <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
       <a class="btn btn--ghost-light" href="mailto:{{ contact_email }}?subject=Hosting%20an%20intern%20with%20Open%20Ajar">Partner with us</a>
@@ -156,7 +157,6 @@
 {% if shown %}
 <section class="section center testimonials" aria-labelledby="voices-h">
   <div class="wrap">
-    <span class="eyebrow">Testimonials</span>
     <h2 id="voices-h">Community voices</h2>
     <p class="lead">What high schoolers and college students say about Open Ajar.</p>
   </div>
@@ -172,7 +172,6 @@
 
 <section class="section center">
   <div class="wrap">
-    <span class="eyebrow">Frequently asked questions</span>
     <h2>Questions &amp; answers</h2>
     <p class="lead">Still wondering? Email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
     <div class="faq">
