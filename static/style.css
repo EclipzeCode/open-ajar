@@ -139,16 +139,16 @@ img { max-width: 100%; height: auto; display: block; }
 .card__org { color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
 .card__org { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* three lines of summary, so cards in a row line up */
-/* job cards: a patch of category icons in the top-right corner, solid there and fading out by the company name.
+/* job cards: a few large category icons in the top-right corner, solid there and fading out by the company name.
    The head is a grid so the art can span exactly the type/title/company rows without positioning anything
    (a positioned head would shrink the title link's click area to the head). */
 .card__head { display: grid; grid-template-rows: auto auto auto; }
 .card__head > * { grid-column: 1; z-index: 1; }
 .card__head > .card__top { grid-row: 1; } .card__head > .card__title { grid-row: 2; } .card__head > .card__org { grid-row: 3; }
 .card__art { grid-row: 1 / 4; z-index: 0; margin: -22px -22px 0; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
-  background: var(--accent-soft) right -10px top -10px / 150px 150px repeat;
-  -webkit-mask-image: linear-gradient(to bottom, #000, transparent), radial-gradient(140% 160% at 100% 0, #000 30%, transparent 85%);
-  -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, #000, transparent), radial-gradient(140% 160% at 100% 0, #000 30%, transparent 85%);
+  background: var(--accent-soft) right top / 200px 130px no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent), radial-gradient(90% 150% at 100% 0, #000 25%, transparent 70%);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, #000, transparent), radial-gradient(90% 150% at 100% 0, #000 25%, transparent 70%);
   mask-composite: intersect; }
 .card__art--food-drink { background-image: url(img/jobs/food-drink.svg); }
 .card__art--retail { background-image: url(img/jobs/retail.svg); }
