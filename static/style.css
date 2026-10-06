@@ -26,9 +26,8 @@ img { max-width: 100%; height: auto; display: block; }
 .skip:focus { left: 8px; }
 .muted { color: var(--muted); }
 .small { font-size: .875rem; }
-/* section label: the small outlined pill above headings */
-.eyebrow { display: inline-block; font-family: var(--display); font-size: .72rem; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--accent);
-  border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 5px 12px; margin-bottom: 16px; }
+/* section label: a short line of accent text above a heading */
+.eyebrow { display: block; font: 600 .875rem/1.4 var(--sans); letter-spacing: -.005em; color: var(--accent); margin: 0 0 12px; }
 .lead { font-size: 1.1rem; font-weight: 500; color: #57534E; max-width: 62ch; letter-spacing: -.01em; }
 
 /* layout */
@@ -128,7 +127,7 @@ img { max-width: 100%; height: auto; display: block; }
 .panel--danger { border-color: #FECACA; }
 .panel--accent { background: var(--grad); color: #fff; border: 0; display: grid; gap: 40px; grid-template-columns: 1fr 1fr; padding: 48px; border-radius: 28px; }
 .panel--accent h2 { color: #fff; }
-.panel--accent .eyebrow { color: #fff; background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .35); }
+.panel--accent .eyebrow { color: rgba(255, 255, 255, .75); }
 @media (max-width: 760px) { .panel--accent { grid-template-columns: 1fr; padding: 32px; } }
 .card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
 .card:hover { border-color: #B9D3C6; transform: translateY(-2px); }
