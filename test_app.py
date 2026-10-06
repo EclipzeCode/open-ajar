@@ -145,6 +145,23 @@ class Flows(unittest.TestCase):
         page = self.c.get('/opportunities?cost=Free').get_data(as_text=True)
         self.assertIn('2 results', page)
 
+    def test_jobs_get_a_category_and_can_be_filtered_by_it(self):
+        base = {'summary': 'A part-time job for high-school students.', 'eligibility': 'At least 16', 'grades': '11;12',
+                'type': 'Job', 'cost': 'Award', 'format': 'In person', 'location': 'Austin, TX', 'commitment': 'Flexible'}
+        rows = [{**base, 'id': 'j1', 'title': 'Crew Member', 'organization': 'Five Below Inc'},  # employer beats the title
+                {**base, 'id': 'j2', 'title': 'Fresh Foods Clerk', 'organization': 'WinCo Foods'},
+                {**base, 'id': 'j3', 'title': 'Server', 'organization': "Chuck E. Cheese"},
+                {**base, 'id': 'j4', 'title': 'Crew Member', 'organization': "McDonald's"}]
+        with self.app.app_context():
+            import_rows(rows, approve=True)
+            from core import search_public
+            got = {o['org']: o['job_category'] for o in search_public({'sector': 'jobs'})[0]}
+        self.assertEqual(got, {'Five Below Inc': 'Retail', 'WinCo Foods': 'Grocery', 'Chuck E. Cheese': 'Entertainment',
+                               "McDonald's": 'Food & drink'})
+        page = self.c.get('/jobs?category=Food+%26+drink').get_data(as_text=True)
+        self.assertIn('1 result', page)
+        self.assertIn('card__art--food-drink', page)
+
     def test_outcome_and_reach_stats(self):
         self.post('/register', {'name': 'Sam Rivera', 'email': 'sam@example.org', 'password': PW, 'school': 'Lincoln High'})
         admin = self.make_admin()

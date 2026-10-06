@@ -12,6 +12,31 @@ COMMITMENTS = ['One-off', 'Summer', 'School year', 'Flexible']
 INTERESTS = ['STEM', 'Computer science', 'Research', 'Health & medicine', 'Business & finance', 'Arts & media',
              'Writing & humanities', 'Civics & law', 'Service', 'Leadership', 'Career exploration', 'Environment',
              'Sports & outdoors', 'Academics & college prep']
+# Broad job categories, for the jobs filter and the icon art on job cards (core.JOB_CATEGORY_SQL turns this into SQL).
+# A job gets the first category whose keywords appear in its employer name; failing that, in its title (so a "Crew
+# Member" at Five Below stays Retail). Order matters within each pass: grocery before food ("Fresh Foods Clerk"),
+# entertainment before food (a server at Chuck E. Cheese). Keywords are lowercase, without apostrophes.
+JOB_CATEGORIES = {
+    'Grocery': ['winco', 'harris teeter', 'wegmans', 'publix', 'edwards food', 'super 1', 'dans foods', 'macey', 'kroger',
+                'safeway', 'aldi', 'grocery', 'supermarket', 'bagger', 'courtesy clerk', 'fresh foods'],
+    'Entertainment': ['chuck e. cheese', 'cinemark', 'century theatres', 'amc ', 'regal', 'theatre', 'theater', 'cinema',
+                      'sky zone', 'dollywood', 'six flags', 'amusement', 'arcade', 'game room', 'bowling', 'trampoline', 'ride '],
+    'Food & drink': ['mcdonald', 'chipotle', 'chick-fil-a', 'noodles', 'smoothie', 'sonic', 'raising cane', 'popeyes', 'zaxby',
+                     'dairy queen', 'culver', 'wendy', 'taco bell', 'slim chicken', 'shake shack', 'potbelly', 'panera',
+                     'jimmy john', 'domino', 'caribou', 'starbucks', 'dunkin', 'subway', 'buffalo wild', 'sunlife organics',
+                     'wawa', 'sheetz', 'royal farms', 'restaurant', 'crew', 'kitchen', 'server', 'cook', 'barista', 'carhop',
+                     'pizza', 'cafe', 'coffee', 'food'],
+    'Recreation & outdoors': ['ymca', 'park', 'forest', 'conservation', 'wildlife', 'ski ', 'resort', 'lifeguard', 'pool',
+                              'camp', 'sports', 'referee', 'recreation', 'jcprd', 'golf', 'outdoor'],
+    'Community & public service': ['city of', 'county', 'district', 'senate', 'personnel management', 'youth employment',
+                                   'summer youth', 'workforce', 'careersource', 'government', 'school', 'mayor',
+                                   'youth network', 'department', 'agency', 'library', 'opportunity program', 'pathways',
+                                   'township', 'custodian'],
+    'Retail': ['five below', 'spirit', 'old navy', 'crocs', 'lego', 'kohl', 'journeys', 'shoe', 'autozone', 'cvs', 'target',
+               'walmart', 'sales', 'store', 'retail', 'cashier', 'stock', 'merchandis', 'associate'],
+}
+JOB_CATEGORY_FALLBACK = 'Retail'
+
 STAGES = ['Interested', 'Preparing', 'Applied', 'Interview', 'Accepted', 'Completed']
 WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on Open Ajar
 VERIFICATION = {'unreviewed': 'Unreviewed', 'source': 'Source-linked', 'verified': 'Verified'}

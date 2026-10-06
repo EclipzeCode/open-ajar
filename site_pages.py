@@ -32,7 +32,7 @@ SECTORS = {
     'opportunities': dict(title='Discover opportunities', h1='Find what’s within reach.',
                           sub='Internships, programs, scholarships, competitions and more. Search, then narrow by grade, state, cost and commitment.'),
     'jobs': dict(title='Teen jobs', h1='Teen jobs, across the country.',
-                 sub='Paid, part-time work for high-school students. Narrow by state, grade and commitment.'),
+                 sub='Paid, part-time work for high-school students. Narrow by category, state, grade and commitment.'),
 }
 
 
@@ -59,10 +59,11 @@ def _browse(sector):
         'format': [v for v in a.getlist('format') if v in data.FORMATS],
         'commitment': [v for v in a.getlist('commitment') if v in data.COMMITMENTS],
         'interest': [v for v in a.getlist('interest') if v in data.INTERESTS],
+        'category': [v for v in a.getlist('category') if v in data.JOB_CATEGORIES] if sector == 'jobs' else [],
     }
     page = max(1, min(500, a.get('page', 1, type=int) or 1))
     items, total = search_public(f, PAGE, (page - 1) * PAGE)
-    active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest')) + bool(f['grade']) + bool(f['state'])
+    active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest', 'category')) + bool(f['grade']) + bool(f['state'])
     return render_template('browse.html', sector=sector, copy=SECTORS[sector], f=f, items=items, total=total, page=page,
                            pages=max(1, -(-total // PAGE)), facets=facets(f), all_opts=facets({'sector': sector}), active=active, saved=_saved_ids(),
                            chips=_chips(f))
@@ -80,7 +81,7 @@ def _chips(f):
         chips.append((f'Grade {f["grade"]}', without('grade', f['grade'])))
     if f['state']:
         chips.append((data.STATES[f['state']], without('state', request.args.get('state'))))
-    for key in ('type', 'cost', 'format', 'commitment', 'interest'):
+    for key in ('type', 'cost', 'format', 'commitment', 'interest', 'category'):
         for v in f[key]:
             chips.append((data.COSTS[v] if key == 'cost' else v, without(key, v)))
     return chips

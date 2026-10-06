@@ -52,6 +52,7 @@
           {{ pill('Format', 'format', D.FORMATS) }}
         {% endif %}
         {{ pill('Commitment', 'commitment', D.COMMITMENTS) }}
+        {% if sector == 'jobs' %}{{ pill('Category', 'category', D.JOB_CATEGORIES|sort) }}{% endif %}
         {% if sector != 'jobs' %}{{ pill('Interest', 'interest', D.INTERESTS) }}{% endif %}
       </div>
     </div>
