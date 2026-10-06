@@ -161,17 +161,17 @@ if (trail && doorway) {
     // where the spill sits once the sticky door scene has scrolled to the end of its section
     const sx = sp.left + sp.width / 2 - s.left;
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
-    const w = s.width, end = Math.max(40, Math.min(110, w * .08)); // final width
+    const w = s.width, end = Math.max(56, Math.min(180, w * .14)); // final width
     const h = Math.max(120, wrap.offsetTop + target.offsetTop + target.offsetHeight / 2 - top); // level with the heading
     // centerline: straight down out of the light, then a long sweep left until it's past the edge
     const d = `M${sx} 0 C${sx} ${h * .55} ${sx * .55} ${h} ${-end} ${h}`;
     reveal.setAttribute('d', d);
     reveal.style.strokeWidth = `${end * 1.4}px`;
-    // outline: walk the centerline and offset each side by half the width, which grows from 3px to `end`
+    // outline: walk the centerline and offset each side by half the width, which grows from 6px to `end`
     const len = reveal.getTotalLength(), n = 120, left = [], right = [];
     for (let i = 0; i <= n; i++) {
       const t = i / n, a = reveal.getPointAtLength(len * t), b = reveal.getPointAtLength(Math.min(len, len * t + 1)), c = reveal.getPointAtLength(Math.max(0, len * t - 1));
-      const dx = b.x - c.x, dy = b.y - c.y, m = Math.hypot(dx, dy) || 1, half = (1.5 + (end / 2 - 1.5) * Math.pow(t, 1.4));
+      const dx = b.x - c.x, dy = b.y - c.y, m = Math.hypot(dx, dy) || 1, half = (3 + (end / 2 - 3) * Math.pow(t, 1.4));
       left.push(`${(a.x - dy / m * half).toFixed(1)} ${(a.y + dx / m * half).toFixed(1)}`);
       right.push(`${(a.x + dy / m * half).toFixed(1)} ${(a.y - dx / m * half).toFixed(1)}`);
     }
@@ -187,6 +187,32 @@ if (trail && doorway) {
   addEventListener('resize', layout);
   addEventListener('load', layout); // fonts and images can shift the heading
   layout();
+}
+
+// Home: arrows under the testimonials glide the strip one card either way, then it keeps drifting on its own.
+// The strip is a looping CSS animation, so stepping means moving the animation's clock (the cards are listed
+// twice, so one full loop later looks identical, which lets it wrap in both directions).
+const marquee = document.querySelector('.marquee');
+if (marquee) {
+  const track = marquee.querySelector('.marquee__track');
+  let tween = 0;
+  document.querySelectorAll('.marquee__btn').forEach((b) => b.addEventListener('click', () => {
+    const card = track.querySelector('.quote');
+    const step = (card.offsetWidth + parseFloat(getComputedStyle(card).marginLeft) * 2) * +b.dataset.dir;
+    const anim = track.getAnimations()[0];
+    if (!anim) { marquee.scrollBy({ left: step, behavior: calm ? 'auto' : 'smooth' }); return; } // reduce motion: a plain scroller
+    const loop = anim.effect.getTiming().duration;
+    let from = anim.currentTime % loop;
+    if (from + step / (track.scrollWidth / 2) * loop < 0) from += loop;
+    const to = from + step / (track.scrollWidth / 2) * loop, t0 = performance.now(), id = ++tween;
+    const frame = (now) => {
+      if (id !== tween) return; // a newer click took over
+      const p = Math.min(1, (now - t0) / 450);
+      anim.currentTime = from + (to - from) * (1 - Math.pow(1 - p, 3));
+      if (p < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }));
 }
 
 // Home: the hero grid square under the pointer lifts; squares it leaves fade out behind it
