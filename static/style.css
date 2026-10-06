@@ -537,13 +537,6 @@ body.page-focus .page-head { padding-top: 0; }
 .track__stage .dd__btn { font-weight: 600; background: #fff; }
 .track__links { display: inline-flex; align-items: center; gap: 16px; }
 .subs__side--row { flex-direction: row; align-items: center; }
-/* help card pinned to the bottom of the panel, above Delete account */
-.acct-nav__help { margin-top: auto; position: sticky; bottom: 24px; padding: 16px; border-radius: 14px; background: var(--soft); border: 1px solid var(--line); color: var(--ink); }
-.acct-nav__help strong { display: block; font: 600 .95rem var(--display); margin-bottom: 4px; }
-.acct-nav__help p { margin: 0 0 12px; font-size: .82rem; line-height: 1.5; color: var(--muted); }
-.acct-nav .acct-nav__mail { display: inline-flex; padding: 7px 12px; border-radius: 10px; background: var(--accent); color: #fff; font-size: .82rem; font-weight: 600; }
-.acct-nav .acct-nav__mail::before { display: none; }
-.acct-nav .acct-nav__mail:hover { background: var(--accent-hover); color: #fff; }
 .acct-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; text-decoration: none;
   color: var(--ink); font: 500 .92rem var(--display); transition: background .15s, color .15s; }
 .acct-nav a::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .45; flex: none; }
@@ -573,6 +566,9 @@ body.page-focus .page-head { padding-top: 0; }
 .intro__meta li { display: inline-flex; align-items: center; gap: 8px; }
 .icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .intro__meta .icon { color: var(--accent); }
+.intro__meta a { color: inherit; text-decoration: none; }
+.intro__meta a:hover { color: var(--accent); }
+.intro__meta .is-soon .icon { color: var(--danger); }
 /* numbered stepper: circles joined by a thin rail */
 .acct-nav--steps .acct-nav__links { counter-reset: step; }
 .acct-nav--steps .acct-nav__links::before { content: ''; position: absolute; left: 26px; top: 24px; bottom: 24px; width: 1px; background: var(--line-strong); }
@@ -614,7 +610,6 @@ body.page-focus .page-head { padding-top: 0; }
 .switch input:focus-visible + .switch__track { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 @media (max-width: 860px) {
   .acct-body { grid-template-columns: 1fr; gap: 16px; }
-  .acct-nav__help { display: none; }
   .acct-nav__n { margin-left: 6px; }
   .acct-nav__links { display: contents; }
   .acct-nav { position: sticky; top: 84px; z-index: 5; height: auto; min-height: 0; flex-direction: row; display: flex; overflow-x: auto; gap: 4px; padding: 6px; border-radius: 16px; scrollbar-width: none; background: var(--surface); border: 1px solid var(--line); }
