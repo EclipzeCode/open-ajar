@@ -142,37 +142,45 @@ if (doorway && !calm) {
   }
 }
 
-// Home: once the door is open, its light continues as a curved line down to the mission heading, drawn as you scroll
+// Home: once the door is open, its light continues as a ribbon that widens as it curves off the left edge,
+// revealed in step with the scroll. It sits behind the content.
 const trail = document.querySelector('.trail');
 if (trail && doorway) {
   const sec = trail.parentElement, wrap = sec.querySelector('.wrap'), target = wrap.querySelector('h2');
   const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
-  const paths = [...trail.querySelectorAll('path')], dot = trail.querySelector('.trail__dot'), grad = trail.querySelector('linearGradient');
-  paths.forEach((p) => p.setAttribute('pathLength', '1'));
-  let top = 0, height = 1, queued = false;
+  const ribbon = trail.querySelector('.trail__ribbon'), reveal = trail.querySelector('.trail__reveal'), grad = trail.querySelector('linearGradient');
+  reveal.setAttribute('pathLength', '1');
+  let top = 0, span = 1, queued = false;
   const draw = () => {
     queued = false;
-    // the tip follows a point near the bottom of the screen, so drawing starts as soon as the door is fully open
-    const p = calm ? 1 : Math.min(1, Math.max(0, (innerHeight * .85 - (sec.getBoundingClientRect().top + top)) / height));
-    paths.forEach((el) => { el.style.strokeDashoffset = (1 - p).toFixed(4); });
-    trail.classList.toggle('is-done', p > .98);
+    const p = calm ? 1 : Math.min(1, Math.max(0, (innerHeight * .85 - (sec.getBoundingClientRect().top + top)) / span));
+    reveal.style.strokeDashoffset = (1 - p).toFixed(4);
   };
   const layout = () => {
     const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
     // where the spill sits once the sticky door scene has scrolled to the end of its section
-    const doorBottom = doorway.getBoundingClientRect().bottom;
     const sx = sp.left + sp.width / 2 - s.left;
-    top = doorBottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
-    const ex = s.width / 2, ey = wrap.offsetTop + target.offsetTop - 28;
-    height = Math.max(60, ey - top);
-    const w = s.width, h = height, swing = Math.max(w * .06, Math.min(sx, ex) - w * .18);
-    const d = `M${sx} 0 C${sx} ${h * .3} ${swing} ${h * .25} ${swing} ${h * .55} C${swing} ${h * .85} ${ex} ${h * .7} ${ex} ${h}`;
+    top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
+    const w = s.width, end = Math.max(40, Math.min(110, w * .08)); // final width
+    const h = Math.max(120, wrap.offsetTop + target.offsetTop + target.offsetHeight / 2 - top); // level with the heading
+    // centerline: straight down out of the light, then a long sweep left until it's past the edge
+    const d = `M${sx} 0 C${sx} ${h * .55} ${sx * .55} ${h} ${-end} ${h}`;
+    reveal.setAttribute('d', d);
+    reveal.style.strokeWidth = `${end * 1.4}px`;
+    // outline: walk the centerline and offset each side by half the width, which grows from 3px to `end`
+    const len = reveal.getTotalLength(), n = 120, left = [], right = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, a = reveal.getPointAtLength(len * t), b = reveal.getPointAtLength(Math.min(len, len * t + 1)), c = reveal.getPointAtLength(Math.max(0, len * t - 1));
+      const dx = b.x - c.x, dy = b.y - c.y, m = Math.hypot(dx, dy) || 1, half = (1.5 + (end / 2 - 1.5) * Math.pow(t, 1.4));
+      left.push(`${(a.x - dy / m * half).toFixed(1)} ${(a.y + dx / m * half).toFixed(1)}`);
+      right.push(`${(a.x + dy / m * half).toFixed(1)} ${(a.y - dx / m * half).toFixed(1)}`);
+    }
+    ribbon.setAttribute('d', `M${left.join(' L')} L${right.reverse().join(' L')} Z`);
+    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', h);
     trail.style.top = `${top}px`;
-    trail.style.height = `${h}px`;
-    trail.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    paths.forEach((el) => el.setAttribute('d', d));
-    dot.setAttribute('cx', ex); dot.setAttribute('cy', h);
-    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', ex); grad.setAttribute('y2', h);
+    trail.style.height = `${h + end}px`;
+    trail.setAttribute('viewBox', `0 0 ${w} ${h + end}`);
+    span = h + w * .35; // a bit more scrolling than its height, since the last stretch runs sideways
     draw();
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(draw); } }, { passive: true });

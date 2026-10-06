@@ -54,10 +54,13 @@
 </section>
 
 <section class="section center mission">
-  {# A line of light from the open door down to this heading; app.js sizes it and draws it with the scroll. #}
+  {# A ribbon of light from the open door that widens as it sweeps off the left edge; app.js shapes it and reveals it with the scroll. #}
   <svg class="trail" aria-hidden="true" focusable="false">
-    <defs><linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop offset="1" stop-color="#1F5C46"/></linearGradient></defs>
-    <path class="trail__glow"/><path class="trail__line"/><circle class="trail__dot" r="4"/>
+    <defs>
+      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop offset="1" stop-color="#DCEAE2"/></linearGradient>
+      <mask id="trail-mask"><path class="trail__reveal"/></mask>
+    </defs>
+    <path class="trail__ribbon" fill="url(#trail-grad)" mask="url(#trail-mask)"/>
   </svg>
   <div class="wrap">
     <h2 class="reveal">Open the door a little wider.</h2>
