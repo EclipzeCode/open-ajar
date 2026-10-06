@@ -4,15 +4,14 @@
 {% block body_class %}page-panel{% endblock %}
 {% block content %}
 <div class="wrap acct">
-  <header class="acct-head">
-    <div class="acct-head__who">
-      <span class="acct-avatar" aria-hidden="true"><svg class="acct-avatar__icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
-      <div>
-        <h1>{% if existing %}Revise your submission{% else %}Share an opportunity{% endif %}</h1>
-        <p class="acct-head__meta"><span class="pill pill--approved">Free to list</span><span class="pill">Reviewed before it goes live</span></p>
-        <p class="muted small">Know a program, internship or job high-school students should hear about? Send it in.</p>
-      </div>
-    </div>
+  <header class="intro">
+    <p class="eyebrow">Submit a listing</p>
+    <h1>{% if existing %}Revise your submission{% else %}Share an opportunity{% endif %}</h1>
+    <p class="lead">Know a program, internship or job high-school students should hear about? Send it in.</p>
+    <ul class="intro__meta">
+      <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Free to list</li>
+      <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/></svg>Reviewed before it goes live</li>
+    </ul>
   </header>
 
   {% if unverified %}
@@ -23,21 +22,13 @@
     </section>
   {% else %}
   <div class="acct-body">
-    <nav class="acct-nav" aria-label="Form sections">
+    <nav class="acct-nav acct-nav--steps" aria-label="Form sections">
       <div class="acct-nav__links">
         <a href="#basics">The basics</a>
         <a href="#who">Who it’s for</a>
         <a href="#format">Format &amp; cost</a>
         <a href="#dates">Dates &amp; link</a>
         <a href="#you">About you</a>
-      </div>
-      <div class="acct-nav__help">
-        <strong>What happens next</strong>
-        <ol class="acct-nav__steps">
-          <li>It joins the review queue.</li>
-          <li>A reviewer checks the official page.</li>
-          <li>It goes live, or they ask you for changes on your account page.</li>
-        </ol>
       </div>
     </nav>
 
@@ -95,9 +86,9 @@
           {{ m.select('relationship', 'How are you connected to it?', D.RELATIONSHIPS, values, errors, required=True) }}
           {{ m.input('contact_email', 'Email a reviewer can reach', values if values.get('contact_email') else {'contact_email': user.email}, errors, type='email', required=True, auto='email') }}
         </div>
-        <div class="acct-card__foot acct-card__foot--split">
-          <span class="muted small">You can follow its review on your account page.</span>
-          <button class="btn" type="submit">{{ 'Send for review again' if existing else 'Submit for review' }}</button>
+        <div class="form-submit">
+          <p class="form-submit__note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>You can follow its review on your account page.</p>
+          <button class="btn" type="submit">{{ 'Send for review again' if existing else 'Submit for review' }} <span class="arrow" aria-hidden="true">→</span></button>
         </div>
       </section>
     </form>

@@ -27,11 +27,6 @@
           <a href="{{ url_for('account.tracker', stage=s) }}" aria-current="{{ 'true' if stage == s else 'false' }}">{{ s }} <span class="acct-nav__n">{{ counts[s] }}</span></a>
         {% endfor %}
       </div>
-      <div class="acct-nav__help">
-        <strong>Find more</strong>
-        <p>Open any listing and choose “Start tracking”. Its requirements turn into a checklist here.</p>
-        <a class="acct-nav__mail" href="{{ url_for('site.browse') }}">Browse opportunities</a>
-      </div>
     </nav>
 
     <div class="acct-sections">
