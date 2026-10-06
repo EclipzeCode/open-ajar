@@ -241,7 +241,7 @@ body.page-focus .page-head { padding-top: 0; }
 .arrow { display: inline-block; transition: transform .2s; }
 .typer:hover .arrow, .btn:hover .arrow, .link:hover .arrow { transform: translateX(3px); }
 @media (max-width: 520px) { .typer { padding-left: 14px; } .typer__prefix { display: none; } .typer__go { padding: 10px 14px; } }
-@media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .faq details[open] p { animation: none !important; } .js .reveal { opacity: 1; transform: none; transition: none; } .feature:hover .feature__icon, .typer:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .faq details[open] p, .explore__grid .card { animation: none !important; } .faq details::details-content, .explore__glider, .explore__grid { transition: none !important; } .js .feature__icon svg * { stroke-dashoffset: 0; transition: none; } .js .reveal { opacity: 1; transform: none; transition: none; } .feature:hover .feature__icon, .typer:hover { transform: none; } }
 
 .features { margin-top: 40px; text-align: left; }
 .feature { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
@@ -332,6 +332,33 @@ body.page-focus .page-head { padding-top: 0; }
 @media (prefers-reduced-motion: reduce) { .js .doorway { height: auto; padding: 40px 0; } .js .doorway__sticky { position: static; height: auto; } .doorway { --p: 1 !important; } .doorway__scene { transform: none !important; } }
 
 /* fade-in-up on scroll (added by app.js) */
+/* hero headline: each word rises out of its own line box (app.js wraps them) */
+.hero h1.is-split .word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
+.hero h1.is-split .word > span { display: inline-block; animation: word-up .7s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes word-up { from { transform: translateY(105%); } }
+/* feature icons draw their outline once the card is on screen (app.js sets pathLength=1) */
+.js .feature__icon svg * { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1s ease .35s; }
+.js .feature.is-in .feature__icon svg * { stroke-dashoffset: 0; }
+.js .feature.d1.is-in .feature__icon svg * { transition-delay: .45s; } .js .feature.d2.is-in .feature__icon svg * { transition-delay: .55s; }
+/* interest tabs above "Open right now": a white pill slides to the chosen tab */
+.explore { position: relative; display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; padding: 4px; margin: 0 0 20px; background: var(--soft); border: 1px solid var(--line); border-radius: 99px; }
+.explore::-webkit-scrollbar { display: none; }
+.explore a { flex: none; position: relative; z-index: 1; padding: 7px 16px; border-radius: 99px; font: 500 .88rem var(--display); color: var(--muted); text-decoration: none; transition: color .2s; }
+.explore a:hover { color: var(--ink-strong); }
+.explore a[aria-current="true"] { color: var(--ink-strong); }
+.explore__glider { display: none; }
+.js .explore__glider { display: block; position: absolute; left: 0; top: 4px; bottom: 4px; border-radius: 99px; background: #fff; box-shadow: 0 1px 3px rgba(28, 25, 23, .1), 0 0 0 1px var(--line); }
+.explore.is-ready .explore__glider { transition: transform .35s cubic-bezier(.3, .7, .2, 1), width .35s cubic-bezier(.3, .7, .2, 1); }
+html:not(.js) .explore a[aria-current="true"] { background: #fff; }
+.explore__grid { transition: opacity .18s ease; }
+.explore__grid.is-leaving { opacity: 0; }
+.explore__grid.is-swapped .card { animation: card-in .45s cubic-bezier(.2, .7, .2, 1) both; }
+.explore__grid.is-swapped .card:nth-child(2) { animation-delay: .06s; } .explore__grid.is-swapped .card:nth-child(3) { animation-delay: .12s; }
+@keyframes card-in { from { opacity: 0; transform: translateY(10px); } }
+/* FAQ answers slide open where the browser can animate to height: auto */
+:root { interpolate-size: allow-keywords; }
+.faq details::details-content { height: 0; overflow: clip; transition: height .3s ease, content-visibility .3s allow-discrete; }
+.faq details[open]::details-content { height: auto; }
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .js .reveal.is-in { opacity: 1; transform: none; }
 .js .reveal.d1 { transition-delay: .1s; } .js .reveal.d2 { transition-delay: .2s; } .js .reveal.d3 { transition-delay: .3s; }
