@@ -12,10 +12,10 @@ import threading
 import time
 from datetime import timedelta
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import click
-from flask import Flask, abort, g, render_template, request, session
+from flask import Flask, abort, g, redirect, render_template, request, session
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash
 
@@ -75,8 +75,15 @@ def create_app(test_config=None):
     app.register_blueprint(account_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
+    canonical_host = urlsplit(app.config['APP_URL']).netloc
+
     @app.before_request
     def before():
+        # One address for search engines and links: any other host (e.g. open-ajar.onrender.com) gets a permanent
+        # redirect to the same page on APP_URL. Health checks and form posts are left alone.
+        if (app.config['PRODUCTION'] and request.host != canonical_host and request.method in ('GET', 'HEAD')
+                and request.path != '/healthz'):
+            return redirect(app.config['APP_URL'] + request.full_path.rstrip('?'), 301)
         if not app.config.get('TESTING'):
             start_maintenance(app)
         load_user()
@@ -120,7 +127,8 @@ def create_app(test_config=None):
     def globals_():
         return {'user': current_user(), 'csrf_token': session.get('csrf', ''), 'D': data, 'production': app.config['PRODUCTION'],
                 'dev_inbox': not app.config['PRODUCTION'] and not app.config['RESEND_API_KEY'],
-                'contact_email': app.config['CONTACT_EMAIL']}
+                'contact_email': app.config['CONTACT_EMAIL'], 'canonical': app.config['APP_URL'] + request.path,
+                'app_url': app.config['APP_URL']}
 
     def page_url(page):
         args = [(k, v) for k, v in request.args.items(multi=True) if k != 'page'] + [('page', page)]

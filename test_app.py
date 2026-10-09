@@ -60,9 +60,28 @@ class Flows(unittest.TestCase):
     def test_placeholder_testimonials_never_reach_the_live_site(self):
         live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',
                            'APP_URL': 'https://example.org', 'DB_PATH': self.app.config['DB_PATH']})
-        page = live.test_client().get('/').data
+        page = live.test_client().get('/', base_url='https://example.org').data
         self.assertIn(b'Vanessa Gunuwan', page)
         self.assertNotIn(b'Testimonial goes here', page)
+
+    def test_one_address_for_search_engines(self):
+        live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',
+                           'APP_URL': 'https://www.example.org', 'DB_PATH': self.app.config['DB_PATH']})
+        c = live.test_client()
+        r = c.get('/jobs?category=Retail', base_url='https://old.onrender.com')
+        self.assertEqual((r.status_code, r.location), (301, 'https://www.example.org/jobs?category=Retail'))
+        self.assertEqual(c.get('/healthz', base_url='https://old.onrender.com').status_code, 200)
+        page = c.get('/about', base_url='https://www.example.org').get_data(as_text=True)
+        self.assertIn('<link rel="canonical" href="https://www.example.org/about">', page)
+        robots = c.get('/robots.txt', base_url='https://www.example.org').get_data(as_text=True)
+        self.assertIn('Sitemap: https://www.example.org/sitemap.xml', robots)
+        with self.app.app_context():
+            import_rows([{'id': 's1', 'title': 'Coding Club', 'organization': 'Girls Who Code', 'type': 'Academic program',
+                          'summary': 'Free clubs for students to explore coding after school.', 'eligibility': 'Grades 9 to 12',
+                          'grades': '9', 'cost': 'Free', 'format': 'Online', 'location': 'Online', 'commitment': 'School year'}], approve=True)
+        xml = c.get('/sitemap.xml', base_url='https://www.example.org').get_data(as_text=True)
+        self.assertIn('<loc>https://www.example.org/jobs</loc>', xml)
+        self.assertEqual(xml.count('<loc>https://www.example.org/o/'), 1)
 
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)

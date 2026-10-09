@@ -4,7 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}Open Ajar</title>
-  <meta name="description" content="Open Ajar helps high-school students find internships, programs, scholarships and jobs, then track them all the way to an application.">
+  {% set description %}{% block description %}Open Ajar helps high-school students find internships, programs, scholarships and jobs, then track them all the way to an application.{% endblock %}{% endset %}
+  <meta name="description" content="{{ description|trim }}">
+  <link rel="canonical" href="{{ canonical }}">
+  <meta property="og:site_name" content="Open Ajar">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ self.title() }}{% if self.title() %} · {% endif %}Open Ajar">
+  <meta property="og:description" content="{{ description|trim }}">
+  <meta property="og:url" content="{{ canonical }}">
+  {% block head %}{% endblock %}
   <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
