@@ -104,7 +104,7 @@ img { max-width: 100%; height: auto; display: block; }
 .icon-btn:hover { color: var(--danger); background: var(--danger-soft); }
 .icon-btn.text { font-size: .875rem; }
 .pill { display: inline-block; font: 600 .72rem/1 var(--sans); padding: 5px 10px; border-radius: 99px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); vertical-align: middle; }
-.pill--approved, .pill--placed { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.pill--approved, .pill--placed, .pill--partnered { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .pill--pending_review, .pill--pending, .pill--new, .pill--saved { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 .pill--changes_requested, .pill--contacted { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .pill--rejected, .pill--declined { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
@@ -203,6 +203,7 @@ textarea { resize: none; }
 .form-layout > .form { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 32px; }
 @media (max-width: 860px) { .form-layout { grid-template-columns: 1fr; } .form-layout__aside { position: static; } }
 .auth { max-width: 440px; padding: 32px 0 48px; }
+.auth--wide { max-width: 560px; }
 .auth h1 { font-size: 2.4rem; }
 .auth .form { margin-top: 28px; gap: 8px; }
 .auth .btn--block { margin-top: 8px; padding-block: 12px; }

@@ -200,6 +200,32 @@ def apply():
     return render_template('applied.html')
 
 
+@bp.route('/partner', methods=['GET', 'POST'])
+def partner():
+    """Businesses offering to host an intern. Saved first, then the team is emailed, so nothing is lost if email fails."""
+    if request.method == 'GET':
+        return render_template('partner.html', values={}, errors={})
+    f = data.Form(request.form)
+    f.text('business', 'Business name', min=2, max=160)
+    f.text('contact_name', 'Your name', min=2, max=120)
+    f.email('email')
+    f.text('phone', 'Phone', max=40, required=False)
+    f.text('location', 'City or area', max=160, required=False)
+    f.text('message', 'What an intern could help with', min=10, max=2000, multiline=True)
+    if not f.errors and limited('partner:' + client_ip(), 8, 3600):
+        f.errors['_'] = 'You’ve sent a few inquiries recently. Please try again later.'
+    if f.errors:
+        return render_template('partner.html', values=request.form.to_dict(), errors=f.errors), 422
+    inq = {**f.out, 'id': new_id(), 'created_at': data.now_iso()}
+    run('INSERT INTO partner_inquiries (id, business, contact_name, email, phone, location, message, created_at) VALUES (?,?,?,?,?,?,?,?)',
+        tuple(inq[k] for k in ('id', 'business', 'contact_name', 'email', 'phone', 'location', 'message', 'created_at')))
+    try:
+        mail.partner_inquiry(current_app.config, inq)
+    except Exception as e:  # it's saved; the team still sees it in admin
+        print(f'[email] partner inquiry notice failed: {e}')
+    return render_template('partner_sent.html')
+
+
 # ---------------------------------------------------------------- content pages
 
 
