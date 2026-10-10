@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
 {% block title %}{{ o.title }}{% endblock %}
+{% block description %}{{ o.summary|truncate(160, True) }}{% endblock %}
 {% block content %}
 {% set dl = deadline_info(o.deadline_date, o.deadline_note) %}
 <div class="wrap">

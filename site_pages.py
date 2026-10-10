@@ -1,13 +1,14 @@
 """Public pages: home, browsing, listing detail, submitting, intern applications and the static content pages."""
 import json
+from html import escape
 from urllib.parse import urlencode
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
 import data
 import mail
-from core import (add_event, all_, client_ip, current_user, facets, get_db, get_opp, get_public, insert_opp,
-                  limited, login_required, new_id, one, run, safe_next, search_public, update_opp)
+from core import (PUBLIC, add_event, all_, client_ip, current_user, facets, get_db, get_opp, get_public, insert_opp,
+                  limited, login_required, new_id, now_iso, one, run, safe_next, search_public, update_opp)
 
 bp = Blueprint('site', __name__)
 PAGE = 24  # divides evenly into 1, 2, 3 or 4 columns, so full pages never leave a ragged last row
@@ -226,6 +227,26 @@ def privacy():
 @bp.get('/terms')
 def terms():
     return render_template('terms.html')
+
+
+@bp.get('/robots.txt')
+def robots():
+    lines = ['User-agent: *', *(f'Disallow: {p}' for p in ('/admin', '/account', '/tracker', '/verify', '/reset', '/dev/')),
+             f"Sitemap: {current_app.config['APP_URL']}/sitemap.xml"]
+    return '\n'.join(lines) + '\n', {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+@bp.get('/sitemap.xml')
+def sitemap():
+    """The public pages plus every live listing, for search engines."""
+    base = current_app.config['APP_URL']
+    pages = [(url_for(e), None) for e in ('site.home', 'site.browse', 'site.jobs', 'site.apply', 'site.about', 'site.team',
+                                          'site.support', 'site.privacy', 'site.terms')]
+    pages += [(url_for('site.detail', opp_id=r['id']), (r['updated_at'] or '')[:10])
+              for r in all_(f'SELECT o.id, o.updated_at FROM opportunities o WHERE {PUBLIC} ORDER BY o.published_at DESC', (now_iso(),))]
+    urls = ''.join(f'<url><loc>{escape(base + path)}</loc>{f"<lastmod>{d}</lastmod>" if d else ""}</url>' for path, d in pages)
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return xml, {'Content-Type': 'application/xml; charset=utf-8'}
 
 
 @bp.get('/dev/inbox')
