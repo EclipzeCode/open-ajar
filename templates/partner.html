@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Host an intern{% endblock %}
+{% block description %}Run a small business or restaurant? Open Ajar introduces you to a motivated high-school student who wants to learn.{% endblock %}
+{% block body_class %}page-focus{% endblock %}
+{% block content %}
+<div class="wrap auth auth--wide">
+  <h1>Host a high-school intern.</h1>
+  <p class="muted">Tell us a little about your business. We’ll get back to you within a few days to talk about what a student could help with. There’s no cost and no commitment.</p>
+  {% if errors.get('_') %}<div class="alert" role="alert">{{ errors['_'] }}</div>{% endif %}
+  <form class="form" method="post" novalidate>
+    {{ m.csrf() }}
+    {{ m.input('business', 'Business name', values, errors, required=True, max=160, auto='organization') }}
+    <div class="row2">
+      {{ m.input('contact_name', 'Your name', values, errors, required=True, max=120, auto='name') }}
+      {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
+    </div>
+    <div class="row2">
+      {{ m.input('phone', 'Phone', values, errors, type='tel', max=40, auto='tel') }}
+      {{ m.input('location', 'City or area', values, errors, max=160, placeholder='e.g. Austin, TX') }}
+    </div>
+    {{ m.textarea('message', 'What could an intern help with?', values, errors, required=True, max=2000, rows=4, help='A sentence or two is plenty: the kind of work, and roughly how many hours a week.') }}
+    <button class="btn btn--block" type="submit">Send</button>
+  </form>
+  <p class="auth__alt">Rather email? Write to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+</div>
+{% endblock %}

@@ -126,6 +126,20 @@ CREATE TABLE IF NOT EXISTS intern_applications (
   created_at   TEXT NOT NULL
 );
 
+-- Businesses asking to host an intern, from the Partner with us form. Admins work them under Admin > Partner inquiries.
+CREATE TABLE IF NOT EXISTS partner_inquiries (
+  id           TEXT PRIMARY KEY,
+  business     TEXT NOT NULL,
+  contact_name TEXT NOT NULL,
+  email        TEXT NOT NULL,
+  phone        TEXT NOT NULL DEFAULT '',
+  location     TEXT NOT NULL DEFAULT '',
+  message      TEXT NOT NULL,
+  status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','partnered','declined')),
+  admin_note   TEXT NOT NULL DEFAULT '',
+  created_at   TEXT NOT NULL
+);
+
 -- Community Voices: one quote per student, shown after an admin approves it.
 CREATE TABLE IF NOT EXISTS testimonials (
   id         TEXT PRIMARY KEY,

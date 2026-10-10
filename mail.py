@@ -9,14 +9,15 @@ from data import parse_date
 OUTBOX = []  # development only: shown at /dev/inbox when no RESEND_API_KEY is set
 
 
-def send(config, to, subject, html, text):
+def send(config, to, subject, html, text, reply_to=None):
     if not config['RESEND_API_KEY']:
         OUTBOX.insert(0, {'to': to, 'subject': subject, 'text': text})
         del OUTBOX[50:]
         return
     req = urllib.request.Request(
         'https://api.resend.com/emails', method='POST',
-        data=json.dumps({'from': config['EMAIL_FROM'], 'to': [to], 'subject': subject, 'html': html, 'text': text}).encode(),
+        data=json.dumps({'from': config['EMAIL_FROM'], 'to': [to], 'subject': subject, 'html': html, 'text': text,
+                         **({'reply_to': reply_to} if reply_to else {})}).encode(),
         headers={'Authorization': f"Bearer {config['RESEND_API_KEY']}", 'Content-Type': 'application/json',
                  'User-Agent': 'open-ajar'})
     with urllib.request.urlopen(req, timeout=10) as r:
@@ -55,6 +56,15 @@ def reset_password(config, user, link):
         [f"Hi {_first(user['name'])}, we got a request to reset the password for your Open Ajar account.",
          'This link works once and expires in 1 hour. After you choose a new password, you’ll be signed out everywhere.'],
         'Choose a new password', link, 'If you didn’t ask for this, ignore this email. Your password won’t change.'))
+
+
+def partner_inquiry(config, inq):
+    """Tell the team a business wants to host an intern. Replying goes straight to the business."""
+    facts = [f"{k}: {v}" for k, v in (('Business', inq['business']), ('Contact', inq['contact_name']), ('Email', inq['email']),
+                                      ('Phone', inq['phone']), ('Location', inq['location'])) if v]
+    send(config, config['CONTACT_EMAIL'], f"Partner inquiry: {inq['business']}", *_layout(
+        f"{inq['business']} wants to host an intern", [*facts, inq['message']], 'Open partner inquiries',
+        config['APP_URL'] + '/admin/partners', 'Reply to this email to answer them directly.'), reply_to=inq['email'])
 
 
 def _when(days):

@@ -120,6 +120,17 @@ class Flows(unittest.TestCase):
         self.assertIn(b'Ask for transcript', tracker)
         self.assertIn(b'Sent!', tracker)
 
+    def test_partner_inquiry_is_saved_emailed_and_listed_for_admins(self):
+        form = {'business': 'Rosa’s Bakery', 'contact_name': 'Rosa Diaz', 'email': 'rosa@example.org', 'location': 'Austin, TX',
+                'message': 'We could use help at the counter and with our social media on weekends.'}
+        self.assertEqual(self.post('/partner', {**form, 'message': 'short'}).status_code, 422)
+        r = self.post('/partner', form)
+        self.assertIn('We’ll be in touch', r.get_data(as_text=True))
+        self.assertEqual(mail.OUTBOX[0]['to'], self.app.config['CONTACT_EMAIL'])
+        self.assertIn('Rosa’s Bakery', mail.OUTBOX[0]['subject'])
+        self.assertIn('Rosa’s Bakery', self.make_admin().get('/admin/partners').get_data(as_text=True))
+        self.assertIn('href="/partner"', self.c.get('/').get_data(as_text=True))
+
     def test_students_cant_reach_admin(self):
         self.register()
         self.assertEqual(self.c.get('/admin/').status_code, 403)
