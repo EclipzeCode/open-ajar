@@ -41,7 +41,9 @@ img { max-width: 100%; height: auto; display: block; }
 .section__head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .page-head { padding: 56px 0 28px; }
 .grid, .features { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-/* fixed 1 / 2 / 3 columns; a short last row is centered so it stays symmetrical */
+/* fixed 1 / 2 / 3 columns; a short last row is centered so it stays symmetrical, except listing grids, where cards
+   stay in their columns and a short last row fills from the left */
+.grid:not(.grid--2) { justify-content: flex-start; }
 .grid > *, .features > * { flex: 0 0 100%; min-width: 0; }
 @media (min-width: 640px) { .grid > *, .features > * { flex-basis: calc((100% - 20px) / 2); } }
 @media (min-width: 980px) { .grid:not(.grid--2) > *, .features > * { flex-basis: calc((100% - 40px) / 3); } }
