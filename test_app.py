@@ -62,6 +62,11 @@ class Flows(unittest.TestCase):
         self.register()
         self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'About', 'Profile'])
 
+    def test_static_files_are_versioned_and_cached(self):
+        css = re.search(r'href="(/static/style\.css\?v=\d+)"', self.c.get('/').get_data(as_text=True)).group(1)
+        self.assertIn('max-age=31536000', self.c.get(css).headers['Cache-Control'])
+        self.assertNotIn('max-age=31536000', self.c.get('/static/style.css').headers.get('Cache-Control', ''))
+
     def test_placeholder_testimonials_never_reach_the_live_site(self):
         live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',
                            'APP_URL': 'https://example.org', 'DB_PATH': self.app.config['DB_PATH']})

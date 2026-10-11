@@ -77,6 +77,18 @@ def create_app(test_config=None):
 
     canonical_host = urlsplit(app.config['APP_URL']).netloc
 
+    # Static files: links carry the file's modified time (?v=...), so browsers can keep them for a year and still get
+    # a fresh copy whenever a deploy changes the file. Files linked without it (images in CSS) are revalidated as before.
+    @app.url_defaults
+    def static_version(endpoint, values):
+        if endpoint == 'static' and 'filename' in values:
+            try:
+                values['v'] = int(os.stat(os.path.join(app.static_folder, values['filename'])).st_mtime)
+            except OSError:
+                pass
+
+    app.get_send_file_max_age = lambda filename: 31536000 if request.args.get('v') else None
+
     @app.before_request
     def before():
         # One address for search engines and links: any other host (e.g. open-ajar.onrender.com) gets a permanent

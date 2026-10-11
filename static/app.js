@@ -115,7 +115,7 @@ if (doorway && !calm) {
       doorway.classList.add('is-done');
       scrollBy({ top: next.getBoundingClientRect().top - before, behavior: 'instant' });
       requestAnimationFrame(() => { root.style.overflowAnchor = ''; });
-      dispatchEvent(new Event('resize')); // the ribbon measures from the door
+      document.dispatchEvent(new Event('door:done')); // the ribbon measures from the door
     }
   };
   const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
@@ -136,17 +136,19 @@ if (doorway && !calm) {
 // Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down
 // past the mission heading, loops once around each feature's icon, then runs down into the green band below, turning
 // that band's green on the way. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
+// The curve is a list of cubic Béziers sampled with plain math: asking the browser for points along a long SVG path
+// re-walks it every time and took seconds.
 const trail = document.querySelector('.trail');
 if (trail && doorway) {
   const sec = trail.parentElement, band = document.querySelector('[data-band]');
   const icons = [...sec.querySelectorAll('.story__icon')];
   const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
-  const ribbon = trail.querySelector('.trail__ribbon'), line = trail.querySelector('.trail__reveal');
+  const ribbon = trail.querySelector('.trail__ribbon');
   const grad = trail.querySelector('linearGradient'), mid = trail.querySelector('.trail__mid');
-  let top = 0, left = [], right = [], anchors = [[0, 0]], len = 1, shown = -1, seen = 0, queued = false;
+  let top = 0, left = [], right = [], dist = [0], anchors = [[0, 0]], len = 1, shown = -1, seen = 0, queued = false, width = 0;
   const draw = () => {
     queued = false;
-    // the tip follows a line near the bottom of the screen; anchors turn that height into a length along the ribbon
+    // the tip follows a line near the bottom of the screen; anchors turn that height into a distance along the ribbon
     const tip = innerHeight * .85 - (sec.getBoundingClientRect().top + top);
     let l = 0;
     for (let i = 1; i < anchors.length; i++) {
@@ -156,21 +158,22 @@ if (trail && doorway) {
       break;
     }
     seen = calm ? len : Math.max(seen, l);
-    const k = Math.round(seen / len * (left.length - 1));
-    if (k === shown) return;
-    shown = k;
-    ribbon.setAttribute('d', k < 1 ? '' : `M${left.slice(0, k + 1).join(' L')} L${right.slice(0, k + 1).reverse().join(' L')} Z`);
+    let lo = 0, hi = dist.length - 1; // last sample at or before `seen`
+    while (lo < hi) { const m = (lo + hi + 1) >> 1; if (dist[m] <= seen) lo = m; else hi = m - 1; }
+    if (lo === shown) return;
+    shown = lo;
+    ribbon.setAttribute('d', lo < 1 ? '' : `M${left.slice(0, lo + 1).join(' L')} L${right.slice(0, lo + 1).reverse().join(' L')} Z`);
   };
   const layout = () => {
     const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
-    const w = s.width, end = Math.max(40, Math.min(110, w * .08)); // width the ribbon grows to by its end
+    const w = width = s.width, end = Math.max(40, Math.min(110, w * .08)); // width the ribbon grows to by its end
     // where the spill sits once the door scene has stopped moving
     const sx = sp.left + sp.width / 2 - s.left;
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
     const k = .5523; // control-point distance for a quarter circle
-    const lengthOf = (d) => { line.setAttribute('d', d); return line.getTotalLength(); };
-    let x = sx, y = 0, d = `M${sx} 0`, lastLoop = 0;
-    anchors = [[0, 0]];
+    const segs = [], marks = []; // cubic segments [x0,y0,x1,y1,x2,y2,x3,y3]; marks: [height, index of segment that ends there]
+    let x = sx, y = 0, lastLoop = 0;
+    const to = (x1, y1, x2, y2, x3, y3) => { segs.push([x, y, x1, y1, x2, y2, x3, y3]); x = x3; y = y3; };
     icons.forEach((icon) => {
       // where the icon rests (it may still be mid-rise, so measure from its row rather than from itself)
       const row = icon.parentElement.getBoundingClientRect(), size = icon.offsetWidth;
@@ -178,30 +181,49 @@ if (trail && doorway) {
       const R = size * .78 + end * .3;
       const inner = cx < w / 2 ? 1 : -1, o = -inner; // the icon's side facing the middle, and its far side
       const ex = cx + inner * R, drop = (cy - y) * .5;
-      d += ` C${x} ${y + drop} ${ex} ${cy - drop} ${ex} ${cy}`;
-      anchors.push([cy - R, lengthOf(d)]); // reaching the loop: drawn while the tip comes down to just above the icon
+      to(x, y + drop, ex, cy - drop, ex, cy);
+      marks.push([cy - R, segs.length]); // reaching the loop: drawn while the tip comes down to just above the icon
       // one full turn: down the inner side, under, up the far side, over the top, back to where it joined
-      d += ` C${ex} ${cy + R * k} ${cx + inner * R * k} ${cy + R} ${cx} ${cy + R}`;
-      d += ` C${cx + o * R * k} ${cy + R} ${cx + o * R} ${cy + R * k} ${cx + o * R} ${cy}`;
-      d += ` C${cx + o * R} ${cy - R * k} ${cx + o * R * k} ${cy - R} ${cx} ${cy - R}`;
-      d += ` C${cx + inner * R * k} ${cy - R} ${ex} ${cy - R * k} ${ex} ${cy}`;
-      anchors.push([cy + R, lengthOf(d)]); // the loop itself is traced while the tip passes the icon
-      x = ex; y = cy; lastLoop = cy;
+      to(ex, cy + R * k, cx + inner * R * k, cy + R, cx, cy + R);
+      to(cx + o * R * k, cy + R, cx + o * R, cy + R * k, cx + o * R, cy);
+      to(cx + o * R, cy - R * k, cx + o * R * k, cy - R, cx, cy - R);
+      to(cx + inner * R * k, cy - R, ex, cy - R * k, ex, cy);
+      marks.push([cy + R, segs.length]); // the loop itself is traced while the tip passes the icon
+      lastLoop = cy;
     });
     // down into the band: straight into its top edge so it reads as pouring into it
     const by = band ? band.getBoundingClientRect().top - s.top - top + 2 : y + 300;
-    d += ` C${x} ${y + (by - y) * .55} ${w / 2} ${by - (by - y) * .45} ${w / 2} ${by}`;
-    len = lengthOf(d);
-    anchors.push([by - innerHeight * .1, len]);
-    // outline: walk the centerline, offsetting each side by half the width, which grows steadily from 4px to `end`
-    const n = Math.ceil(len / 5);
+    to(x, y + (by - y) * .55, w / 2, by - (by - y) * .45, w / 2, by);
+    marks.push([by - innerHeight * .1, segs.length]);
+    // sample every segment about every 5px: point, direction and distance travelled so far
+    const pts = [];
+    dist = [];
+    const segEnd = [];
+    segs.forEach(([x0, y0, x1, y1, x2, y2, x3, y3], si) => {
+      const rough = (Math.hypot(x1 - x0, y1 - y0) + Math.hypot(x2 - x1, y2 - y1) + Math.hypot(x3 - x2, y3 - y2) + Math.hypot(x3 - x0, y3 - y0)) / 2;
+      const steps = Math.max(4, Math.ceil(rough / 5));
+      for (let j = si ? 1 : 0; j <= steps; j++) {
+        const t = j / steps, u = 1 - t;
+        const px = u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3;
+        const py = u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3;
+        let dx = 3 * u * u * (x1 - x0) + 6 * u * t * (x2 - x1) + 3 * t * t * (x3 - x2);
+        let dy = 3 * u * u * (y1 - y0) + 6 * u * t * (y2 - y1) + 3 * t * t * (y3 - y2);
+        if (!dx && !dy) { dx = x3 - x0; dy = y3 - y0; }
+        const prev = pts[pts.length - 1];
+        dist.push(prev ? dist[dist.length - 1] + Math.hypot(px - prev[0], py - prev[1]) : 0);
+        pts.push([px, py, dx, dy]);
+      }
+      segEnd.push(dist[dist.length - 1]);
+    });
+    len = dist[dist.length - 1] || 1;
+    anchors = [[0, 0], ...marks.map(([h, i]) => [h, segEnd[i - 1]])];
+    // outline: offset each side by half the width, which grows steadily from 4px to `end`
     left = []; right = [];
-    for (let i = 0; i <= n; i++) {
-      const l = len * i / n, pa = line.getPointAtLength(l), pb = line.getPointAtLength(Math.min(len, l + 1)), pc = line.getPointAtLength(Math.max(0, l - 1));
-      const dx = pb.x - pc.x, dy = pb.y - pc.y, m = Math.hypot(dx, dy) || 1, half = 2 + (end / 2 - 2) * Math.pow(i / n, .85);
-      left.push(`${(pa.x - dy / m * half).toFixed(1)} ${(pa.y + dx / m * half).toFixed(1)}`);
-      right.push(`${(pa.x + dy / m * half).toFixed(1)} ${(pa.y - dx / m * half).toFixed(1)}`);
-    }
+    pts.forEach(([px, py, dx, dy], i) => {
+      const m = Math.hypot(dx, dy) || 1, half = 2 + (end / 2 - 2) * Math.pow(dist[i] / len, .85);
+      left.push(`${(px - dy / m * half).toFixed(1)} ${(py + dx / m * half).toFixed(1)}`);
+      right.push(`${(px + dy / m * half).toFixed(1)} ${(py - dx / m * half).toFixed(1)}`);
+    });
     // pale like the door's light most of the way, then into the band's green after the last loop
     grad.setAttribute('x1', 0); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', by);
     mid.setAttribute('offset', Math.min(.98, lastLoop / by).toFixed(3));
@@ -214,7 +236,9 @@ if (trail && doorway) {
     draw();
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(draw); } }, { passive: true });
-  addEventListener('resize', layout);
+  // phones resize the window whenever the address bar slides in or out; only a width change moves anything here
+  addEventListener('resize', () => { if (sec.getBoundingClientRect().width !== width) layout(); });
+  document.addEventListener('door:done', layout); // the door section shrinks once it's open
   addEventListener('load', layout); // fonts and images can shift the heading
   layout();
 }
