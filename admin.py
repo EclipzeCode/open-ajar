@@ -1,4 +1,4 @@
-"""Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries and Community Voices."""
+"""Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries, contact messages and Community Voices."""
 from datetime import date, timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
@@ -204,6 +204,24 @@ def activity():
                      FROM audit_log a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.id DESC LIMIT 60''')
     items = sorted([dict(r) for r in reviews] + [dict(r) for r in audits], key=lambda r: r['at'], reverse=True)[:60]
     return render_template('admin/activity.html', items=items)
+
+
+@bp.route('/messages', methods=['GET', 'POST'])
+@admin_required
+def messages():
+    statuses = ['new', 'replied', 'closed']
+    if request.method == 'POST':
+        status = request.form.get('status')
+        if status in statuses:
+            run('UPDATE contact_messages SET status=?, admin_note=? WHERE id=?',
+                (status, data.clean(request.form.get('admin_note', ''), multiline=True)[:2000], request.form.get('id')))
+            flash('Saved.')
+        return redirect(url_for('admin.messages', status=request.args.get('status', '')))
+    status = request.args.get('status', '')
+    rows = all_('SELECT * FROM contact_messages' + (' WHERE status=?' if status in statuses else '') + ' ORDER BY created_at DESC LIMIT 300',
+                (status,) if status in statuses else ())
+    counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM contact_messages GROUP BY status')}
+    return render_template('admin/messages.html', rows=rows, counts=counts, status=status, statuses=statuses)
 
 
 @bp.route('/partners', methods=['GET', 'POST'])

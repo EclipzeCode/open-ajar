@@ -91,7 +91,8 @@
 {% set dl = deadline_info(o.deadline_date, o.deadline_note) %}
 <article class="card">
   <div class="card__head">
-    {% if o.job_category %}<span class="card__art card__art--{{ o.job_category|lower|replace(' & ', '-')|replace(' ', '-') }}" aria-hidden="true"></span>{% endif %}
+    {% set art = o.job_category or (o.type if o.type != 'Job') %}{# jobs by category, everything else by type #}
+    {% if art %}<span class="card__art card__art--{{ art|lower|replace(' & ', '-')|replace(' ', '-') }}" aria-hidden="true"></span>{% endif %}
     <div class="card__top">
       <p class="card__type">{{ o.job_category or o.type }}</p>
       {% if o.id in saved %}<span class="pill pill--saved">Saved</span>{% endif %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Contact{% endblock %}
+{% block description %}Questions about Open Ajar, a listing or your account? Send the team a message.{% endblock %}
+{% block body_class %}page-focus{% endblock %}
+{% block content %}
+<div class="wrap auth auth--wide">
+  <h1>Get in touch.</h1>
+  <p class="muted">Questions about a listing, your account or anything else? Send us a message and we’ll reply by email, usually within a day or two.</p>
+  {% if errors.get('_') %}<div class="alert" role="alert">{{ errors['_'] }}</div>{% endif %}
+  <form class="form" method="post" novalidate>
+    {{ m.csrf() }}
+    <div class="row2">
+      {{ m.input('name', 'Your name', values, errors, required=True, max=120, auto='name') }}
+      {{ m.input('email', 'Email', values, errors, type='email', required=True, auto='email') }}
+    </div>
+    {{ m.select('topic', 'Topic', D.CONTACT_TOPICS, values, errors, required=True, placeholder='Choose a topic') }}
+    {{ m.textarea('message', 'Message', values, errors, required=True, max=4000, rows=5) }}
+    <button class="btn btn--block" type="submit">Send message</button>
+  </form>
+  <p class="auth__alt">Have a business that could host an intern? <a href="{{ url_for('site.partner') }}">Partner with us</a></p>
+</div>
+{% endblock %}
