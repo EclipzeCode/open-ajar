@@ -215,6 +215,35 @@ if (marquee) {
   }));
 }
 
+// FAQ: answers slide open and closed. <details> normally snaps, and CSS can't animate it in every browser,
+// so the click is taken over: open, then grow from the closed height (or shrink, then close).
+document.querySelectorAll('.faq details').forEach((d) => {
+  const summary = d.querySelector('summary');
+  let anim = null, want = d.open;
+  summary.addEventListener('click', (e) => {
+    if (calm) return;
+    e.preventDefault();
+    const from = d.offsetHeight; // mid-animation too, so a quick second click reverses smoothly
+    anim?.cancel();
+    want = !want;
+    const closing = !want;
+    const shut = summary.offsetHeight + parseFloat(getComputedStyle(d).borderBottomWidth);
+    d.open = true;
+    d.classList.toggle('is-closing', closing); // turns the arrow now rather than when the slide ends
+    const to = closing ? shut : d.offsetHeight;
+    d.style.overflow = 'hidden';
+    anim = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: 280, easing: 'cubic-bezier(.2, .7, .2, 1)', fill: 'forwards' });
+    if (!closing) d.querySelector('p')?.animate({ opacity: [0, 1], transform: ['translateY(-4px)', 'none'] }, { duration: 280, easing: 'ease-out' });
+    anim.onfinish = () => {
+      if (closing) d.open = false;
+      d.classList.remove('is-closing');
+      d.style.overflow = '';
+      anim.cancel(); // drop the held end height now that the real state matches it
+      anim = null;
+    };
+  });
+});
+
 // Home: the hero grid square under the pointer lifts; squares it leaves fade out behind it
 const cells = document.querySelector('.hero__cells');
 if (cells && !calm && matchMedia('(pointer: fine)').matches) {
