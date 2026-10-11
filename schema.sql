@@ -140,6 +140,18 @@ CREATE TABLE IF NOT EXISTS partner_inquiries (
   created_at   TEXT NOT NULL
 );
 
+-- Messages from the Contact form in the footer. Admins read and answer them under Admin > Messages.
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id          TEXT PRIMARY KEY,
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  topic       TEXT NOT NULL,
+  message     TEXT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','replied','closed')),
+  admin_note  TEXT NOT NULL DEFAULT '',
+  created_at  TEXT NOT NULL
+);
+
 -- Community Voices: one quote per student, shown after an admin approves it.
 CREATE TABLE IF NOT EXISTS testimonials (
   id         TEXT PRIMARY KEY,

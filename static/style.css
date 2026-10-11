@@ -106,7 +106,7 @@ img { max-width: 100%; height: auto; display: block; }
 .icon-btn:hover { color: var(--danger); background: var(--danger-soft); }
 .icon-btn.text { font-size: .875rem; }
 .pill { display: inline-block; font: 600 .72rem/1 var(--sans); padding: 5px 10px; border-radius: 99px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); vertical-align: middle; }
-.pill--approved, .pill--placed, .pill--partnered { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.pill--approved, .pill--placed, .pill--partnered, .pill--replied { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .pill--pending_review, .pill--pending, .pill--new, .pill--saved { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 .pill--changes_requested, .pill--contacted { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .pill--rejected, .pill--declined { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
@@ -141,7 +141,7 @@ img { max-width: 100%; height: auto; display: block; }
 .card__org { color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
 .card__org { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* three lines of summary, so cards in a row line up */
-/* job cards: a few large category icons in the top-right corner, solid there and fading out by the company name.
+/* listing cards: a few large icons for the job category or listing type in the top-right corner, solid there and fading out by the company name.
    The head is a grid so the art can span exactly the type/title/company rows without positioning anything
    (a positioned head would shrink the title link's click area to the head). */
 .card__head { display: grid; grid-template-rows: auto auto auto; }
@@ -158,6 +158,17 @@ img { max-width: 100%; height: auto; display: block; }
 .card__art--entertainment { background-image: url(img/jobs/entertainment.svg); }
 .card__art--recreation-outdoors { background-image: url(img/jobs/recreation-outdoors.svg); }
 .card__art--community-public-service { background-image: url(img/jobs/community-public-service.svg); }
+.card__art--internship { background-image: url(img/types/internship.svg); }
+.card__art--research-program { background-image: url(img/types/research-program.svg); }
+.card__art--scholarship { background-image: url(img/types/scholarship.svg); }
+.card__art--summer-program { background-image: url(img/types/summer-program.svg); }
+.card__art--competition { background-image: url(img/types/competition.svg); }
+.card__art--volunteer { background-image: url(img/types/volunteer.svg); }
+.card__art--job-shadow { background-image: url(img/types/job-shadow.svg); }
+.card__art--mentorship { background-image: url(img/types/mentorship.svg); }
+.card__art--academic-program { background-image: url(img/types/academic-program.svg); }
+.card__art--entrepreneurship { background-image: url(img/types/entrepreneurship.svg); }
+.card__art--arts-athletics { background-image: url(img/types/arts-athletics.svg); }
 .card__summary { font-size: .92rem; color: #57534E; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 16px; }
 .card__foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
 .card__facts { margin: 0; font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; }

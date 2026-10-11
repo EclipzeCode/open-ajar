@@ -67,6 +67,14 @@ def partner_inquiry(config, inq):
         config['APP_URL'] + '/admin/partners', 'Reply to this email to answer them directly.'), reply_to=inq['email'])
 
 
+def contact_message(config, msg):
+    """Forward a Contact form message to the team. Replying goes straight to the sender."""
+    send(config, config['CONTACT_EMAIL'], f"Contact form: {msg['topic']} from {msg['name']}", *_layout(
+        f"New message from {msg['name']}", [f"Topic: {msg['topic']}", f"Email: {msg['email']}", msg['message']],
+        'Open messages', config['APP_URL'] + '/admin/messages', 'Reply to this email to answer them directly.'),
+        reply_to=msg['email'])
+
+
 def _when(days):
     return 'due today' if days == 0 else 'due tomorrow' if days == 1 else f'due in {days} days'
 

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Message sent{% endblock %}
+{% block body_class %}page-focus{% endblock %}
+{% block content %}
+<div class="wrap narrow">
+  <header class="page-head">
+    <p class="eyebrow">Contact</p>
+    <h1>Thanks. Your message is in.</h1>
+    <p class="lead">Someone from the Open Ajar team will reply to your email, usually within a day or two.</p>
+  </header>
+  <div class="actions"><a class="btn" href="{{ url_for('site.home') }}">Back to Open Ajar</a><a class="link" href="{{ url_for('site.browse') }}">Browse opportunities →</a></div>
+</div>
+{% endblock %}

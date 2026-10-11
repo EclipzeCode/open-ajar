@@ -227,6 +227,31 @@ def partner():
     return render_template('partner_sent.html')
 
 
+@bp.route('/contact', methods=['GET', 'POST'])
+def contact():
+    """The footer's Contact form. Saved first, then forwarded to the team, so nothing is lost if email fails."""
+    if request.method == 'GET':
+        u = current_user()
+        return render_template('contact.html', values={'name': u['name'], 'email': u['email']} if u else {}, errors={})
+    f = data.Form(request.form)
+    f.text('name', 'Your name', min=2, max=120)
+    f.email('email')
+    f.one_of('topic', data.CONTACT_TOPICS, 'a topic')
+    f.text('message', 'Message', min=10, max=4000, multiline=True)
+    if not f.errors and limited('contact:' + client_ip(), 6, 3600):
+        f.errors['_'] = 'You’ve sent a few messages recently. Please try again later.'
+    if f.errors:
+        return render_template('contact.html', values=request.form.to_dict(), errors=f.errors), 422
+    msg = {**f.out, 'id': new_id(), 'created_at': data.now_iso()}
+    run('INSERT INTO contact_messages (id, name, email, topic, message, created_at) VALUES (?,?,?,?,?,?)',
+        tuple(msg[k] for k in ('id', 'name', 'email', 'topic', 'message', 'created_at')))
+    try:
+        mail.contact_message(current_app.config, msg)
+    except Exception as e:  # it's saved; the team still sees it in admin
+        print(f'[email] contact message notice failed: {e}')
+    return render_template('contact_sent.html')
+
+
 # ---------------------------------------------------------------- content pages
 
 
