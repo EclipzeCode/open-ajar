@@ -71,10 +71,10 @@
     <h2 class="reveal">Open the door a little wider.</h2>
     <p class="lead reveal">Opportunities live in counselor emails, company career pages, nonprofit newsletters and word of mouth. If you’re well connected, some reach you. Open Ajar puts them all in one place.</p>
   </div>
-  {# One feature at a time, driven by the scroll (app.js): the icon rises into the middle of the screen and the text
-     slides in over it from alternating sides. Without JS or with reduced motion it's a plain centered list. #}
-  <div class="story" data-story>
-    <div class="story__stage">
+  {# The features, one row each, text on alternating sides over a faint centered icon. app.js slides each in from its
+     side as it scrolls into view (and leaves it there); the ribbon weaves behind them. Without JS they're just shown. #}
+  <div class="wrap story" data-story>
+    <div class="story__rows">
       {% for title, text, path in [
         ('Discover', 'Search and filter by interest, grade, state, cost and deadline. Real programs, not ads.', '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
         ('Track', 'Save what you like and turn each one’s requirements into a checklist with notes and your own deadline.', '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>'),

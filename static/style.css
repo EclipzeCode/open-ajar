@@ -276,24 +276,20 @@ body.page-focus .page-head { padding-top: 0; }
 @media (max-width: 520px) { .typer { padding-left: 14px; } .typer__prefix { display: none; } .typer__go { padding: 10px 14px; } }
 @media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .explore__grid .card { animation: none !important; } .explore__glider, .explore__grid { transition: none !important; } .js .reveal { opacity: 1; transform: none; transition: none; } .typer:hover { transform: none; } }
 
-  box-shadow: 0 8px 18px rgba(31, 92, 70, .25); }
 
 /* testimonials: an endless, slowly scrolling strip of cards (pauses on hover) */
-/* home: the six features as a scroll story (app.js drives it once the section has .is-scrolly) */
-.story { margin-top: 48px; }
-.story__item { max-width: 560px; margin: 0 auto 40px; padding: 0 16px; }
-.story__icon { display: block; width: 44px; margin: 0 auto 10px; color: var(--accent); }
-.story__icon svg { width: 100%; height: auto; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.story__text h3 { font-size: 1.3rem; margin-bottom: 6px; }
-.story__text p { color: var(--muted); margin: 0; }
-.story.is-scrolly { height: calc(var(--n) * 70vh + 100vh); margin-top: 24px; }
-.story.is-scrolly .story__stage { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; }
-.story.is-scrolly .story__item { grid-area: 1 / 1; display: grid; place-items: center; width: 100%; max-width: none; margin: 0; }
-.story.is-scrolly .story__icon { grid-area: 1 / 1; width: min(300px, 62vw); margin: 0; opacity: 0; }
-.story.is-scrolly .story__icon svg { stroke-width: 1; }
-.story.is-scrolly .story__text { grid-area: 1 / 1; position: relative; max-width: 620px; opacity: 0; }
-.story.is-scrolly .story__text h3 { font-size: clamp(2.2rem, 6vw, 3.6rem); margin-bottom: 12px; }
-.story.is-scrolly .story__text p { font-size: clamp(1.05rem, 2.2vw, 1.3rem); color: var(--ink); }
+/* home: the six features, one row each, text on alternating sides over a faint centered icon (app.js animates them in) */
+.section.mission { overflow-x: clip; } /* the ribbon runs off both edges */
+.story { position: relative; z-index: 1; margin-top: 24px; }
+.story__item { position: relative; min-height: 50vh; display: grid; align-items: center; }
+.story__icon { position: absolute; left: 50%; top: 50%; width: min(260px, 52vw); transform: translate(-50%, -50%); color: var(--accent); opacity: .16; pointer-events: none; }
+.story__icon svg { width: 100%; height: auto; display: block; fill: none; stroke: currentColor; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+.story__text { position: relative; max-width: 500px; }
+.story__item:nth-child(odd) .story__text { justify-self: start; text-align: left; }
+.story__item:nth-child(even) .story__text { justify-self: end; text-align: right; }
+.story__text h3 { font-size: clamp(2rem, 4.6vw, 3.2rem); margin-bottom: 10px; }
+.story__text p { font-size: clamp(1.02rem, 2vw, 1.2rem); color: var(--ink); margin: 0; }
+@media (max-width: 640px) { .story__item { min-height: 42vh; } }
 .marquee { margin-top: 36px; overflow: hidden; padding: 8px 0 16px;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
 .marquee__track { display: flex; width: max-content; animation: marquee 60s linear infinite; }

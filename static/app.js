@@ -65,90 +65,34 @@ if (headline && !calm) {
   headline.classList.add('is-split');
 }
 
-// Home: the features play one at a time as you scroll. The stage pins to the screen; for each feature the icon rises
-// from the bottom to the middle (drawing its outline) and the text slides in over it, from the left for the 1st, 3rd
-// and 5th and from the right for the others, holds, then fades up as the next one arrives. Scrolling back reverses it.
+// Home: each feature row slides in from its own side (left for the 1st, 3rd, 5th) as it scrolls into view, while its
+// faint icon rises and draws in behind the text. Progress only ever grows, so rows stay put when you scroll back up.
 const story = document.querySelector('[data-story]');
 if (story && !calm) {
-  const items = [...story.querySelectorAll('.story__item')].map((el, i) => ({
-    el, i, text: el.querySelector('.story__text'), icon: el.querySelector('.story__icon'),
+  const ease = (v) => 1 - Math.pow(1 - v, 3);
+  const rows = [...story.querySelectorAll('.story__item')].map((el, i) => ({
+    el, side: i % 2 ? 1 : -1, seen: 0, text: el.querySelector('.story__text'), icon: el.querySelector('.story__icon'),
     lines: [...el.querySelectorAll('.story__icon svg *')],
   }));
-  items.forEach(({ lines }) => lines.forEach((l) => { l.setAttribute('pathLength', '1'); l.style.strokeDasharray = '1'; }));
-  story.style.setProperty('--n', items.length);
-  story.classList.add('is-scrolly');
-  const clamp = (v) => Math.min(1, Math.max(0, v));
-  const ease = (v) => 1 - Math.pow(1 - v, 3);
+  rows.forEach(({ lines }) => lines.forEach((l) => { l.setAttribute('pathLength', '1'); l.style.strokeDasharray = '1'; }));
   let queued = false;
   const update = () => {
     queued = false;
-    const r = story.getBoundingClientRect();
-    // starts when the section's top is halfway up the screen, ends when the pinned stage lets go
-    const progress = clamp((innerHeight / 2 - r.top) / (r.height - innerHeight / 2)) * items.length;
-    for (const { el, i, text, icon, lines } of items) {
-      const t = progress - i; // this feature's own 0..1
-      const enter = ease(clamp(t / .4));
-      const leave = i === items.length - 1 ? 0 : ease(clamp((t - .72) / .28));
-      const side = i % 2 ? 1 : -1;
-      el.style.visibility = enter > 0 && leave < 1 ? 'visible' : 'hidden';
-      text.style.opacity = (enter * (1 - leave)).toFixed(3);
-      text.style.transform = `translate(${(side * (1 - enter) * 55).toFixed(2)}vw, ${(-leave * 40).toFixed(1)}px)`;
-      icon.style.opacity = (enter * (1 - leave) * .16).toFixed(3);
-      icon.style.transform = `translateY(calc(${((1 - enter) * 45).toFixed(2)}vh - ${(leave * 30).toFixed(1)}px))`;
-      lines.forEach((l) => { l.style.strokeDashoffset = (1 - enter).toFixed(3); });
+    for (const row of rows) {
+      const t = Math.min(1, Math.max(0, (innerHeight * .92 - row.el.getBoundingClientRect().top) / (innerHeight * .42)));
+      if (t <= row.seen && row.seen) continue;
+      row.seen = Math.max(row.seen, t);
+      const p = ease(row.seen);
+      row.text.style.opacity = p.toFixed(3);
+      row.text.style.transform = `translateX(${(row.side * (1 - p) * 40).toFixed(2)}vw)`;
+      row.icon.style.opacity = (p * .16).toFixed(3);
+      row.icon.style.transform = `translate(-50%, calc(-50% + ${((1 - p) * 28).toFixed(2)}vh))`;
+      row.lines.forEach((l) => { l.style.strokeDashoffset = (1 - p).toFixed(3); });
     }
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
   addEventListener('resize', update);
   update();
-}
-
-// Home: interest tabs swap the three "open right now" cards in place (each tab is still a normal link)
-const explore = document.querySelector('[data-explore]');
-if (explore) {
-  const grid = document.querySelector('.explore__grid');
-  const all = document.querySelector('[data-explore-all]');
-  const glider = explore.querySelector('.explore__glider');
-  const tabs = [...explore.querySelectorAll('a')];
-  const cache = new Map();
-  const place = (a) => {
-    glider.style.width = `${a.offsetWidth}px`;
-    glider.style.transform = `translateX(${a.offsetLeft}px)`;
-  };
-  const load = async (url) => {
-    if (!cache.has(url)) {
-      cache.set(url, fetch(url).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        return { cards: [...doc.querySelectorAll('.grid .card')].slice(0, 3), count: doc.querySelector('.results__count')?.textContent.trim() };
-      }).catch((e) => { cache.delete(url); throw e; }));
-    }
-    return cache.get(url);
-  };
-  tabs.forEach((a) => {
-    a.addEventListener('pointerenter', () => load(a.href).catch(() => {})); // warm the cache before the click
-    a.addEventListener('click', async (e) => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey || a.getAttribute('aria-current') === 'true') return;
-      e.preventDefault();
-      tabs.forEach((t) => t.setAttribute('aria-current', t === a ? 'true' : 'false'));
-      place(a);
-      explore.scrollTo({ left: a.offsetLeft - (explore.clientWidth - a.offsetWidth) / 2, behavior: calm ? 'auto' : 'smooth' }); // keep the chosen tab in view on phones
-      grid.style.minHeight = `${grid.offsetHeight}px`; // no jump while the cards change
-      grid.classList.add('is-leaving');
-      try {
-        const [{ cards, count }] = await Promise.all([load(a.href), new Promise((r) => setTimeout(r, calm ? 0 : 180))]);
-        if (!cards.length) { location.href = a.href; return; }
-        grid.replaceChildren(...cards.map((c) => document.importNode(c, true)));
-        all.href = a.href;
-        all.textContent = `See all ${(count || '').replace(/ results?$/, '')} →`.replace('See all  →', 'See all →');
-      } catch { location.href = a.href; return; }
-      grid.classList.remove('is-leaving');
-      grid.classList.add('is-swapped');
-      grid.style.minHeight = '';
-    });
-  });
-  place(tabs[0]);
-  addEventListener('resize', () => place(explore.querySelector('[aria-current="true"]')));
-  requestAnimationFrame(() => explore.classList.add('is-ready')); // the glider only animates after its first placement
 }
 
 // Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer
@@ -177,45 +121,66 @@ if (doorway && !calm) {
   }
 }
 
-// Home: once the door is open, its light continues as a ribbon that widens as it curves off the left edge,
-// revealed in step with the scroll. It sits behind the content.
+// Home: once the door is open, its light continues as a ribbon. It widens as it sweeps off the left edge level with
+// the mission heading, then weaves down through the feature rows: for each row it curls back in from the side and
+// crosses the screen behind that row's text, leaving by the far edge. It's drawn as you scroll and stays drawn.
 const trail = document.querySelector('.trail');
 if (trail && doorway) {
-  const sec = trail.parentElement, wrap = sec.querySelector('.wrap'), target = wrap.querySelector('h2');
+  const sec = trail.parentElement, heading = sec.querySelector('.wrap h2');
+  const rows = [...sec.querySelectorAll('.story__item')];
   const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
   const ribbon = trail.querySelector('.trail__ribbon'), reveal = trail.querySelector('.trail__reveal'), grad = trail.querySelector('linearGradient');
   reveal.setAttribute('pathLength', '1');
-  let top = 0, span = 1, queued = false;
+  let top = 0, ys = [0], seen = 0, queued = false;
   const draw = () => {
     queued = false;
-    const p = calm ? 1 : Math.min(1, Math.max(0, (innerHeight * .85 - (sec.getBoundingClientRect().top + top)) / span));
-    reveal.style.strokeDashoffset = (1 - p).toFixed(4);
+    // how far down the ribbon to show: everything above a line near the bottom of the screen
+    const tip = innerHeight * .85 - (sec.getBoundingClientRect().top + top);
+    let k = 0;
+    while (k < ys.length - 1 && ys[k + 1] <= tip) k++;
+    seen = calm ? 1 : Math.max(seen, k / (ys.length - 1));
+    reveal.style.strokeDashoffset = (1 - seen).toFixed(4);
   };
   const layout = () => {
     const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
+    const w = s.width, end = Math.max(56, Math.min(180, w * .14)); // full width of the ribbon
     // where the spill sits once the sticky door scene has scrolled to the end of its section
     const sx = sp.left + sp.width / 2 - s.left;
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
-    const w = s.width, end = Math.max(56, Math.min(180, w * .14)); // final width
-    const h = Math.max(120, wrap.offsetTop + target.offsetTop + target.offsetHeight / 2 - top); // level with the heading
-    // centerline: straight down out of the light, then a long sweep left until it's past the edge
-    const d = `M${sx} 0 C${sx} ${h * .55} ${sx * .55} ${h} ${-end} ${h}`;
+    const y = (r, f) => r.top - s.top - top + r.height * f; // a point down an element, in ribbon coordinates
+    const hy = y(heading.getBoundingClientRect(), .5);
+    const first = `M${sx} 0 C${sx} ${hy * .55} ${sx * .55} ${hy} ${-end} ${hy}`;
+    let d = first, x = -end, cy = hy;
+    rows.forEach((row, i) => {
+      const r = row.getBoundingClientRect(), a = y(r, .2), b = y(r, .85);
+      const out = x < 0 ? -1 : 1, far = x < 0 ? w + end : -end; // which edge it's beyond, and the one it crosses to
+      d += ` C${x + out * end * 3} ${cy + (a - cy) / 3} ${x + out * end * 3} ${a - (a - cy) / 3} ${x} ${a}`; // curl back in
+      d += ` C${x - out * w * .5} ${a} ${far + out * w * .5} ${b} ${far} ${b}`; // sweep across behind the row
+      x = far; cy = b;
+    });
     reveal.setAttribute('d', d);
     reveal.style.strokeWidth = `${end * 1.4}px`;
-    // outline: walk the centerline and offset each side by half the width, which grows from 6px to `end`
-    const len = reveal.getTotalLength(), n = 120, left = [], right = [];
+    // outline: walk the centerline, offsetting each side by half the width, which grows from 6px to `end` over the
+    // first sweep and then holds
+    const probe = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    probe.setAttribute('d', first); trail.append(probe);
+    const firstLen = probe.getTotalLength(); probe.remove();
+    const len = reveal.getTotalLength(), n = Math.ceil(len / 8), left = [], right = [];
+    ys = [];
     for (let i = 0; i <= n; i++) {
-      const t = i / n, a = reveal.getPointAtLength(len * t), b = reveal.getPointAtLength(Math.min(len, len * t + 1)), c = reveal.getPointAtLength(Math.max(0, len * t - 1));
-      const dx = b.x - c.x, dy = b.y - c.y, m = Math.hypot(dx, dy) || 1, half = (3 + (end / 2 - 3) * Math.pow(t, 1.4));
-      left.push(`${(a.x - dy / m * half).toFixed(1)} ${(a.y + dx / m * half).toFixed(1)}`);
-      right.push(`${(a.x + dy / m * half).toFixed(1)} ${(a.y - dx / m * half).toFixed(1)}`);
+      const l = len * i / n, pa = reveal.getPointAtLength(l), pb = reveal.getPointAtLength(Math.min(len, l + 1)), pc = reveal.getPointAtLength(Math.max(0, l - 1));
+      const dx = pb.x - pc.x, dy = pb.y - pc.y, m = Math.hypot(dx, dy) || 1;
+      const half = 3 + (end / 2 - 3) * (1 - Math.pow(1 - Math.min(1, l / firstLen), 2));
+      left.push(`${(pa.x - dy / m * half).toFixed(1)} ${(pa.y + dx / m * half).toFixed(1)}`);
+      right.push(`${(pa.x + dy / m * half).toFixed(1)} ${(pa.y - dx / m * half).toFixed(1)}`);
+      ys.push(Math.max(pa.y, ys[i - 1] ?? 0));
     }
     ribbon.setAttribute('d', `M${left.join(' L')} L${right.reverse().join(' L')} Z`);
-    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', h);
+    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', hy);
+    const h = cy + end;
     trail.style.top = `${top}px`;
-    trail.style.height = `${h + end}px`;
-    trail.setAttribute('viewBox', `0 0 ${w} ${h + end}`);
-    span = h + w * .35; // a bit more scrolling than its height, since the last stretch runs sideways
+    trail.style.height = `${h}px`;
+    trail.setAttribute('viewBox', `0 0 ${w} ${h}`);
     draw();
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(draw); } }, { passive: true });
