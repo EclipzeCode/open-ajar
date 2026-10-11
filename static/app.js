@@ -134,8 +134,8 @@ if (doorway && !calm) {
 }
 
 // Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down
-// past the mission heading, loops once around each feature's icon, then runs down into the green band below, turning
-// that band's green on the way. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
+// past the mission heading, wraps around the outside of each feature's icon (over the top, round the far side, out
+// underneath; it never crosses itself), then runs down into the green band below, turning that band's green. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
 // The curve is a list of cubic Béziers sampled with plain math: asking the browser for points along a long SVG path
 // re-walks it every time and took seconds.
 const trail = document.querySelector('.trail');
@@ -148,8 +148,9 @@ if (trail && doorway) {
   let top = 0, left = [], right = [], dist = [0], anchors = [[0, 0]], len = 1, shown = -1, seen = 0, queued = false, width = 0;
   const draw = () => {
     queued = false;
-    // the tip follows a line near the bottom of the screen; anchors turn that height into a distance along the ribbon
-    const tip = innerHeight * .85 - (sec.getBoundingClientRect().top + top);
+    // the tip follows a line 60% down the screen, so a row's text is well up before the ribbon reaches it; anchors
+    // turn that height into a distance along the ribbon
+    const tip = innerHeight * .6 - (sec.getBoundingClientRect().top + top);
     let l = 0;
     for (let i = 1; i < anchors.length; i++) {
       const [y0, l0] = anchors[i - 1], [y1, l1] = anchors[i];
@@ -172,28 +173,28 @@ if (trail && doorway) {
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
     const k = .5523; // control-point distance for a quarter circle
     const segs = [], marks = []; // cubic segments [x0,y0,x1,y1,x2,y2,x3,y3]; marks: [height, index of segment that ends there]
-    let x = sx, y = 0, lastLoop = 0;
+    let x = sx, y = 0, lastLoop = 0, out = 0;
     const to = (x1, y1, x2, y2, x3, y3) => { segs.push([x, y, x1, y1, x2, y2, x3, y3]); x = x3; y = y3; };
-    icons.forEach((icon) => {
+    icons.forEach((icon, i) => {
       // where the icon rests (it may still be mid-rise, so measure from its row rather than from itself)
       const row = icon.parentElement.getBoundingClientRect(), size = icon.offsetWidth;
       const cx = row.left + icon.offsetLeft + size / 2 - s.left, cy = row.top + icon.offsetTop + icon.offsetHeight / 2 - s.top - top;
       const R = size * .78 + end * .3;
-      const inner = cx < w / 2 ? 1 : -1, o = -inner; // the icon's side facing the middle, and its far side
-      const ex = cx + inner * R, drop = (cy - y) * .5;
-      to(x, y + drop, ex, cy - drop, ex, cy);
-      marks.push([cy - R, segs.length]); // reaching the loop: drawn while the tip comes down to just above the icon
-      // one full turn: down the inner side, under, up the far side, over the top, back to where it joined
-      to(ex, cy + R * k, cx + inner * R * k, cy + R, cx, cy + R);
-      to(cx + o * R * k, cy + R, cx + o * R, cy + R * k, cx + o * R, cy);
-      to(cx + o * R, cy - R * k, cx + o * R * k, cy - R, cx, cy - R);
-      to(cx + inner * R * k, cy - R, ex, cy - R * k, ex, cy);
-      marks.push([cy + R, segs.length]); // the loop itself is traced while the tip passes the icon
-      lastLoop = cy;
+      const far = cx < w / 2 ? -1 : 1; // toward the icon's outer side (the screen edge it's nearest)
+      // reach the top of the wrap heading outward: from the door straight down, or from the last wrap heading inward
+      if (!i) to(x, y + (cy - R - y) * .6, cx - far * R, cy - R, cx, cy - R);
+      else { const h = Math.abs(cx - x) * .5; to(x + far * h, y, cx - far * h, cy - R, cx, cy - R); } // the last wrap left heading this way
+      marks.push([cy - R * .2, segs.length]); // drawn once the previous wrap has had a pause
+      // half a turn round the far side: top, outer edge, bottom, then leaving underneath toward the middle
+      to(cx + far * R * k, cy - R, cx + far * R, cy - R * k, cx + far * R, cy);
+      to(cx + far * R, cy + R * k, cx + far * R * k, cy + R, cx, cy + R);
+      marks.push([cy + R * 1.2, segs.length]); // traced slowly while the row sits in the middle of the screen
+      marks.push([cy + R * 1.2 + innerHeight * .12, segs.length]); // a pause before heading on
+      lastLoop = cy; out = -far;
     });
-    // down into the band: straight into its top edge so it reads as pouring into it
+    // down into the band: leaving the last wrap toward the middle, then straight into the band's top edge
     const by = band ? band.getBoundingClientRect().top - s.top - top + 2 : y + 300;
-    to(x, y + (by - y) * .55, w / 2, by - (by - y) * .45, w / 2, by);
+    to(x + out * Math.abs(w / 2 - x) * .6, y, w / 2, by - (by - y) * .5, w / 2, by);
     marks.push([by - innerHeight * .1, segs.length]);
     // sample every segment about every 5px: point, direction and distance travelled so far
     const pts = [];
