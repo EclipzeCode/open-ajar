@@ -288,9 +288,9 @@ body.page-focus .page-head { padding-top: 0; }
 .story__icon svg { width: 100%; height: auto; display: block; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .story__text { position: relative; max-width: 500px; }
 .story__item:nth-child(odd) .story__text { grid-column: 1; justify-self: start; text-align: left; }
-.story__item:nth-child(odd) .story__icon { grid-column: 2; }
+.story__item:nth-child(odd) .story__icon { grid-column: 2; margin-right: clamp(32px, 6vw, 90px); } /* room for the ribbon's loop */
 .story__item:nth-child(even) .story__text { grid-column: 2; justify-self: end; text-align: right; }
-.story__item:nth-child(even) .story__icon { grid-column: 1; }
+.story__item:nth-child(even) .story__icon { grid-column: 1; margin-left: clamp(32px, 6vw, 90px); }
 .story__text h3 { font-size: clamp(2rem, 4.6vw, 3.2rem); margin-bottom: 10px; }
 .story__text p { font-size: clamp(1.02rem, 2vw, 1.2rem); color: var(--ink); margin: 0; }
 @media (max-width: 640px) { .story__item { min-height: 42vh; gap: 16px; } }
@@ -329,6 +329,8 @@ html:not(.js) .marquee__nav { display: none; }
 /* scroll-driven door. --p goes 0 -> 1 while the section scrolls by; without JS (or with reduced motion) it sits open at 1 */
 .doorway { --p: 1; --mx: 0; --my: 0; position: relative; padding: 40px 0; }
 .js .doorway { height: 230vh; padding: 0; }
+/* once the door has opened, the section shrinks to one screen so scrolling back up doesn't pin it again */
+.js .doorway.is-done { height: auto; }
 .doorway__sticky { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
 .js .doorway__sticky { position: sticky; top: 0; height: 100vh; padding-top: 72px; }
 .doorway__lines { display: grid; }

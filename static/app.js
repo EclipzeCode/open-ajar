@@ -96,7 +96,8 @@ if (story && !calm) {
 }
 
 // Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer.
-// It only ever opens further: scrolling back up leaves it as open as it got.
+// It only ever opens further. Once fully open, the section's extra scroll length is removed (and the page shifted by the
+// same amount so nothing moves on screen), so scrolling back up passes straight over it.
 const doorway = document.querySelector('.doorway');
 if (doorway && !calm) {
   let queued = false, opened = 0;
@@ -106,6 +107,16 @@ if (doorway && !calm) {
     const p = opened = Math.max(opened, Math.min(1, Math.max(0, -r.top / (r.height - innerHeight))));
     doorway.style.setProperty('--p', p.toFixed(3));
     doorway.classList.toggle('is-open', p > .55); // the links behind the door only respond once you can see them
+    if (p === 1 && !doorway.classList.contains('is-done')) {
+      // keep whatever is below the door where it is on screen. The browser's own scroll anchoring would also try to,
+      // unpredictably, so it's switched off for this one adjustment and the page is shifted by exactly the change.
+      const root = document.documentElement, next = doorway.nextElementSibling, before = next.getBoundingClientRect().top;
+      root.style.overflowAnchor = 'none';
+      doorway.classList.add('is-done');
+      scrollBy({ top: next.getBoundingClientRect().top - before, behavior: 'instant' });
+      requestAnimationFrame(() => { root.style.overflowAnchor = ''; });
+      dispatchEvent(new Event('resize')); // the ribbon measures from the door
+    }
   };
   const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
   addEventListener('scroll', onScroll, { passive: true });
@@ -122,13 +133,13 @@ if (doorway && !calm) {
   }
 }
 
-// Home: once the door is open, its light continues as a ribbon. It widens as it sweeps off the left edge level with
-// the mission heading, then weaves down through the feature rows: for each row it curls back in from the side and
-// crosses the screen behind that row's text, leaving by the far edge. It's drawn as you scroll and stays drawn.
+// Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down
+// past the mission heading, then loops once around each feature's icon (passing on the icon's inner side, round its
+// far side and back) before curving across to the next icon. It's drawn as you scroll and stays drawn.
 const trail = document.querySelector('.trail');
 if (trail && doorway) {
   const sec = trail.parentElement, heading = sec.querySelector('.wrap h2');
-  const rows = [...sec.querySelectorAll('.story__item')];
+  const icons = [...sec.querySelectorAll('.story__icon')];
   const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
   const ribbon = trail.querySelector('.trail__ribbon'), reveal = trail.querySelector('.trail__reveal'), grad = trail.querySelector('linearGradient');
   reveal.setAttribute('pathLength', '1');
@@ -144,48 +155,48 @@ if (trail && doorway) {
   };
   const layout = () => {
     const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
-    const w = s.width, end = Math.max(56, Math.min(180, w * .14)); // full width of the ribbon
-    // where the spill sits once the sticky door scene has scrolled to the end of its section
+    const w = s.width, end = Math.max(36, Math.min(96, w * .07)); // width the ribbon grows to by its end
+    // where the spill sits once the door scene has stopped moving
     const sx = sp.left + sp.width / 2 - s.left;
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
-    const y = (r, f) => r.top - s.top - top + r.height * f; // a point down an element, in ribbon coordinates
-    const hy = y(heading.getBoundingClientRect(), .5);
-    // seeded randomness, so the ribbon is uneven but the same on every load and resize
-    let seed = 20261012;
-    const rand = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
-    const first = `M${sx} 0 C${sx} ${hy * .55} ${sx * .55} ${hy} ${-end} ${hy}`;
-    let d = first, x = -end, cy = hy;
-    rows.forEach((row) => {
-      const r = row.getBoundingClientRect(), a = y(r, .08 + rand() * .25), b = y(r, .68 + rand() * .3);
-      const out = x < 0 ? -1 : 1, far = x < 0 ? w + end : -end; // which edge it's beyond, and the one it crosses to
-      const loop = end * (1.8 + rand() * 2.6), pull1 = w * (.25 + rand() * .45), pull2 = w * (.25 + rand() * .45);
-      d += ` C${x + out * loop} ${cy + (a - cy) / 3} ${x + out * loop * (.6 + rand() * .8)} ${a - (a - cy) / 3} ${x} ${a}`; // curl back in
-      d += ` C${x - out * pull1} ${a + (rand() - .5) * r.height * .3} ${far + out * pull2} ${b + (rand() - .5) * r.height * .3} ${far} ${b}`; // sweep across
-      x = far; cy = b;
+    const k = .5523; // control-point distance for a quarter circle
+    const hb = heading.getBoundingClientRect();
+    let x = sx, y = 0, d = `M${sx} 0`;
+    // a gentle S down past the heading toward the first loop
+    icons.forEach((icon) => {
+      // where the icon rests (it may still be mid-rise, so measure from its row rather than from itself)
+      const row = icon.parentElement.getBoundingClientRect(), size = icon.offsetWidth;
+      const cx = row.left + icon.offsetLeft + size / 2 - s.left, cy = row.top + icon.offsetTop + icon.offsetHeight / 2 - s.top - top;
+      const R = size * .78 + end * .35;
+      const inner = cx < w / 2 ? 1 : -1; // the icon's side facing the middle of the screen
+      const ex = cx + inner * R, ey = cy; // join the loop on the inner side, heading down
+      const drop = (ey - y) * .5;
+      d += ` C${x} ${y + drop} ${ex} ${ey - drop} ${ex} ${ey}`;
+      // one full turn: down the inner side, under, up the far side, over the top, back to where it joined
+      const o = -inner; // toward the far side
+      d += ` C${ex} ${ey + R * k} ${cx + inner * R * k} ${cy + R} ${cx} ${cy + R}`;
+      d += ` C${cx + o * R * k} ${cy + R} ${cx + o * R} ${cy + R * k} ${cx + o * R} ${cy}`;
+      d += ` C${cx + o * R} ${cy - R * k} ${cx + o * R * k} ${cy - R} ${cx} ${cy - R}`;
+      d += ` C${cx + inner * R * k} ${cy - R} ${ex} ${cy - R * k} ${ex} ${ey}`;
+      x = ex; y = ey;
     });
-    const ph1 = rand() * 6.3, ph2 = rand() * 6.3;
+    d += ` C${x} ${y + 160} ${w / 2} ${y + 120} ${w / 2} ${y + 300}`; // trail off below the last feature
     reveal.setAttribute('d', d);
-    reveal.style.strokeWidth = `${end * 1.4}px`;
-    // outline: walk the centerline, offsetting each side by half the width, which grows from 6px to about `end` over
-    // the first sweep and then swells and thins along the way
-    const probe = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    probe.setAttribute('d', first); trail.append(probe);
-    const firstLen = probe.getTotalLength(); probe.remove();
-    const len = reveal.getTotalLength(), n = Math.ceil(len / 8), left = [], right = [];
+    reveal.style.strokeWidth = `${end * 1.6}px`;
+    // outline: walk the centerline, offsetting each side by half the width, which grows steadily from 4px to `end`
+    const len = reveal.getTotalLength(), n = Math.ceil(len / 6), left = [], right = [];
     ys = [];
     for (let i = 0; i <= n; i++) {
       const l = len * i / n, pa = reveal.getPointAtLength(l), pb = reveal.getPointAtLength(Math.min(len, l + 1)), pc = reveal.getPointAtLength(Math.max(0, l - 1));
-      const dx = pb.x - pc.x, dy = pb.y - pc.y, m = Math.hypot(dx, dy) || 1;
-      const grow = 1 - Math.pow(1 - Math.min(1, l / firstLen), 2);
-      const swell = 1 + .28 * Math.sin(l / 260 + ph1) + .14 * Math.sin(l / 97 + ph2); // uneven, like a real ribbon
-      const half = Math.max(3, 3 + (end / 2 - 3) * grow * swell);
+      const dx = pb.x - pc.x, dy = pb.y - pc.y, m = Math.hypot(dx, dy) || 1, half = 2 + (end / 2 - 2) * Math.pow(i / n, .85);
       left.push(`${(pa.x - dy / m * half).toFixed(1)} ${(pa.y + dx / m * half).toFixed(1)}`);
       right.push(`${(pa.x + dy / m * half).toFixed(1)} ${(pa.y - dx / m * half).toFixed(1)}`);
       ys.push(Math.max(pa.y, ys[i - 1] ?? 0));
     }
     ribbon.setAttribute('d', `M${left.join(' L')} L${right.reverse().join(' L')} Z`);
-    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', hy);
-    const h = cy + end;
+    const hy = hb.top + hb.height / 2 - s.top - top;
+    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', sx); grad.setAttribute('y2', hy);
+    const h = y + 300 + end;
     trail.style.top = `${top}px`;
     trail.style.height = `${h}px`;
     trail.setAttribute('viewBox', `0 0 ${w} ${h}`);
