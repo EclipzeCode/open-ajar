@@ -97,7 +97,7 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 ## Open to-dos
 
 - [ ] Confirm `apply-corrections` has run on production (see Current state).
-- [x] Testimonial photos (96px JPEGs in `static/img/testimonials/`). Nate John and Sam Lui still show initials; send their photos to add them.
+- [x] Testimonial photos (96px JPEGs in `static/img/testimonials/`). Nate John and Sam Lui are hidden for now (their quotes are in a comment in `home.html`); add them back with photos.
 - [ ] Admin accounts for teammates: `flask --app app create-admin their@email` in the Render Shell.
 - [ ] Ideas not built yet:
   - A weekly "deadlines this month" email digest.
