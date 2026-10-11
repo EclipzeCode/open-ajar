@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
-{% macro icon(path) %}<span class="feature__icon" aria-hidden="true"><svg viewBox="0 0 24 24">{{ path|safe }}</svg></span>{% endmacro %}
 {# Tells search engines the site's name, so searching "Open Ajar" can show it as the site name. Data, not a script. #}
 {% block head %}
   <script type="application/ld+json">{{ {'@context': 'https://schema.org', '@graph': [
@@ -63,33 +62,48 @@
   {# A ribbon of light from the open door that widens as it sweeps off the left edge; app.js shapes it and reveals it with the scroll. #}
   <svg class="trail" aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop offset="1" stop-color="#DCEAE2"/></linearGradient>
-      <mask id="trail-mask"><path class="trail__reveal"/></mask>
+      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop class="trail__mid" offset=".9" stop-color="#A3C6B4"/><stop offset="1" stop-color="#1F5C46"/></linearGradient>
+      <path class="trail__reveal"/>{# centerline, measured by app.js, never drawn #}
     </defs>
-    <path class="trail__ribbon" fill="url(#trail-grad)" mask="url(#trail-mask)"/>
+    <path class="trail__ribbon" fill="url(#trail-grad)"/>
   </svg>
   <div class="wrap">
     <h2 class="reveal">Open the door a little wider.</h2>
     <p class="lead reveal">Opportunities live in counselor emails, company career pages, nonprofit newsletters and word of mouth. If you’re well connected, some reach you. Open Ajar puts them all in one place.</p>
-    <div class="features">
-      <article class="feature reveal"><div class="feature__band"></div>
-        {{ icon('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>') }}
-        <h3>Discover</h3><p>Search and filter by interest, grade, state, cost and deadline. Real programs, not ads.</p></article>
-      <article class="feature reveal d1"><div class="feature__band"></div>
-        {{ icon('<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>') }}
-        <h3>Track</h3><p>Save what you like and turn each one’s requirements into a checklist with notes and your own deadline.</p></article>
-      <article class="feature reveal d2"><div class="feature__band"></div>
-        {{ icon('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>') }}
-        <h3>Get reminded</h3><p>A short email a week before a deadline, so nothing you care about slips past.</p></article>
-      <article class="feature reveal"><div class="feature__band"></div>
-        {{ icon('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>') }}
-        <h3>Teen jobs</h3><p>Paid, part-time work for high-school students across the country, filterable by state.</p></article>
-      <article class="feature reveal d1"><div class="feature__band"></div>
-        {{ icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>') }}
-        <h3>Intern with us</h3><p>We place motivated students as interns with local businesses we work with. Apply once.</p></article>
-      <article class="feature reveal d2"><div class="feature__band"></div>
-        {{ icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>') }}
-        <h3>Reviewed by people</h3><p>Every listing is checked by a reviewer before it goes live, and links to the official application.</p></article>
+  </div>
+  {# The features, one row each: text on alternating sides, a green icon on the other. app.js slides each in from its
+     side as it scrolls into view (and leaves it there); the ribbon weaves behind them. Without JS they're just shown. #}
+  <div class="wrap story" data-story>
+    <div class="story__rows">
+      {% for title, text, path in [
+        ('Discover', 'Search and filter by interest, grade, state, cost and deadline. Real programs, not ads.', '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+        ('Track', 'Save what you like and turn each one’s requirements into a checklist with notes and your own deadline.', '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>'),
+        ('Get reminded', 'A short email a week before a deadline, so nothing you care about slips past.', '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>'),
+        ('Teen jobs', 'Paid, part-time work for high-school students across the country, filterable by state.', '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
+        ('Intern with us', 'We place motivated students as interns with local businesses we work with. Apply once.', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'),
+        ('Reviewed by people', 'Every listing is checked by a reviewer before it goes live, and links to the official application.', '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>'),
+      ] %}
+        <article class="story__item">
+          <span class="story__icon" aria-hidden="true"><svg viewBox="0 0 24 24">{{ path|safe }}</svg></span>
+          <div class="story__text"><h3>{{ title }}</h3><p>{{ text }}</p></div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# Full-width green band; the ribbon from the door runs down into its top edge. #}
+<section class="band" data-band>
+  <div class="wrap band__inner">
+    <div>
+      <h2>Want real experience? Intern with us.</h2>
+      <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
+      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
+    </div>
+    <div>
+      <h2>Host a high-school intern.</h2>
+      <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
+      <a class="btn btn--ghost-light" href="{{ url_for('site.partner') }}">Partner with us</a>
     </div>
   </div>
 </section>
@@ -114,20 +128,6 @@
 </section>
 {% endif %}
 
-<section class="section">
-  <div class="wrap panel panel--accent reveal">
-    <div>
-      <h2>Want real experience? Intern with us.</h2>
-      <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
-      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
-    </div>
-    <div>
-      <h2>Host a high-school intern.</h2>
-      <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
-      <a class="btn btn--ghost-light" href="{{ url_for('site.partner') }}">Partner with us</a>
-    </div>
-  </div>
-</section>
 
 {#
   TESTIMONIALS: edit this list. Each one needs a quote, name and role; photo is optional

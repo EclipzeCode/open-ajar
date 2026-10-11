@@ -29,7 +29,13 @@
 {% block content %}
 <div class="wrap">
   <header class="page-head">
-    <span class="eyebrow">{{ 'Jobs' if sector == 'jobs' else 'Opportunities' }}</span>
+    <div class="subnav">
+      <nav class="explore explore--static" aria-label="Listing type">
+        <a href="{{ url_for('site.browse') }}" aria-current="{{ 'true' if sector != 'jobs' else 'false' }}">Opportunities</a>
+        <a href="{{ url_for('site.jobs') }}" aria-current="{{ 'true' if sector == 'jobs' else 'false' }}">Teen jobs</a>
+      </nav>
+      <a class="link" href="{{ url_for('site.submit') }}">Submit a listing →</a>
+    </div>
     <h1>{{ copy.h1 }}</h1>
     <p class="lead">{{ copy.sub }}</p>
   </header>

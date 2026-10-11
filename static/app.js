@@ -65,67 +65,58 @@ if (headline && !calm) {
   headline.classList.add('is-split');
 }
 
-// Home: feature icons draw their outlines when the card scrolls in
-document.querySelectorAll('.feature__icon svg *').forEach((p) => p.setAttribute('pathLength', '1'));
-
-// Home: interest tabs swap the three "open right now" cards in place (each tab is still a normal link)
-const explore = document.querySelector('[data-explore]');
-if (explore) {
-  const grid = document.querySelector('.explore__grid');
-  const all = document.querySelector('[data-explore-all]');
-  const glider = explore.querySelector('.explore__glider');
-  const tabs = [...explore.querySelectorAll('a')];
-  const cache = new Map();
-  const place = (a) => {
-    glider.style.width = `${a.offsetWidth}px`;
-    glider.style.transform = `translateX(${a.offsetLeft}px)`;
-  };
-  const load = async (url) => {
-    if (!cache.has(url)) {
-      cache.set(url, fetch(url).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        return { cards: [...doc.querySelectorAll('.grid .card')].slice(0, 3), count: doc.querySelector('.results__count')?.textContent.trim() };
-      }).catch((e) => { cache.delete(url); throw e; }));
-    }
-    return cache.get(url);
-  };
-  tabs.forEach((a) => {
-    a.addEventListener('pointerenter', () => load(a.href).catch(() => {})); // warm the cache before the click
-    a.addEventListener('click', async (e) => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey || a.getAttribute('aria-current') === 'true') return;
-      e.preventDefault();
-      tabs.forEach((t) => t.setAttribute('aria-current', t === a ? 'true' : 'false'));
-      place(a);
-      explore.scrollTo({ left: a.offsetLeft - (explore.clientWidth - a.offsetWidth) / 2, behavior: calm ? 'auto' : 'smooth' }); // keep the chosen tab in view on phones
-      grid.style.minHeight = `${grid.offsetHeight}px`; // no jump while the cards change
-      grid.classList.add('is-leaving');
-      try {
-        const [{ cards, count }] = await Promise.all([load(a.href), new Promise((r) => setTimeout(r, calm ? 0 : 180))]);
-        if (!cards.length) { location.href = a.href; return; }
-        grid.replaceChildren(...cards.map((c) => document.importNode(c, true)));
-        all.href = a.href;
-        all.textContent = `See all ${(count || '').replace(/ results?$/, '')} →`.replace('See all  →', 'See all →');
-      } catch { location.href = a.href; return; }
-      grid.classList.remove('is-leaving');
-      grid.classList.add('is-swapped');
-      grid.style.minHeight = '';
-    });
-  });
-  place(tabs[0]);
-  addEventListener('resize', () => place(explore.querySelector('[aria-current="true"]')));
-  requestAnimationFrame(() => explore.classList.add('is-ready')); // the glider only animates after its first placement
-}
-
-// Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer
-const doorway = document.querySelector('.doorway');
-if (doorway && !calm) {
+// Home: each feature row slides in from its own side (left for the 1st, 3rd, 5th) as it scrolls into view, while its
+// icon rises and draws in on the opposite side. Progress only ever grows, so rows stay put when you scroll back up.
+const story = document.querySelector('[data-story]');
+if (story && !calm) {
+  const ease = (v) => 1 - Math.pow(1 - v, 3);
+  const rows = [...story.querySelectorAll('.story__item')].map((el, i) => ({
+    el, side: i % 2 ? 1 : -1, seen: 0, text: el.querySelector('.story__text'), icon: el.querySelector('.story__icon'),
+    lines: [...el.querySelectorAll('.story__icon svg *')],
+  }));
+  rows.forEach(({ lines }) => lines.forEach((l) => { l.setAttribute('pathLength', '1'); l.style.strokeDasharray = '1'; }));
   let queued = false;
   const update = () => {
     queued = false;
+    for (const row of rows) {
+      const t = Math.min(1, Math.max(0, (innerHeight * .92 - row.el.getBoundingClientRect().top) / (innerHeight * .42)));
+      if (t <= row.seen && row.seen) continue;
+      row.seen = Math.max(row.seen, t);
+      const p = ease(row.seen);
+      row.text.style.opacity = p.toFixed(3);
+      row.text.style.transform = `translateX(${(row.side * (1 - p) * 40).toFixed(2)}vw)`;
+      row.icon.style.opacity = p.toFixed(3);
+      row.icon.style.transform = `translateY(${((1 - p) * 28).toFixed(2)}vh)`;
+      row.lines.forEach((l) => { l.style.strokeDashoffset = (1 - p).toFixed(3); });
+    }
+  };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener('resize', update);
+  update();
+}
+
+// Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer.
+// It only ever opens further. Once fully open, the section's extra scroll length is removed (and the page shifted by the
+// same amount so nothing moves on screen), so scrolling back up passes straight over it.
+const doorway = document.querySelector('.doorway');
+if (doorway && !calm) {
+  let queued = false, opened = 0;
+  const update = () => {
+    queued = false;
     const r = doorway.getBoundingClientRect();
-    const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
+    const p = opened = Math.max(opened, Math.min(1, Math.max(0, -r.top / (r.height - innerHeight))));
     doorway.style.setProperty('--p', p.toFixed(3));
     doorway.classList.toggle('is-open', p > .55); // the links behind the door only respond once you can see them
+    if (p === 1 && !doorway.classList.contains('is-done')) {
+      // keep whatever is below the door where it is on screen. The browser's own scroll anchoring would also try to,
+      // unpredictably, so it's switched off for this one adjustment and the page is shifted by exactly the change.
+      const root = document.documentElement, next = doorway.nextElementSibling, before = next.getBoundingClientRect().top;
+      root.style.overflowAnchor = 'none';
+      doorway.classList.add('is-done');
+      scrollBy({ top: next.getBoundingClientRect().top - before, behavior: 'instant' });
+      requestAnimationFrame(() => { root.style.overflowAnchor = ''; });
+      dispatchEvent(new Event('resize')); // the ribbon measures from the door
+    }
   };
   const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
   addEventListener('scroll', onScroll, { passive: true });
@@ -142,45 +133,84 @@ if (doorway && !calm) {
   }
 }
 
-// Home: once the door is open, its light continues as a ribbon that widens as it curves off the left edge,
-// revealed in step with the scroll. It sits behind the content.
+// Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down
+// past the mission heading, loops once around each feature's icon, then runs down into the green band below, turning
+// that band's green on the way. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
 const trail = document.querySelector('.trail');
 if (trail && doorway) {
-  const sec = trail.parentElement, wrap = sec.querySelector('.wrap'), target = wrap.querySelector('h2');
+  const sec = trail.parentElement, band = document.querySelector('[data-band]');
+  const icons = [...sec.querySelectorAll('.story__icon')];
   const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
-  const ribbon = trail.querySelector('.trail__ribbon'), reveal = trail.querySelector('.trail__reveal'), grad = trail.querySelector('linearGradient');
-  reveal.setAttribute('pathLength', '1');
-  let top = 0, span = 1, queued = false;
+  const ribbon = trail.querySelector('.trail__ribbon'), line = trail.querySelector('.trail__reveal');
+  const grad = trail.querySelector('linearGradient'), mid = trail.querySelector('.trail__mid');
+  let top = 0, left = [], right = [], anchors = [[0, 0]], len = 1, shown = -1, seen = 0, queued = false;
   const draw = () => {
     queued = false;
-    const p = calm ? 1 : Math.min(1, Math.max(0, (innerHeight * .85 - (sec.getBoundingClientRect().top + top)) / span));
-    reveal.style.strokeDashoffset = (1 - p).toFixed(4);
+    // the tip follows a line near the bottom of the screen; anchors turn that height into a length along the ribbon
+    const tip = innerHeight * .85 - (sec.getBoundingClientRect().top + top);
+    let l = 0;
+    for (let i = 1; i < anchors.length; i++) {
+      const [y0, l0] = anchors[i - 1], [y1, l1] = anchors[i];
+      if (tip >= y1) { l = l1; continue; }
+      if (tip > y0) l = l0 + (l1 - l0) * (tip - y0) / (y1 - y0);
+      break;
+    }
+    seen = calm ? len : Math.max(seen, l);
+    const k = Math.round(seen / len * (left.length - 1));
+    if (k === shown) return;
+    shown = k;
+    ribbon.setAttribute('d', k < 1 ? '' : `M${left.slice(0, k + 1).join(' L')} L${right.slice(0, k + 1).reverse().join(' L')} Z`);
   };
   const layout = () => {
     const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
-    // where the spill sits once the sticky door scene has scrolled to the end of its section
+    const w = s.width, end = Math.max(40, Math.min(110, w * .08)); // width the ribbon grows to by its end
+    // where the spill sits once the door scene has stopped moving
     const sx = sp.left + sp.width / 2 - s.left;
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
-    const w = s.width, end = Math.max(56, Math.min(180, w * .14)); // final width
-    const h = Math.max(120, wrap.offsetTop + target.offsetTop + target.offsetHeight / 2 - top); // level with the heading
-    // centerline: straight down out of the light, then a long sweep left until it's past the edge
-    const d = `M${sx} 0 C${sx} ${h * .55} ${sx * .55} ${h} ${-end} ${h}`;
-    reveal.setAttribute('d', d);
-    reveal.style.strokeWidth = `${end * 1.4}px`;
-    // outline: walk the centerline and offset each side by half the width, which grows from 6px to `end`
-    const len = reveal.getTotalLength(), n = 120, left = [], right = [];
+    const k = .5523; // control-point distance for a quarter circle
+    const lengthOf = (d) => { line.setAttribute('d', d); return line.getTotalLength(); };
+    let x = sx, y = 0, d = `M${sx} 0`, lastLoop = 0;
+    anchors = [[0, 0]];
+    icons.forEach((icon) => {
+      // where the icon rests (it may still be mid-rise, so measure from its row rather than from itself)
+      const row = icon.parentElement.getBoundingClientRect(), size = icon.offsetWidth;
+      const cx = row.left + icon.offsetLeft + size / 2 - s.left, cy = row.top + icon.offsetTop + icon.offsetHeight / 2 - s.top - top;
+      const R = size * .78 + end * .3;
+      const inner = cx < w / 2 ? 1 : -1, o = -inner; // the icon's side facing the middle, and its far side
+      const ex = cx + inner * R, drop = (cy - y) * .5;
+      d += ` C${x} ${y + drop} ${ex} ${cy - drop} ${ex} ${cy}`;
+      anchors.push([cy - R, lengthOf(d)]); // reaching the loop: drawn while the tip comes down to just above the icon
+      // one full turn: down the inner side, under, up the far side, over the top, back to where it joined
+      d += ` C${ex} ${cy + R * k} ${cx + inner * R * k} ${cy + R} ${cx} ${cy + R}`;
+      d += ` C${cx + o * R * k} ${cy + R} ${cx + o * R} ${cy + R * k} ${cx + o * R} ${cy}`;
+      d += ` C${cx + o * R} ${cy - R * k} ${cx + o * R * k} ${cy - R} ${cx} ${cy - R}`;
+      d += ` C${cx + inner * R * k} ${cy - R} ${ex} ${cy - R * k} ${ex} ${cy}`;
+      anchors.push([cy + R, lengthOf(d)]); // the loop itself is traced while the tip passes the icon
+      x = ex; y = cy; lastLoop = cy;
+    });
+    // down into the band: straight into its top edge so it reads as pouring into it
+    const by = band ? band.getBoundingClientRect().top - s.top - top + 2 : y + 300;
+    d += ` C${x} ${y + (by - y) * .55} ${w / 2} ${by - (by - y) * .45} ${w / 2} ${by}`;
+    len = lengthOf(d);
+    anchors.push([by - innerHeight * .1, len]);
+    // outline: walk the centerline, offsetting each side by half the width, which grows steadily from 4px to `end`
+    const n = Math.ceil(len / 5);
+    left = []; right = [];
     for (let i = 0; i <= n; i++) {
-      const t = i / n, a = reveal.getPointAtLength(len * t), b = reveal.getPointAtLength(Math.min(len, len * t + 1)), c = reveal.getPointAtLength(Math.max(0, len * t - 1));
-      const dx = b.x - c.x, dy = b.y - c.y, m = Math.hypot(dx, dy) || 1, half = (3 + (end / 2 - 3) * Math.pow(t, 1.4));
-      left.push(`${(a.x - dy / m * half).toFixed(1)} ${(a.y + dx / m * half).toFixed(1)}`);
-      right.push(`${(a.x + dy / m * half).toFixed(1)} ${(a.y - dx / m * half).toFixed(1)}`);
+      const l = len * i / n, pa = line.getPointAtLength(l), pb = line.getPointAtLength(Math.min(len, l + 1)), pc = line.getPointAtLength(Math.max(0, l - 1));
+      const dx = pb.x - pc.x, dy = pb.y - pc.y, m = Math.hypot(dx, dy) || 1, half = 2 + (end / 2 - 2) * Math.pow(i / n, .85);
+      left.push(`${(pa.x - dy / m * half).toFixed(1)} ${(pa.y + dx / m * half).toFixed(1)}`);
+      right.push(`${(pa.x + dy / m * half).toFixed(1)} ${(pa.y - dx / m * half).toFixed(1)}`);
     }
-    ribbon.setAttribute('d', `M${left.join(' L')} L${right.reverse().join(' L')} Z`);
-    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', h);
+    // pale like the door's light most of the way, then into the band's green after the last loop
+    grad.setAttribute('x1', 0); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', by);
+    mid.setAttribute('offset', Math.min(.98, lastLoop / by).toFixed(3));
+    const h = by + end;
     trail.style.top = `${top}px`;
-    trail.style.height = `${h + end}px`;
-    trail.setAttribute('viewBox', `0 0 ${w} ${h + end}`);
-    span = h + w * .35; // a bit more scrolling than its height, since the last stretch runs sideways
+    trail.style.height = `${h}px`;
+    trail.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    seen = Math.min(seen, len);
+    shown = -1;
     draw();
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(draw); } }, { passive: true });
