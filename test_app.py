@@ -57,10 +57,10 @@ class Flows(unittest.TestCase):
         self.assertIn(b'href="/opportunities"', page)
         self.assertIn(b'href="/jobs"', page)
         nav = lambda client: re.findall(r'>([^<>]+)</a>', client.get('/about').get_data(as_text=True).split('id="nav"')[1].split('</nav>')[0])
-        self.assertEqual(nav(self.c), ['About', 'Apply', 'Opportunities', 'Sign in'])
-        self.assertEqual(nav(self.make_admin()), ['About', 'Apply', 'Opportunities', 'Admin', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'About', 'Sign in'])
+        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Apply', 'About', 'Admin', 'Profile'])
         self.register()
-        self.assertEqual(nav(self.c), ['About', 'Apply', 'Opportunities', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'About', 'Profile'])
 
     def test_placeholder_testimonials_never_reach_the_live_site(self):
         live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',

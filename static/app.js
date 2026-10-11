@@ -65,8 +65,43 @@ if (headline && !calm) {
   headline.classList.add('is-split');
 }
 
-// Home: feature icons draw their outlines when the card scrolls in
-document.querySelectorAll('.feature__icon svg *').forEach((p) => p.setAttribute('pathLength', '1'));
+// Home: the features play one at a time as you scroll. The stage pins to the screen; for each feature the icon rises
+// from the bottom to the middle (drawing its outline) and the text slides in over it, from the left for the 1st, 3rd
+// and 5th and from the right for the others, holds, then fades up as the next one arrives. Scrolling back reverses it.
+const story = document.querySelector('[data-story]');
+if (story && !calm) {
+  const items = [...story.querySelectorAll('.story__item')].map((el, i) => ({
+    el, i, text: el.querySelector('.story__text'), icon: el.querySelector('.story__icon'),
+    lines: [...el.querySelectorAll('.story__icon svg *')],
+  }));
+  items.forEach(({ lines }) => lines.forEach((l) => { l.setAttribute('pathLength', '1'); l.style.strokeDasharray = '1'; }));
+  story.style.setProperty('--n', items.length);
+  story.classList.add('is-scrolly');
+  const clamp = (v) => Math.min(1, Math.max(0, v));
+  const ease = (v) => 1 - Math.pow(1 - v, 3);
+  let queued = false;
+  const update = () => {
+    queued = false;
+    const r = story.getBoundingClientRect();
+    // starts when the section's top is halfway up the screen, ends when the pinned stage lets go
+    const progress = clamp((innerHeight / 2 - r.top) / (r.height - innerHeight / 2)) * items.length;
+    for (const { el, i, text, icon, lines } of items) {
+      const t = progress - i; // this feature's own 0..1
+      const enter = ease(clamp(t / .4));
+      const leave = i === items.length - 1 ? 0 : ease(clamp((t - .72) / .28));
+      const side = i % 2 ? 1 : -1;
+      el.style.visibility = enter > 0 && leave < 1 ? 'visible' : 'hidden';
+      text.style.opacity = (enter * (1 - leave)).toFixed(3);
+      text.style.transform = `translate(${(side * (1 - enter) * 55).toFixed(2)}vw, ${(-leave * 40).toFixed(1)}px)`;
+      icon.style.opacity = (enter * (1 - leave) * .16).toFixed(3);
+      icon.style.transform = `translateY(calc(${((1 - enter) * 45).toFixed(2)}vh - ${(leave * 30).toFixed(1)}px))`;
+      lines.forEach((l) => { l.style.strokeDashoffset = (1 - enter).toFixed(3); });
+    }
+  };
+  addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener('resize', update);
+  update();
+}
 
 // Home: interest tabs swap the three "open right now" cards in place (each tab is still a normal link)
 const explore = document.querySelector('[data-explore]');

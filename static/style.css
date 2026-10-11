@@ -40,13 +40,13 @@ img { max-width: 100%; height: auto; display: block; }
 .center h2, .closing h2 { font-size: clamp(2.2rem, 6vw, 3.4rem); }
 .section__head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .page-head { padding: 56px 0 28px; }
-.grid, .features { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+.grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
 /* fixed 1 / 2 / 3 columns; a short last row is centered so it stays symmetrical, except listing grids, where cards
    stay in their columns and a short last row fills from the left */
 .grid:not(.grid--2) { justify-content: flex-start; }
-.grid > *, .features > * { flex: 0 0 100%; min-width: 0; }
-@media (min-width: 640px) { .grid > *, .features > * { flex-basis: calc((100% - 20px) / 2); } }
-@media (min-width: 980px) { .grid:not(.grid--2) > *, .features > * { flex-basis: calc((100% - 40px) / 3); } }
+.grid > * { flex: 0 0 100%; min-width: 0; }
+@media (min-width: 640px) { .grid > * { flex-basis: calc((100% - 20px) / 2); } }
+@media (min-width: 980px) { .grid:not(.grid--2) > * { flex-basis: calc((100% - 40px) / 3); } }
 .row2 { display: grid; gap: 0 16px; grid-template-columns: 1fr 1fr; }
 .actions { display: flex; gap: 12px 20px; align-items: center; flex-wrap: wrap; }
 .split { display: grid; gap: 24px 64px; grid-template-columns: 1fr 1.2fr; align-items: start; }
@@ -274,19 +274,26 @@ body.page-focus .page-head { padding-top: 0; }
 .arrow { display: inline-block; transition: transform .2s; }
 .typer:hover .arrow, .btn:hover .arrow, .link:hover .arrow { transform: translateX(3px); }
 @media (max-width: 520px) { .typer { padding-left: 14px; } .typer__prefix { display: none; } .typer__go { padding: 10px 14px; } }
-@media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .explore__grid .card { animation: none !important; } .explore__glider, .explore__grid { transition: none !important; } .js .feature__icon svg * { stroke-dashoffset: 0; transition: none; } .js .reveal { opacity: 1; transform: none; transition: none; } .feature:hover .feature__icon, .typer:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .marquee { overflow-x: auto; } .marquee__track { animation: none !important; } .aurora, .typer__caret, .explore__grid .card { animation: none !important; } .explore__glider, .explore__grid { transition: none !important; } .js .reveal { opacity: 1; transform: none; transition: none; } .typer:hover { transform: none; } }
 
-.features { margin-top: 40px; text-align: left; }
-.feature { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.feature__band { height: 72px; background: var(--accent-soft); position: relative; }
-.feature__band::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(31, 92, 70, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(31, 92, 70, .07) 1px, transparent 1px); background-size: 18px 18px; }
-.feature__icon { width: 52px; height: 52px; border-radius: 17px; background: var(--grad); display: grid; place-items: center; margin: -26px 0 0 28px; position: relative; z-index: 1;
   box-shadow: 0 8px 18px rgba(31, 92, 70, .25); }
-.feature__icon svg { width: 26px; height: 26px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.feature h3 { padding: 18px 28px 0; margin-bottom: 6px; color: var(--ink-strong); }
-.feature p { padding: 0 28px 24px; margin: 0; color: var(--muted); font-size: .95rem; }
 
 /* testimonials: an endless, slowly scrolling strip of cards (pauses on hover) */
+/* home: the six features as a scroll story (app.js drives it once the section has .is-scrolly) */
+.story { margin-top: 48px; }
+.story__item { max-width: 560px; margin: 0 auto 40px; padding: 0 16px; }
+.story__icon { display: block; width: 44px; margin: 0 auto 10px; color: var(--accent); }
+.story__icon svg { width: 100%; height: auto; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.story__text h3 { font-size: 1.3rem; margin-bottom: 6px; }
+.story__text p { color: var(--muted); margin: 0; }
+.story.is-scrolly { height: calc(var(--n) * 70vh + 100vh); margin-top: 24px; }
+.story.is-scrolly .story__stage { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; }
+.story.is-scrolly .story__item { grid-area: 1 / 1; display: grid; place-items: center; width: 100%; max-width: none; margin: 0; }
+.story.is-scrolly .story__icon { grid-area: 1 / 1; width: min(300px, 62vw); margin: 0; opacity: 0; }
+.story.is-scrolly .story__icon svg { stroke-width: 1; }
+.story.is-scrolly .story__text { grid-area: 1 / 1; position: relative; max-width: 620px; opacity: 0; }
+.story.is-scrolly .story__text h3 { font-size: clamp(2.2rem, 6vw, 3.6rem); margin-bottom: 12px; }
+.story.is-scrolly .story__text p { font-size: clamp(1.05rem, 2.2vw, 1.3rem); color: var(--ink); }
 .marquee { margin-top: 36px; overflow: hidden; padding: 8px 0 16px;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
 .marquee__track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
@@ -379,10 +386,6 @@ html:not(.js) .marquee__nav { display: none; }
 .hero h1.is-split .word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
 .hero h1.is-split .word > span { display: inline-block; animation: word-up .7s cubic-bezier(.2, .7, .2, 1) both; }
 @keyframes word-up { from { transform: translateY(105%); } }
-/* feature icons draw their outline once the card is on screen (app.js sets pathLength=1) */
-.js .feature__icon svg * { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1s ease .35s; }
-.js .feature.is-in .feature__icon svg * { stroke-dashoffset: 0; }
-.js .feature.d1.is-in .feature__icon svg * { transition-delay: .45s; } .js .feature.d2.is-in .feature__icon svg * { transition-delay: .55s; }
 /* interest tabs above "Open right now": a white pill slides to the chosen tab */
 .explore { position: relative; display: flex; gap: 28px; margin: 0 0 24px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .explore::-webkit-scrollbar { display: none; }
@@ -405,10 +408,6 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .js .reveal.is-in { opacity: 1; transform: none; }
 .js .reveal.d1 { transition-delay: .1s; } .js .reveal.d2 { transition-delay: .2s; } .js .reveal.d3 { transition-delay: .3s; }
-.feature { transition: border-color .25s, transform .25s, box-shadow .25s; }
-.feature:hover { border-color: #B9D3C6; transform: translateY(-3px); box-shadow: 0 14px 34px rgba(31, 92, 70, .08); }
-.feature__icon { transition: transform .3s cubic-bezier(.3, 1.5, .6, 1); }
-.feature:hover .feature__icon { transform: translateY(-4px) rotate(-4deg); }
 .quote { transition: transform .25s, border-color .25s; }
 .quote:hover { transform: translateY(-3px); border-color: #B9D3C6; }
 
@@ -724,13 +723,6 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .page-head { padding: 40px 0 20px; }
   .card { padding: 18px; }
   .card:hover { transform: none; }
-  .features { gap: 12px; margin-top: 28px; }
-  .feature { display: grid; grid-template-columns: 44px 1fr; gap: 2px 14px; padding: 18px; align-items: start; }
-  .feature__band { display: none; }
-  .feature__icon { grid-row: span 2; width: 44px; height: 44px; border-radius: 14px; margin: 0; box-shadow: 0 6px 14px rgba(31, 92, 70, .22); }
-  .feature__icon svg { width: 22px; height: 22px; }
-  .feature h3 { padding: 2px 0 0; margin: 0; font-size: 1.02rem; }
-  .feature p { padding: 0; font-size: .9rem; }
   .panel--accent { padding: 28px 22px; gap: 28px; border-radius: 22px; }
   .panel--accent > div + div { padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, .25); }
   .panel--accent .btn, .closing .btn { width: 100%; }
