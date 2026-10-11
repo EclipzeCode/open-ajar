@@ -249,7 +249,8 @@ body.page-focus .page-head { padding-top: 0; }
 .hero::before { content: ''; position: absolute; inset: 0; z-index: -2;
   background-image: linear-gradient(rgba(28, 25, 23, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(28, 25, 23, .045) 1px, transparent 1px);
   background-size: 44px 44px; -webkit-mask-image: linear-gradient(#000 55%, transparent); mask-image: linear-gradient(#000 55%, transparent); }
-.aurora { position: absolute; z-index: -1; border-radius: 50%; filter: blur(40px); opacity: .7; animation: drift 14s ease-in-out infinite alternate; }
+/* soft glows: the gradients fade out on their own, so no blur filter (blurring moving layers is very costly) */
+.aurora { position: absolute; z-index: -1; border-radius: 50%; opacity: .7; will-change: transform; animation: drift 14s ease-in-out infinite alternate; }
 .aurora--1 { width: 520px; height: 520px; left: -120px; top: -60px; background: radial-gradient(circle, rgba(206, 228, 215, .9), rgba(185, 211, 198, .35) 55%, transparent 70%); }
 .aurora--2 { width: 600px; height: 600px; right: -160px; top: 40px; background: radial-gradient(circle, rgba(160, 200, 178, .8), rgba(220, 234, 226, .3) 55%, transparent 70%); animation-delay: -5s; }
 .aurora--3 { width: 420px; height: 420px; left: 35%; bottom: -200px; background: radial-gradient(circle, rgba(232, 214, 170, .6), rgba(245, 237, 218, .28) 55%, transparent 70%); animation-delay: -9s; }

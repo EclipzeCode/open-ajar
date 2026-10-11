@@ -64,6 +64,7 @@ See the file table in `README.md`. Key pieces:
 - **Grid placement:** in `.card__head`, children are pinned to explicit rows; otherwise auto-placement pushes them below the art.
 - **Popovers:** `.acct-card` must not use `overflow: hidden`, or dropdowns and the date picker get clipped.
 - **Changing height above the viewport:** the browser's scroll anchoring may or may not compensate on its own. Set `overflow-anchor: none` on `<html>` for the change, shift by the measured difference, then restore it (see the door collapse in `app.js`).
+- **Performance:** don't call `getPointAtLength`/`getTotalLength` in loops on long SVG paths (each call re-walks the path; the ribbon took 4 s that way). Sample Béziers with plain math. Avoid `filter: blur()` on animated elements. Don't redo layout on height-only resizes (phones fire them while scrolling).
 - **Deleting CSS rules:** remove every line of a multi-line rule. A leftover `prop: value; }` silently swallows the next rule.
 - **FAQ:** CSS `::details-content` only animates in Chrome and Edge, so the FAQ uses JS. Keep `fill: 'forwards'` on the height animation, or the box snaps back open for a frame before closing.
 - **Tracker autosave JS:** use `form.getAttribute('action')`, because a button named `action` shadows `form.action`.
