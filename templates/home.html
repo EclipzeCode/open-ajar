@@ -62,10 +62,10 @@
   {# A ribbon of light from the open door that widens as it sweeps off the left edge; app.js shapes it and reveals it with the scroll. #}
   <svg class="trail" aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop offset="1" stop-color="#DCEAE2"/></linearGradient>
-      <mask id="trail-mask"><path class="trail__reveal"/></mask>
+      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop class="trail__mid" offset=".9" stop-color="#A3C6B4"/><stop offset="1" stop-color="#1F5C46"/></linearGradient>
+      <path class="trail__reveal"/>{# centerline, measured by app.js, never drawn #}
     </defs>
-    <path class="trail__ribbon" fill="url(#trail-grad)" mask="url(#trail-mask)"/>
+    <path class="trail__ribbon" fill="url(#trail-grad)"/>
   </svg>
   <div class="wrap">
     <h2 class="reveal">Open the door a little wider.</h2>
@@ -92,6 +92,22 @@
   </div>
 </section>
 
+{# Full-width green band; the ribbon from the door runs down into its top edge. #}
+<section class="band" data-band>
+  <div class="wrap band__inner">
+    <div>
+      <h2>Want real experience? Intern with us.</h2>
+      <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
+      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
+    </div>
+    <div>
+      <h2>Host a high-school intern.</h2>
+      <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
+      <a class="btn btn--ghost-light" href="{{ url_for('site.partner') }}">Partner with us</a>
+    </div>
+  </div>
+</section>
+
 {% if featured %}
 <section class="section section--tight">
   <div class="wrap">
@@ -112,20 +128,6 @@
 </section>
 {% endif %}
 
-<section class="section">
-  <div class="wrap panel panel--accent reveal">
-    <div>
-      <h2>Want real experience? Intern with us.</h2>
-      <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
-      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
-    </div>
-    <div>
-      <h2>Host a high-school intern.</h2>
-      <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
-      <a class="btn btn--ghost-light" href="{{ url_for('site.partner') }}">Partner with us</a>
-    </div>
-  </div>
-</section>
 
 {#
   TESTIMONIALS: edit this list. Each one needs a quote, name and role; photo is optional

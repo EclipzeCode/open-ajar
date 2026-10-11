@@ -127,10 +127,10 @@ img { max-width: 100%; height: auto; display: block; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
 .panel--center { text-align: center; margin-top: 56px; }
 .panel--danger { border-color: #FECACA; }
-.panel--accent { background: var(--grad); color: #fff; border: 0; display: grid; gap: 40px; grid-template-columns: 1fr 1fr; padding: 48px; border-radius: 28px; }
-.panel--accent h2 { color: #fff; }
-.panel--accent .eyebrow { color: rgba(255, 255, 255, .75); }
-@media (max-width: 760px) { .panel--accent { grid-template-columns: 1fr; padding: 32px; } }
+.band { background: var(--accent); color: #fff; padding: 88px 0; }
+.band__inner { display: grid; gap: 40px; grid-template-columns: 1fr 1fr; }
+.band h2 { color: #fff; }
+@media (max-width: 760px) { .band__inner { grid-template-columns: 1fr; } }
 .card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
 .card:hover { border-color: #B9D3C6; transform: translateY(-2px); }
 .card__top { display: flex; justify-content: space-between; align-items: center; }
@@ -288,9 +288,9 @@ body.page-focus .page-head { padding-top: 0; }
 .story__icon svg { width: 100%; height: auto; display: block; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .story__text { position: relative; max-width: 500px; }
 .story__item:nth-child(odd) .story__text { grid-column: 1; justify-self: start; text-align: left; }
-.story__item:nth-child(odd) .story__icon { grid-column: 2; margin-right: clamp(32px, 6vw, 90px); } /* room for the ribbon's loop */
+.story__item:nth-child(odd) .story__icon { grid-column: 2; margin-right: clamp(48px, 10vw, 130px); } /* room for the ribbon's loop */
 .story__item:nth-child(even) .story__text { grid-column: 2; justify-self: end; text-align: right; }
-.story__item:nth-child(even) .story__icon { grid-column: 1; margin-left: clamp(32px, 6vw, 90px); }
+.story__item:nth-child(even) .story__icon { grid-column: 1; margin-left: clamp(48px, 10vw, 130px); }
 .story__text h3 { font-size: clamp(2rem, 4.6vw, 3.2rem); margin-bottom: 10px; }
 .story__text p { font-size: clamp(1.02rem, 2vw, 1.2rem); color: var(--ink); margin: 0; }
 @media (max-width: 640px) { .story__item { min-height: 42vh; gap: 16px; } }
@@ -380,7 +380,6 @@ html:not(.js) .marquee__nav { display: none; }
 .mission > .wrap { position: relative; z-index: 1; }
 .trail { display: none; position: absolute; left: 0; width: 100%; overflow: visible; pointer-events: none; z-index: 0; }
 .js .trail { display: block; }
-.trail__reveal { fill: none; stroke: #fff; stroke-linecap: butt; stroke-dasharray: 1; stroke-dashoffset: 1; }
 @media (prefers-reduced-motion: reduce) { .js .doorway { height: auto; padding: 40px 0; } .js .doorway__sticky { position: static; height: auto; } .doorway { --p: 1 !important; } .doorway__scene { transform: none !important; } }
 
 /* fade-in-up on scroll (added by app.js) */
@@ -725,9 +724,10 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .page-head { padding: 40px 0 20px; }
   .card { padding: 18px; }
   .card:hover { transform: none; }
-  .panel--accent { padding: 28px 22px; gap: 28px; border-radius: 22px; }
-  .panel--accent > div + div { padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, .25); }
-  .panel--accent .btn, .closing .btn { width: 100%; }
+  .band { padding: 56px 0; }
+  .band__inner { gap: 28px; }
+  .band__inner > div + div { padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, .25); }
+  .band .btn, .closing .btn { width: 100%; }
   .closing .actions { flex-direction: column; }
   .stats-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .stats-strip strong { font-size: 1.6rem; }

@@ -134,72 +134,83 @@ if (doorway && !calm) {
 }
 
 // Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down
-// past the mission heading, then loops once around each feature's icon (passing on the icon's inner side, round its
-// far side and back) before curving across to the next icon. It's drawn as you scroll and stays drawn.
+// past the mission heading, loops once around each feature's icon, then runs down into the green band below, turning
+// that band's green on the way. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
 const trail = document.querySelector('.trail');
 if (trail && doorway) {
-  const sec = trail.parentElement, heading = sec.querySelector('.wrap h2');
+  const sec = trail.parentElement, band = document.querySelector('[data-band]');
   const icons = [...sec.querySelectorAll('.story__icon')];
   const spill = doorway.querySelector('.doorway__spill'), sticky = doorway.querySelector('.doorway__sticky');
-  const ribbon = trail.querySelector('.trail__ribbon'), reveal = trail.querySelector('.trail__reveal'), grad = trail.querySelector('linearGradient');
-  reveal.setAttribute('pathLength', '1');
-  let top = 0, ys = [0], seen = 0, queued = false;
+  const ribbon = trail.querySelector('.trail__ribbon'), line = trail.querySelector('.trail__reveal');
+  const grad = trail.querySelector('linearGradient'), mid = trail.querySelector('.trail__mid');
+  let top = 0, left = [], right = [], anchors = [[0, 0]], len = 1, shown = -1, seen = 0, queued = false;
   const draw = () => {
     queued = false;
-    // how far down the ribbon to show: everything above a line near the bottom of the screen
+    // the tip follows a line near the bottom of the screen; anchors turn that height into a length along the ribbon
     const tip = innerHeight * .85 - (sec.getBoundingClientRect().top + top);
-    let k = 0;
-    while (k < ys.length - 1 && ys[k + 1] <= tip) k++;
-    seen = calm ? 1 : Math.max(seen, k / (ys.length - 1));
-    reveal.style.strokeDashoffset = (1 - seen).toFixed(4);
+    let l = 0;
+    for (let i = 1; i < anchors.length; i++) {
+      const [y0, l0] = anchors[i - 1], [y1, l1] = anchors[i];
+      if (tip >= y1) { l = l1; continue; }
+      if (tip > y0) l = l0 + (l1 - l0) * (tip - y0) / (y1 - y0);
+      break;
+    }
+    seen = calm ? len : Math.max(seen, l);
+    const k = Math.round(seen / len * (left.length - 1));
+    if (k === shown) return;
+    shown = k;
+    ribbon.setAttribute('d', k < 1 ? '' : `M${left.slice(0, k + 1).join(' L')} L${right.slice(0, k + 1).reverse().join(' L')} Z`);
   };
   const layout = () => {
     const s = sec.getBoundingClientRect(), sp = spill.getBoundingClientRect(), st = sticky.getBoundingClientRect();
-    const w = s.width, end = Math.max(36, Math.min(96, w * .07)); // width the ribbon grows to by its end
+    const w = s.width, end = Math.max(40, Math.min(110, w * .08)); // width the ribbon grows to by its end
     // where the spill sits once the door scene has stopped moving
     const sx = sp.left + sp.width / 2 - s.left;
     top = doorway.getBoundingClientRect().bottom - sticky.offsetHeight + (sp.top - st.top) + sp.height * .5 - s.top;
     const k = .5523; // control-point distance for a quarter circle
-    const hb = heading.getBoundingClientRect();
-    let x = sx, y = 0, d = `M${sx} 0`;
-    // a gentle S down past the heading toward the first loop
+    const lengthOf = (d) => { line.setAttribute('d', d); return line.getTotalLength(); };
+    let x = sx, y = 0, d = `M${sx} 0`, lastLoop = 0;
+    anchors = [[0, 0]];
     icons.forEach((icon) => {
       // where the icon rests (it may still be mid-rise, so measure from its row rather than from itself)
       const row = icon.parentElement.getBoundingClientRect(), size = icon.offsetWidth;
       const cx = row.left + icon.offsetLeft + size / 2 - s.left, cy = row.top + icon.offsetTop + icon.offsetHeight / 2 - s.top - top;
-      const R = size * .78 + end * .35;
-      const inner = cx < w / 2 ? 1 : -1; // the icon's side facing the middle of the screen
-      const ex = cx + inner * R, ey = cy; // join the loop on the inner side, heading down
-      const drop = (ey - y) * .5;
-      d += ` C${x} ${y + drop} ${ex} ${ey - drop} ${ex} ${ey}`;
+      const R = size * .78 + end * .3;
+      const inner = cx < w / 2 ? 1 : -1, o = -inner; // the icon's side facing the middle, and its far side
+      const ex = cx + inner * R, drop = (cy - y) * .5;
+      d += ` C${x} ${y + drop} ${ex} ${cy - drop} ${ex} ${cy}`;
+      anchors.push([cy - R, lengthOf(d)]); // reaching the loop: drawn while the tip comes down to just above the icon
       // one full turn: down the inner side, under, up the far side, over the top, back to where it joined
-      const o = -inner; // toward the far side
-      d += ` C${ex} ${ey + R * k} ${cx + inner * R * k} ${cy + R} ${cx} ${cy + R}`;
+      d += ` C${ex} ${cy + R * k} ${cx + inner * R * k} ${cy + R} ${cx} ${cy + R}`;
       d += ` C${cx + o * R * k} ${cy + R} ${cx + o * R} ${cy + R * k} ${cx + o * R} ${cy}`;
       d += ` C${cx + o * R} ${cy - R * k} ${cx + o * R * k} ${cy - R} ${cx} ${cy - R}`;
-      d += ` C${cx + inner * R * k} ${cy - R} ${ex} ${cy - R * k} ${ex} ${ey}`;
-      x = ex; y = ey;
+      d += ` C${cx + inner * R * k} ${cy - R} ${ex} ${cy - R * k} ${ex} ${cy}`;
+      anchors.push([cy + R, lengthOf(d)]); // the loop itself is traced while the tip passes the icon
+      x = ex; y = cy; lastLoop = cy;
     });
-    d += ` C${x} ${y + 160} ${w / 2} ${y + 120} ${w / 2} ${y + 300}`; // trail off below the last feature
-    reveal.setAttribute('d', d);
-    reveal.style.strokeWidth = `${end * 1.6}px`;
+    // down into the band: straight into its top edge so it reads as pouring into it
+    const by = band ? band.getBoundingClientRect().top - s.top - top + 2 : y + 300;
+    d += ` C${x} ${y + (by - y) * .55} ${w / 2} ${by - (by - y) * .45} ${w / 2} ${by}`;
+    len = lengthOf(d);
+    anchors.push([by - innerHeight * .1, len]);
     // outline: walk the centerline, offsetting each side by half the width, which grows steadily from 4px to `end`
-    const len = reveal.getTotalLength(), n = Math.ceil(len / 6), left = [], right = [];
-    ys = [];
+    const n = Math.ceil(len / 5);
+    left = []; right = [];
     for (let i = 0; i <= n; i++) {
-      const l = len * i / n, pa = reveal.getPointAtLength(l), pb = reveal.getPointAtLength(Math.min(len, l + 1)), pc = reveal.getPointAtLength(Math.max(0, l - 1));
+      const l = len * i / n, pa = line.getPointAtLength(l), pb = line.getPointAtLength(Math.min(len, l + 1)), pc = line.getPointAtLength(Math.max(0, l - 1));
       const dx = pb.x - pc.x, dy = pb.y - pc.y, m = Math.hypot(dx, dy) || 1, half = 2 + (end / 2 - 2) * Math.pow(i / n, .85);
       left.push(`${(pa.x - dy / m * half).toFixed(1)} ${(pa.y + dx / m * half).toFixed(1)}`);
       right.push(`${(pa.x + dy / m * half).toFixed(1)} ${(pa.y - dx / m * half).toFixed(1)}`);
-      ys.push(Math.max(pa.y, ys[i - 1] ?? 0));
     }
-    ribbon.setAttribute('d', `M${left.join(' L')} L${right.reverse().join(' L')} Z`);
-    const hy = hb.top + hb.height / 2 - s.top - top;
-    grad.setAttribute('x1', sx); grad.setAttribute('y1', 0); grad.setAttribute('x2', sx); grad.setAttribute('y2', hy);
-    const h = y + 300 + end;
+    // pale like the door's light most of the way, then into the band's green after the last loop
+    grad.setAttribute('x1', 0); grad.setAttribute('y1', 0); grad.setAttribute('x2', 0); grad.setAttribute('y2', by);
+    mid.setAttribute('offset', Math.min(.98, lastLoop / by).toFixed(3));
+    const h = by + end;
     trail.style.top = `${top}px`;
     trail.style.height = `${h}px`;
     trail.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    seen = Math.min(seen, len);
+    shown = -1;
     draw();
   };
   addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(draw); } }, { passive: true });
