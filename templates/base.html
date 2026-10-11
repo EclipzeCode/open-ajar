@@ -27,16 +27,15 @@
     <a class="brand" href="{{ url_for('site.home') }}"><span class="brand__door" aria-hidden="true"></span>Open Ajar</a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav id="nav" class="nav" aria-label="Main">
+      {# Five items at most. Jobs and Submit live on the Opportunities page, the tracker on Profile, Team and Support
+         on About; the footer still lists everything. Each item stays highlighted on the pages it covers. #}
       {% set ep = request.endpoint or '' %}
-      <a href="{{ url_for('site.browse') }}" {% if ep == 'site.browse' %}aria-current="page"{% endif %}>Opportunities</a>
-      <a href="{{ url_for('site.jobs') }}" {% if ep == 'site.jobs' %}aria-current="page"{% endif %}>Jobs</a>
-      <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Become an intern</a>
-      <a href="{{ url_for('site.submit') }}" {% if ep == 'site.submit' %}aria-current="page"{% endif %}>Submit</a>
-      <a href="{{ url_for('site.about') }}" {% if ep == 'site.about' %}aria-current="page"{% endif %}>About</a>
+      <a href="{{ url_for('site.about') }}" {% if ep in ('site.about', 'site.team', 'site.support') %}aria-current="page"{% endif %}>About</a>
+      <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Apply</a>
+      <a href="{{ url_for('site.browse') }}" {% if ep in ('site.browse', 'site.jobs', 'site.detail', 'site.submit') %}aria-current="page"{% endif %}>Opportunities</a>
       {% if user %}
-        <a href="{{ url_for('account.tracker') }}" {% if ep == 'account.tracker' %}aria-current="page"{% endif %}>Tracker</a>
         {% if user.role == 'admin' %}<a href="{{ url_for('admin.queue') }}" {% if ep.startswith('admin.') %}aria-current="page"{% endif %}>Admin</a>{% endif %}
-        <a class="nav__account" href="{{ url_for('account.account') }}" {% if ep == 'account.account' %}aria-current="page"{% endif %}><span class="avatar" aria-hidden="true">{{ user.name[:1]|upper }}</span>Account</a>
+        <a class="nav__account" href="{{ url_for('account.account') }}" {% if ep in ('account.account', 'account.tracker') %}aria-current="page"{% endif %}><span class="avatar" aria-hidden="true">{{ user.name[:1]|upper }}</span>Profile</a>
       {% else %}
         <a class="btn btn--sm" href="{{ url_for('account.login') }}">Sign in</a>
       {% endif %}

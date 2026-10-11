@@ -12,6 +12,7 @@
 
 {% block content %}
 <div class="wrap acct">
+  {% include '_profile_tabs.html' %}
   <header class="acct-head">
     <div class="acct-head__who">
       <span class="acct-avatar" aria-hidden="true">{{ u.name.split()|map('first')|join|upper|truncate(2, True, '') }}</span>

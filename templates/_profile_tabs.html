@@ -1,0 +1,5 @@
+{# Profile and Tracker are one nav item; these tabs switch between them. #}
+<nav class="explore explore--static acct-tabs" aria-label="Profile">
+  <a href="{{ url_for('account.account') }}" aria-current="{{ 'true' if request.endpoint == 'account.account' else 'false' }}">Profile</a>
+  <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'true' if request.endpoint == 'account.tracker' else 'false' }}">Tracker</a>
+</nav>

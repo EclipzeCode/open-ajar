@@ -391,7 +391,12 @@ html:not(.js) .marquee__nav { display: none; }
 .explore__glider { display: none; }
 .js .explore__glider { display: block; position: absolute; left: 0; bottom: 0; height: 2px; background: var(--accent); }
 .explore.is-ready .explore__glider { transition: transform .3s cubic-bezier(.3, .7, .2, 1), width .3s cubic-bezier(.3, .7, .2, 1); }
-html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(--accent); }
+html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(--accent); }
+/* section switches at the top of a page (Opportunities | Teen jobs, Profile | Tracker): plain links, no sliding glider */
+.subnav { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+.subnav .explore { border-bottom: 0; margin: 0; }
+.subnav .link { font-size: .92rem; padding-bottom: 2px; }
+.acct-tabs { margin-bottom: 24px; }
 .explore__grid { transition: opacity .18s ease; }
 .explore__grid.is-leaving { opacity: 0; }
 .explore__grid.is-swapped .card { animation: card-in .45s cubic-bezier(.2, .7, .2, 1) both; }
