@@ -61,7 +61,7 @@ class Flows(unittest.TestCase):
         live = create_app({'TESTING': True, 'PRODUCTION': True, 'SECRET_KEY': 'x', 'RESEND_API_KEY': 'x',
                            'APP_URL': 'https://example.org', 'DB_PATH': self.app.config['DB_PATH']})
         page = live.test_client().get('/', base_url='https://example.org').data
-        self.assertIn(b'Vanessa Gunuwan', page)
+        self.assertIn(b'Vanessa Gunawan', page)
         self.assertNotIn(b'Testimonial goes here', page)
 
     def test_one_address_for_search_engines(self):
