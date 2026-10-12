@@ -5,119 +5,123 @@
 {% block content %}
 <div class="wrap acct">
   {% include '_profile_tabs.html' %}
-  <header class="acct-head">
-    <div class="acct-head__who">
-      <span class="acct-avatar" aria-hidden="true"><svg class="acct-avatar__icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span>
-      <div>
-        <h1>Your applications</h1>
-        <p class="muted small">Move each one along as you go. Changes save as you make them.
-          {% if total %}<a href="{{ url_for('account.tracker_calendar') }}">Add your deadlines to your calendar</a>{% endif %}</p>
-      </div>
+
+  <header class="tracker-head">
+    <div>
+      <h1>Your applications</h1>
+      <p class="muted">Move each one along as you go. Changes save as you make them.
+        {% if total %}<a href="{{ url_for('account.tracker_calendar') }}">Add deadlines to your calendar</a>{% endif %}</p>
     </div>
-    <div class="acct-stats">
-      <a href="{{ url_for('account.tracker') }}"><strong data-total>{{ total }}</strong><span>Tracking</span></a>
-      <a href="{{ url_for('account.tracker') }}"><strong class="{% if due_soon %}is-soon{% endif %}" data-due-soon>{{ due_soon }}</strong><span>Due soon</span></a>
-      <a href="#saved"><strong>{{ saved|length }}</strong><span>Saved</span></a>
-    </div>
+    <dl class="tracker-stats">
+      <div><dt>Tracking</dt><dd data-total>{{ total }}</dd></div>
+      <div><dt>Due soon</dt><dd class="{% if due_soon %}is-soon{% endif %}" data-due-soon>{{ due_soon }}</dd></div>
+      <div><dt>Saved</dt><dd><a href="#saved">{{ saved|length }}</a></dd></div>
+    </dl>
   </header>
 
-  <div class="acct-body">
-    <nav class="acct-nav" aria-label="Filter by stage">
-      <div class="acct-nav__links">
-        <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'true' if not stage else 'false' }}">All <span class="acct-nav__n" data-total>{{ total }}</span></a>
-        {% for s in D.STAGES %}
-          <a href="{{ url_for('account.tracker', stage=s) }}" aria-current="{{ 'true' if stage == s else 'false' }}">{{ s }} <span class="acct-nav__n" data-stage-count="{{ s }}">{{ counts[s] }}</span></a>
-        {% endfor %}
-      </div>
-    </nav>
+  {% if total %}
+  <nav class="stage-filter" aria-label="Filter by stage">
+    <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'page' if not stage else 'false' }}">All <span data-total>{{ total }}</span></a>
+    {% for s in D.STAGES %}
+      <a href="{{ url_for('account.tracker', stage=s) }}" aria-current="{{ 'page' if stage == s else 'false' }}">{{ s }} <span data-stage-count="{{ s }}">{{ counts[s] }}</span></a>
+    {% endfor %}
+  </nav>
+  {% endif %}
 
-    <div class="acct-sections">
-      {% for o in tracked %}
-        {% set dl = deadline_info(o.own_deadline or o.deadline_date, o.deadline_note) %}
-        <form class="acct-card track" id="t-{{ o.id }}" method="post" action="{{ url_for('account.update_tracked', opp_id=o.id, stage=stage) }}" data-autosave>
-          {{ m.csrf() }}
-          <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">Save</button>{# pressing Enter saves instead of hitting a × button #}
-          <div class="acct-card__head acct-card__head--row">
-            <div class="track__title">
-              <h2><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></h2>
-              <p>{{ o.org }} · <span class="{% if dl[1] %}is-soon{% endif %}">{{ dl[0] }}</span>{% if not o.available %} · <strong>No longer listed</strong>{% endif %}</p>
-            </div>
-            <div class="track__stage">
-              <label class="sr-only" for="stage-{{ o.id }}">Stage</label>
-              <select id="stage-{{ o.id }}" name="stage" data-won="{{ D.WON_STAGES|join('|') }}">
-                {% for s in D.STAGES %}<option {% if o.stage == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
-              </select>
-            </div>
+  <div class="tracker-list">
+    {% for o in tracked %}
+      {% set dl = deadline_info(o.own_deadline or o.deadline_date, o.deadline_note) %}
+      {% set done = o.checklist|selectattr('done')|list|length %}
+      <form class="track" id="t-{{ o.id }}" method="post" action="{{ url_for('account.update_tracked', opp_id=o.id, stage=stage) }}" data-autosave>
+        {{ m.csrf() }}
+        <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">Save</button>{# pressing Enter saves instead of hitting a × button #}
+
+        <div class="track__top">
+          <div class="track__title">
+            <h2><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></h2>
+            <p class="track__meta">{{ o.org }} · <span class="{% if dl[1] %}is-soon{% endif %}">{{ dl[0] }}</span>{% if not o.available %} · <strong>No longer listed</strong>{% endif %}</p>
           </div>
-          {# Shown once a card reaches Accepted/Completed (app.js toggles it as the stage changes) until they answer. #}
-          {% if o.found_here is none %}
-          <div class="track__found" data-found {% if o.stage not in D.WON_STAGES %}hidden{% endif %}>
-            <p><strong>Congratulations!</strong> Did you find this opportunity on OpenAjar?</p>
-            <div class="track__found-btns">
-              <button class="btn btn--sm" type="submit" name="found" value="1">Yes, found it here</button>
-              <button class="btn btn--sm btn--ghost" type="submit" name="found" value="0">No</button>
-            </div>
+          <div class="track__stage">
+            <label class="sr-only" for="stage-{{ o.id }}">Stage</label>
+            <select id="stage-{{ o.id }}" name="stage" data-won="{{ D.WON_STAGES|join('|') }}">
+              {% for s in D.STAGES %}<option {% if o.stage == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select>
           </div>
-          {% endif %}
-          <div class="track__body">
-            <fieldset class="track__list">
-              <legend>Checklist <span class="muted small">{{ o.checklist|selectattr('done')|list|length }} of {{ o.checklist|length }} done</span></legend>
-              {% for item in o.checklist %}
-                <div class="check-row">
-                  <label class="check"><input type="checkbox" name="done" value="{{ loop.index0 }}" {% if item.done %}checked{% endif %}><span>{{ item.text }}</span></label>
-                  <button class="icon-btn" type="submit" name="drop" value="{{ loop.index0 }}" aria-label="Remove “{{ item.text }}”">×</button>
-                </div>
-              {% else %}
-                <p class="muted small">No checklist items yet.</p>
-              {% endfor %}
-              <div class="add-row">
-                <label class="sr-only" for="new-{{ o.id }}">Add a checklist item</label>
-                <input id="new-{{ o.id }}" name="new_item" maxlength="200" placeholder="Add an item, e.g. Ask Ms. Patel for a rec">
-                <button class="btn btn--sm btn--ghost" type="submit">Add</button>
+        </div>
+
+        {% if o.checklist %}
+        <div class="track__progress">
+          <progress value="{{ done }}" max="{{ o.checklist|length }}" aria-label="Checklist progress"></progress>
+          <span class="small muted" data-progress-text>{{ done }} of {{ o.checklist|length }} done</span>
+        </div>
+        {% endif %}
+
+        {# Shown once a card reaches Accepted/Completed (app.js toggles it as the stage changes) until they answer. #}
+        {% if o.found_here is none %}
+        <div class="track__found" data-found {% if o.stage not in D.WON_STAGES %}hidden{% endif %}>
+          <p><strong>Congratulations!</strong> Did you find this opportunity on OpenAjar?</p>
+          <div class="track__found-btns">
+            <button class="btn btn--sm" type="submit" name="found" value="1">Yes, found it here</button>
+            <button class="btn btn--sm btn--ghost" type="submit" name="found" value="0">No</button>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="track__body">
+          <fieldset class="track__list">
+            <legend class="track__h">Checklist</legend>
+            {% for item in o.checklist %}
+              <div class="check-row">
+                <label class="check"><input type="checkbox" name="done" value="{{ loop.index0 }}" {% if item.done %}checked{% endif %}><span>{{ item.text }}</span></label>
+                <button class="icon-btn" type="submit" name="drop" value="{{ loop.index0 }}" aria-label="Remove “{{ item.text }}”">×</button>
               </div>
-            </fieldset>
-            <div class="track__side">
-              <div class="field"><label for="dl-{{ o.id }}">My deadline</label><input id="dl-{{ o.id }}" type="date" name="deadline" value="{{ o.own_deadline }}"></div>
-              <div class="field"><label for="notes-{{ o.id }}">Notes</label><textarea id="notes-{{ o.id }}" name="notes" rows="4" maxlength="2000" placeholder="Contacts, ideas, what you’ve sent…">{{ o.notes }}</textarea></div>
+            {% endfor %}
+            <div class="add-row">
+              <label class="sr-only" for="new-{{ o.id }}">Add a step</label>
+              <input id="new-{{ o.id }}" name="new_item" maxlength="200" placeholder="Add a step">
+              <button class="btn btn--sm btn--ghost" type="submit">Add</button>
             </div>
+          </fieldset>
+          <div class="track__side">
+            <div class="field"><label class="track__h" for="dl-{{ o.id }}">My deadline</label><input id="dl-{{ o.id }}" type="date" name="deadline" value="{{ o.own_deadline }}"></div>
+            <div class="field"><label class="track__h" for="notes-{{ o.id }}">Notes</label><textarea id="notes-{{ o.id }}" name="notes" rows="3" maxlength="2000" placeholder="Notes for yourself">{{ o.notes }}</textarea></div>
           </div>
-          <div class="acct-card__foot acct-card__foot--split track__foot">
-            <span class="save-state muted small" aria-live="polite"></span>
-            <noscript><button class="btn btn--sm" type="submit">Save</button></noscript>
-            <span class="track__links">
-              {% if o.url %}<a class="link" href="{{ o.url }}" target="_blank" rel="noopener noreferrer">Official site ↗</a>{% endif %}
-              <button class="icon-btn text" type="submit" name="action" value="remove" data-confirm="Stop tracking this? Your notes and checklist for it will be removed.">Stop tracking</button>
-            </span>
-          </div>
-        </form>
-      {% else %}
-        <section class="acct-card">
-          <div class="acct-card__head"><h2>{% if stage %}Nothing in “{{ stage }}”{% else %}You’re not tracking anything yet{% endif %}</h2>
-            <p>{% if stage %}Move an application to this stage and it shows up here.{% else %}Open any opportunity and choose “Start tracking”.{% endif %}</p></div>
-          <p class="acct-empty">{% if stage %}<a href="{{ url_for('account.tracker') }}">See everything you’re tracking</a>{% else %}<a href="{{ url_for('site.browse') }}">Browse opportunities</a>{% endif %}</p>
-        </section>
-      {% endfor %}
+        </div>
 
-      {% if saved and not stage %}
-      <section class="acct-card" id="saved" aria-labelledby="saved-h">
-        <div class="acct-card__head"><h2 id="saved-h">Saved for later</h2><p>Bookmarked listings you haven’t started tracking yet.</p></div>
-        <ul class="subs">
-          {% for o in saved %}
-          <li class="subs__item">
-            <div class="subs__main">
-              <strong><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></strong>
-              <span class="muted small">{{ o.org }}{% if not o.available %} · No longer listed{% endif %}</span>
-            </div>
-            <div class="subs__side subs__side--row">
-              {% if o.available %}<form method="post" action="{{ url_for('site.track', opp_id=o.id, next=url_for('account.tracker')) }}">{{ m.csrf() }}<button class="btn btn--sm" type="submit">Track</button></form>{% endif %}
-              <form method="post" action="{{ url_for('site.toggle_save', opp_id=o.id, next=url_for('account.tracker')) }}">{{ m.csrf() }}<button class="btn btn--sm btn--ghost" type="submit">Unsave</button></form>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-      </section>
-      {% endif %}
-    </div>
+        <div class="track__foot">
+          <span class="save-state small muted" aria-live="polite"></span>
+          <noscript><button class="btn btn--sm" type="submit">Save</button></noscript>
+          {% if o.url %}<a class="link small" href="{{ o.url }}" target="_blank" rel="noopener noreferrer">Official site ↗</a>{% endif %}
+          <button class="icon-btn text small" type="submit" name="action" value="remove" data-confirm="Stop tracking this? Your notes and checklist for it will be removed.">Stop tracking</button>
+        </div>
+      </form>
+    {% else %}
+      <div class="tracker-empty">
+        <h2>{% if stage %}Nothing in “{{ stage }}”{% else %}You’re not tracking anything yet{% endif %}</h2>
+        <p class="muted">{% if stage %}Move an application to this stage and it shows up here.{% else %}Open any opportunity and choose “Start tracking”. Its requirements become a checklist here.{% endif %}</p>
+        <a class="btn btn--sm" href="{{ url_for('account.tracker') if stage else url_for('site.browse') }}">{{ 'See everything you’re tracking' if stage else 'Browse opportunities' }}</a>
+      </div>
+    {% endfor %}
   </div>
+
+  {% if saved and not stage %}
+  <section class="saved-list" id="saved" aria-labelledby="saved-h">
+    <h2 id="saved-h">Saved for later <span class="muted">{{ saved|length }}</span></h2>
+    <ul>
+      {% for o in saved %}
+      <li>
+        <div class="saved-list__main">
+          <a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a>
+          <span class="muted small">{{ o.org }}{% if not o.available %} · No longer listed{% endif %}</span>
+        </div>
+        <div class="saved-list__actions">
+          {% if o.available %}<form method="post" action="{{ url_for('site.track', opp_id=o.id, next=url_for('account.tracker')) }}">{{ m.csrf() }}<button class="btn btn--sm" type="submit">Track</button></form>{% endif %}
+          <form method="post" action="{{ url_for('site.toggle_save', opp_id=o.id, next=url_for('account.tracker')) }}">{{ m.csrf() }}<button class="btn btn--sm btn--ghost" type="submit">Unsave</button></form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

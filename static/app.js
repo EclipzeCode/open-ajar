@@ -809,6 +809,14 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
     } catch { status.textContent = 'Couldn’t save. Check your connection and try again.'; }
   };
   form.addEventListener('change', (e) => { if (e.target.name !== 'new_item') { clearTimeout(timer); save(); } });
+  // the checklist progress bar follows the ticks straight away
+  const bar = form.querySelector('progress'), barText = form.querySelector('[data-progress-text]');
+  form.addEventListener('change', (e) => {
+    if (e.target.name !== 'done' || !bar) return;
+    const done = form.querySelectorAll('input[name="done"]:checked').length;
+    bar.value = done;
+    barText.textContent = `${done} of ${bar.max} done`;
+  });
   // Ask "found it here?" as soon as the stage moves to Accepted/Completed
   const stage = form.querySelector('select[name="stage"]');
   const found = form.querySelector('[data-found]');
