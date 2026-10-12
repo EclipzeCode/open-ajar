@@ -622,7 +622,7 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .about section { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding: 40px 0; border-top: 1px solid var(--line); }
 .about .pull { font-size: 1.6rem; line-height: 1.3; font-weight: 600; letter-spacing: -.03em; color: var(--ink-strong); }
 /* About: partners sit above the about sections, each one its own row (photo, name, testimonial once there is one) */
-.partners { padding: 8px 0 48px; }
+.partners { padding: 8px 0 96px; }
 .partners__head { margin-bottom: 8px; }
 .partners__head p { color: #57534E; max-width: 65ch; }
 .partner { display: grid; grid-template-columns: 400px 1fr; gap: 48px; align-items: center; padding: 40px 0; border-top: 1px solid var(--line); }
@@ -645,8 +645,11 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
   .js .partner .partner__body.reveal.is-in { transform: none; }
 }
 @media (max-width: 760px) { .partner, .partner:nth-of-type(even) { grid-template-columns: 1fr; gap: 16px; } .partner:nth-of-type(even) .partner__img { order: 0; } .partner__img { max-width: 400px; } .partner--big .partner__img { max-width: none; } }
-.levels { list-style: none; padding: 0; }
-.levels li { margin-bottom: 12px; }
+.levels { list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 14px; max-width: 65ch; }
+/* each badge sits in its own column, so a long description wraps under its own text, not under the badge */
+.levels li { display: grid; grid-template-columns: 130px 1fr; gap: 16px; align-items: baseline; color: #57534E; }
+.levels .badge { justify-self: start; }
+@media (max-width: 520px) { .levels li { grid-template-columns: 1fr; gap: 4px; } }
 @media (max-width: 760px) { .about section { grid-template-columns: 1fr; gap: 8px; } }
 .section-title { margin-bottom: 16px; }
 .member { display: flex; gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
