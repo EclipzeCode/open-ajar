@@ -203,6 +203,13 @@ img { max-width: 100%; height: auto; display: block; }
 .field__error { display: flex; align-items: center; gap: 6px; color: var(--danger); font-size: .85rem; font-weight: 500; margin: 6px 0 0; animation: err-in .2s ease-out; }
 .field__error::before { content: '!'; flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: #fff; font-size: .7rem; font-weight: 700; }
 @keyframes err-in { from { opacity: 0; transform: translateY(-3px); } }
+/* show/hide button inside password fields (added by app.js) */
+.pw { position: relative; display: block; }
+.pw input:not([type=checkbox]):not([type=radio]) { padding-right: 48px; }
+.pw__toggle { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center; width: 36px; height: 36px;
+  padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.pw__toggle:hover, .pw__toggle:focus-visible { color: var(--ink-strong); background: var(--soft); }
+.pw__toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 input[aria-invalid="true"], textarea[aria-invalid="true"], .dd__btn[aria-invalid="true"] { border-color: var(--danger) !important; box-shadow: 0 0 0 4px rgba(220, 38, 38, .10) !important; }
 input:not([type=checkbox]):not([type=radio]), select, textarea {
   width: 100%; font: inherit; color: var(--ink-strong); background: #fff; border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 13px; box-shadow: 0 1px 2px rgba(28, 25, 23, .04);

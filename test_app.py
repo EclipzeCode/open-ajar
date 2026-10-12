@@ -131,7 +131,8 @@ class Flows(unittest.TestCase):
         self.assertIn(b'Confirm your email first', self.c.get('/submit').data)
         token = re.search(r'token=([\w-]+)', mail.OUTBOX[0]['text']).group(1)
         self.c.get(f'/verify?token={token}')  # just opening the link must not spend it
-        self.post('/verify', {'token': token})
+        self.c.head(f'/verify?token={token}')  # nor must an email scanner checking the link
+        self.assertEqual(self.post('/verify', {'token': token}).status_code, 302)  # the real click still works
         self.assertEqual(self.post('/verify', {'token': token}).status_code, 400)  # single use
 
         self.assertEqual(self.post('/submit', LISTING).status_code, 200)
