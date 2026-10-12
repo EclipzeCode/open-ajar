@@ -619,7 +619,7 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .partner:nth-of-type(even) .partner__img { order: 2; }
 .partner--big { grid-template-columns: 3fr 2fr; }
 .partner--big:nth-of-type(even) { grid-template-columns: 2fr 3fr; }
-.partner__img { width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
+.partner__img { width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
 .partner__img--wide { aspect-ratio: auto; }
 .partner__img--blank { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 600 3.2rem/1 var(--display); letter-spacing: .02em; }
 .partner h3 { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
