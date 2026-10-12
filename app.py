@@ -30,6 +30,7 @@ ROOT = Path(__file__).parent
 # app.js arrives. If app.js hasn't loaded 4 s later, it's undone so nothing stays hidden. Allowed by the CSP via its hash.
 JS_FLAG = ("document.documentElement.classList.add('js');"
            "setTimeout(function(){if(!window.appReady)document.documentElement.classList.remove('js')},4000);")
+PRIVATE_PATHS = ('/account', '/tracker', '/admin', '/access-grants', '/verify', '/reset')
 JS_FLAG_HASH = base64.b64encode(hashlib.sha256(JS_FLAG.encode()).digest()).decode()
 
 
@@ -124,8 +125,12 @@ def create_app(test_config=None):
         })
         if app.config['PRODUCTION']:
             resp.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        if current_user():
+        # Private pages are never stored. Other pages a signed-in person sees are re-checked rather than banned from
+        # the cache, so Back returns to the page as it was (scroll position, open filters) instead of reloading it.
+        if request.path.startswith(PRIVATE_PATHS):
             resp.headers['Cache-Control'] = 'no-store'
+        elif current_user():
+            resp.headers['Cache-Control'] = 'private, no-cache'
         return resp
 
     @app.teardown_appcontext

@@ -117,6 +117,11 @@ class Flows(unittest.TestCase):
         self.assertEqual(r.status_code, 500)
         self.assertIn(b'Something broke on our end', r.data)
 
+    def test_private_pages_are_never_cached(self):
+        self.register()
+        self.assertEqual(self.c.get('/account').headers['Cache-Control'], 'no-store')
+        self.assertEqual(self.c.get('/opportunities').headers['Cache-Control'], 'private, no-cache')  # Back keeps your place
+
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
 
