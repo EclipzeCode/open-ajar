@@ -28,7 +28,7 @@ Tests: `.venv/bin/python -m unittest`
 | `data.py` | Categories (types, interests, states…), form validation, spreadsheet import mapping |
 | `mail.py` | Sending through Resend, the three email templates, daily deadline reminders |
 | `schema.sql` | The database tables |
-| `templates/` | One HTML file per page. Team bios and Support figures are edited right in `team.html` / `support.html` |
+| `templates/` | One HTML file per page. Support figures are edited right in `support.html` |
 | `static/` | `style.css`, `app.js` (small extras; every page works without it), images |
 
 ## Commands
