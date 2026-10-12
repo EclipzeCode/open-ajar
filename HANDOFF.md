@@ -44,10 +44,11 @@ OpenAjar is a free site where high-school students find internships, programs, s
 25. **Access Grants (PR #33):** students ask OpenAjar to cover a program fee at `/access-grants` (navbar link; "Need help with the fee?" on listings with a fee pre-fills the form). Up to `data.GRANT_CAP` ($250) per student per calendar year (`core.grant_room`), one open request at a time, a parent or guardian's email required and copied on every decision. Admins work them under Admin → Access Grants (`admin.grant_action`): approve an amount, ask for info, decline, then record the payment after paying the program directly; the student is never sent money. Nobody can act on their own request; otherwise every request, admin or not, follows the same rules. Stored in `access_grants`, kept if the account is deleted. Privacy and terms cover it. The About page has an Access Grants section under Why "ajar".
 26. **Home order and the receipt (PR #33):** hero, door, ribbon and feature rows, Access Grants, Open right now, Community voices, the three-button green band, FAQ. The ribbon now runs into the Access Grants section (`data-band`) and fades into its deep green (#123829). Access Grants is a pinned, scroll-driven receipt like the door: a sample $250 fee prints, the grant line covers it, "You pay" counts down to $0 and a stamp lands; then the $250 / 100% / $0 stats, three steps and the button. The door and the receipt share `playOnScroll` in `app.js` (plays once, then the section collapses to one screen).
 27. **Name (PR #33):** always written **OpenAjar**, no space, across the site, emails, docs and code. The domain stays `openajar.org`.
+28. **Fixes and polish (PR #34):** privacy page no longer names team members; deleting an account removes its quote; listings past their deadline expire (imports too, and the 10-minute job backfills missing expiries via `data.expiry_for`); admin backup download (Admin → Stats); partner photos resized (about 2 MB to 750 KB) with sizes and lazy loading; friendly 500 page; every admin list pages through all rows (`admin.paged`) with search, and the three inboxes share `admin._inbox`; Save/Track pressed while signed out finishes after sign-in (`core.finish_pending`); tracker counts refresh after autosave; grants count toward the year they were approved (`approved_at`); dates use US Eastern (`data.today`); the `js` class is set by a CSP-hashed inline script in `<head>` (`app.JS_FLAG`) so animated sections don't jump; only private pages are `no-store` (`app.PRIVATE_PATHS`); navbar "Apply" is now "Intern with us"; share image `static/og.jpg`; a save star on every card (saves without reloading); "More like this" on listings; no-results suggests which filter to drop; phone menu closes on Escape or a tap; tracker deadlines download as a calendar (`/tracker.ics`); public grants-paid total once there is one; the home interest tabs swap cards in place again.
 
 ## Current state (Oct 2026)
 
-- Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#33 are merged into `main`; nothing is open.
+- Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#34 are merged into `main`; nothing is open.
 - **Email confirmed working (Oct 2026):** a password-reset email from `hello@openajar.org` arrived on the live site. Resend's DNS records (DKIM, `send`/`rsend`, SPF, MX, DMARC) all resolve. If emails ever stop arriving, check Resend → Emails and search Render → Logs for `[email]` (a 403 means the domain isn't verified or `EMAIL_FROM` is wrong).
 - **Not done yet:** Google Search Console (see to-dos).
 - A local test account exists only in the local database; its login is in `var/LOCAL_TEST_LOGIN.txt` (gitignored).
@@ -68,12 +69,12 @@ See the file table in `README.md`. Key pieces:
 - **`admin.py` `stats()`:** straight database counts, plus an 8-week trend that runs on UTC dates.
 - **`app.py` `init_db`:** runs `schema.sql`, then adds any columns created after launch with `ALTER TABLE`. New tables only need `CREATE TABLE IF NOT EXISTS` in `schema.sql`; new columns go in both places.
 - **`app.py` `apply_correction_file`:** applies listing fixes through the same validation as the admin editor.
-- **`static/app.js`:** one file of small, independent blocks, each starting with a `// Home: ...` or similar comment: reveal on scroll, hero typer and counters, feature rows, door (`.doorway`, collapses once open), ribbon (`.trail`), testimonial arrows, hero cursor cells, account scrollspy, date picker, dropdowns, tracker autosave, FAQ slide. Every page works without it.
+- **`static/app.js`:** one file of small, independent blocks, each starting with a `// Home: ...` or similar comment: reveal on scroll, hero typer and counters, feature rows, door (`.doorway`, collapses once open), ribbon (`.trail`), testimonial arrows, hero cursor cells, account scrollspy, date picker, dropdowns, tracker autosave, FAQ slide, card save stars, home interest tabs, phone menu. Every page works without it.
 - **`static/img/jobs/*.svg` and `static/img/types/*.svg`:** icon tiles for listing cards (by job category and by listing type). **`static/img/testimonials/`:** testimonial photos; resize new ones to 96×96 (macOS: `sips -z 96 96 -s format jpeg -s formatOptions 78 in.png --out out.jpg`).
 
 ## Gotchas we hit (don't repeat them)
 
-- **CSP is strict:** no inline `<script>` and no `style="..."` attributes. Use classes and `static/app.js`; setting styles from JS (CSSOM, `element.animate`) is fine. `<script type="application/ld+json">` is data and is allowed.
+- **CSP is strict:** no inline `<script>` (the one exception is `app.JS_FLAG`, allowed by its hash, which is computed from the text, so editing it is safe) and no `style="..."` attributes. Use classes and `static/app.js`; setting styles from JS (CSSOM, `element.animate`) is fine. `<script type="application/ld+json">` is data and is allowed.
 - **Background thread:** the maintenance thread starts lazily on the first request. Starting it at app creation deadlocks gunicorn on Render, which preloads the app before forking.
 - **Endpoint names:** `/opportunities` and `/jobs` must stay separate endpoints (`site.browse`, `site.jobs`).
 - **CSRF:** an empty token must be rejected.
@@ -128,6 +129,7 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 - [x] Confirm `apply-corrections` has run on production.
 - [x] Testimonial photos. Nate John and Sam Lui are hidden until they have photos.
 - [x] Custom domain and HTTPS (`www.openajar.org`).
+- [ ] Check that Render disk snapshots are on, and download a backup from Admin → Stats now and then (keep it private: it has everyone's data).
 - [ ] Set Render's `EMAIL_FROM` to `OpenAjar <hello@openajar.org>` so the sender name matches the new spelling.
 - [ ] Decide which account Access Grants are paid from before the first real grant.
 - [ ] Google Search Console: add `openajar.org` as a Domain property, add Google's TXT record in Shopify DNS, then submit `https://www.openajar.org/sitemap.xml`. Then import into Bing Webmaster Tools.
