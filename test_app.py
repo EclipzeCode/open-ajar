@@ -28,7 +28,7 @@ GRANT = {'program': 'River Ecology Summer Lab', 'org': 'Green River Institute', 
 class Flows(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.app = create_app({'TESTING': True, 'DB_PATH': str(Path(self.tmp.name) / 't.db')})
+        self.app = create_app({'TESTING': True, 'DB_PATH': str(Path(self.tmp.name) / 't.db'), 'OWNER_EMAIL': 'owner@example.org'})
         self.c = self.app.test_client()
         mail.OUTBOX.clear()
         core._hits.clear()  # the sign-in rate limit is per process; don't let one test's logins count against the next
@@ -258,6 +258,37 @@ class Flows(unittest.TestCase):
         r = self.post('/admin/partners?q=rosa', {'id': 'rosa', 'status': 'contacted', 'admin_note': 'Called her.'}, admin)
         self.assertEqual(r.headers['Location'], '/admin/partners?q=rosa')  # back to the same search
         self.assertEqual(db.execute("SELECT status FROM partner_inquiries WHERE id='rosa'").fetchone()['status'], 'contacted')
+
+    def test_only_the_owner_adjusts_stats_and_other_admins_cant_touch_the_owner(self):
+        owner, other = self.make_admin('owner@example.org', 'owner1'), self.make_admin()
+        db = connect(self.app.config['DB_PATH'])
+        r = self.post('/admin/users', {'id': 'owner1', 'role': 'student'}, other, follow_redirects=True)
+        self.assertIn('Only the owner can change'.encode(), r.data)
+        self.assertEqual(db.execute("SELECT role FROM users WHERE id='owner1'").fetchone()['role'], 'admin')
+        self.assertEqual(self.post('/admin/stats', {'key': 'placed', 'adjust': '+3'}, other).status_code, 403)
+        self.assertNotIn(b'name="adjust"', other.get('/admin/stats').data)  # no adjust controls for other admins
+        self.post('/admin/stats', {'key': 'placed', 'adjust': '+3'}, owner)
+        page = other.get('/admin/stats').get_data(as_text=True)
+        self.assertIn('Includes +3 added by hand · database count 0', page)  # always shown next to the real count
+        self.assertIn('Adjusted a stat by hand', other.get('/admin/activity?kind=stat_adjusted').get_data(as_text=True))
+
+    def test_admins_confirm_emails_filter_users_and_see_a_persons_applications(self):
+        self.register()
+        admin = self.make_admin()
+        db = connect(self.app.config['DB_PATH'])
+        sam = db.execute("SELECT id FROM users WHERE email='sam@example.org'").fetchone()['id']
+        self.post('/apply', {'full_name': 'Sam Rivera', 'email': 'SAM@example.org', 'statement': 'I want to learn how a small business runs.'})
+        self.assertIn(b'Sam Rivera', admin.get('/admin/users?status=unconfirmed&role=student').data)
+        self.assertNotIn(b'Sam Rivera', admin.get('/admin/users?role=admin').data)
+        self.assertNotIn(b'Sam Rivera', admin.get('/admin/users?joined_to=2000-01-01').data)
+        self.post('/admin/users', {'id': sam, 'action': 'verify'}, admin)
+        self.assertEqual(db.execute('SELECT email_verified FROM users WHERE id=?', (sam,)).fetchone()['email_verified'], 1)
+        detail = admin.get(f'/admin/users/{sam}').get_data(as_text=True)
+        self.assertIn('how a small business runs', detail)  # their intern application, matched by email
+        self.assertIn('Intern applications <span class="muted">(1)</span>', detail)
+        self.assertIn('<span class="tabs__n" aria-label="1 waiting">1</span>', detail)  # the new application on its tab
+        self.assertIn('Confirmed a user’s email by hand', admin.get('/admin/activity?who=ada&kind=email_confirmed_by_admin').get_data(as_text=True))
+        self.assertIn('Nothing matches', admin.get('/admin/activity?who=nobody').get_data(as_text=True))
 
     def test_students_cant_reach_admin(self):
         self.register()

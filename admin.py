@@ -10,7 +10,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 import data
 import mail
 from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, grant_room,
-                  one, run, update_opp)
+                  is_owner, one, run, update_opp)
 
 bp = Blueprint('admin', __name__)
 PER_PAGE = 100
@@ -149,29 +149,91 @@ def users():
         target = one('SELECT * FROM users WHERE id=?', (request.form.get('id', ''),))
         if not target:
             abort(404)
-        role = request.form.get('role') if request.form.get('role') in data.ROLES else target['role']
-        disabled = 1 if request.form.get('disabled') else 0
-        loses_admin = target['role'] == 'admin' and (role != 'admin' or disabled)
-        admins = one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n']
-        if target['id'] == me['id'] and loses_admin:
-            flash('You can’t demote or disable your own account.', 'error')
-        elif loses_admin and admins <= 1:
-            flash('That would leave no active admin.', 'error')
-        elif (role, disabled) != (target['role'], target['disabled']):
-            # changing a role or disabling signs that person out everywhere, so new permissions apply immediately
-            run('UPDATE users SET role=?, disabled=?, session_version=session_version+1 WHERE id=?', (role, disabled, target['id']))
-            audit(me['id'], f"user_updated role={role} disabled={disabled}", target['email'])
-            flash(f"Updated {target['email']}.")
-        return redirect(url_for('admin.users'))
+        if is_owner(target) and not is_owner(me):
+            flash('Only the owner can change the owner’s account.', 'error')
+        elif request.form.get('action') == 'verify':
+            if not target['email_verified']:
+                run('UPDATE users SET email_verified=1 WHERE id=?', (target['id'],))
+                audit(me['id'], 'email_confirmed_by_admin', target['email'])
+                flash(f"Confirmed {target['email']}.")
+        else:
+            role = request.form.get('role') if request.form.get('role') in data.ROLES else target['role']
+            disabled = 1 if request.form.get('disabled') else 0
+            loses_admin = target['role'] == 'admin' and (role != 'admin' or disabled)
+            admins = one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n']
+            if target['id'] == me['id'] and loses_admin:
+                flash('You can’t demote or disable your own account.', 'error')
+            elif loses_admin and admins <= 1:
+                flash('That would leave no active admin.', 'error')
+            elif (role, disabled) != (target['role'], target['disabled']):
+                # changing a role or disabling signs that person out everywhere, so new permissions apply immediately
+                run('UPDATE users SET role=?, disabled=?, session_version=session_version+1 WHERE id=?', (role, disabled, target['id']))
+                audit(me['id'], f"user_updated role={role} disabled={disabled}", target['email'])
+                flash(f"Updated {target['email']}.")
+        return redirect(request.full_path)
+    a = request.args
+    f = {'q': a.get('q', ''), 'role': a.get('role') if a.get('role') in data.ROLES else '',
+         'status': a.get('status') if a.get('status') in USER_STATUSES else '',
+         'joined_from': a.get('joined_from') if data.parse_date(a.get('joined_from', '')) else '',
+         'joined_to': a.get('joined_to') if data.parse_date(a.get('joined_to', '')) else ''}
     cond, args = searched(('name', 'email', 'school'))
-    users, pg = paged('SELECT * FROM users' + (f' WHERE {cond}' if cond else '') + ' ORDER BY created_at DESC', args)
-    return render_template('admin/users.html', users=users, pg=pg, q=request.args.get('q', ''), status='')
+    where = [cond] if cond else []
+    if f['role']:
+        where.append('role=?')
+        args.append(f['role'])
+    if f['status']:
+        where.append(USER_STATUSES[f['status']][1])
+    if f['joined_from']:
+        where.append('substr(created_at, 1, 10) >= ?')
+        args.append(f['joined_from'])
+    if f['joined_to']:
+        where.append('substr(created_at, 1, 10) <= ?')
+        args.append(f['joined_to'])
+    users, pg = paged('SELECT * FROM users' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
+    return render_template('admin/users.html', users=users, pg=pg, f=f, statuses=USER_STATUSES,
+                           filtered=any(f.values()))
 
 
-@bp.get('/stats')
+USER_STATUSES = {'active': ('Active', 'disabled=0'), 'disabled': ('Disabled', 'disabled=1'),
+                 'unconfirmed': ('Email not confirmed', 'email_verified=0')}
+
+
+@bp.get('/users/<uid>')
+@admin_required
+def user_detail(uid):
+    """One person: their account, intern applications (matched by email), Access Grant requests, listings they
+    submitted and what they track. Opens in a pop-up on the Users page; on its own it's a normal page."""
+    u = one('SELECT * FROM users WHERE id=?', (uid,))
+    if not u:
+        abort(404)
+    return render_template('admin/user.html', u=u,
+        apps=all_('SELECT * FROM intern_applications WHERE lower(email)=? ORDER BY created_at DESC', (u['email'].lower(),)),
+        grants=all_('SELECT * FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (uid,)),
+        listings=all_('SELECT id, title, status, created_at FROM opportunities WHERE submitted_by=? ORDER BY created_at DESC', (uid,)),
+        counts=one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracked, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved,
+                      (SELECT COUNT(*) FROM user_days WHERE user_id=:u) days, (SELECT MAX(day) FROM user_days WHERE user_id=:u) last_seen''', {'u': uid}),
+        quote=one('SELECT quote, status FROM testimonials WHERE user_id=?', (uid,)))
+
+
+@bp.route('/stats', methods=['GET', 'POST'])
 @admin_required
 def stats():
-    """Numbers you can stand behind: every figure here is a straight count from the database."""
+    """Straight counts from the database. The owner can add a hand adjustment to a headline number (for things the site
+    can't see, like a placement arranged offline); it's shown next to the real count and recorded in Activity."""
+    if request.method == 'POST':
+        me, key = current_user(), request.form.get('key', '')
+        value = request.form.get('adjust', '').strip().replace('+', '')
+        if not is_owner(me):
+            abort(403)
+        if key not in STAT_KEYS or not value.lstrip('-').isdigit() or abs(int(value)) > 100000:
+            flash('Enter a whole number, like 3 or -2.', 'error')
+        else:
+            old = stat_adjustments().get(key, 0)
+            run("INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                ('stat_adj:' + key, int(value)))
+            audit(me['id'], f'stat_adjusted {key} {old:+d} to {int(value):+d}', key)
+            flash('Adjustment saved.')
+        return redirect(url_for('admin.stats') + '#' + key)
     today = date.fromisoformat(data.now_iso()[:10])  # UTC, the same clock user_days and created_at use
     ago = lambda days: (today - timedelta(days=days)).isoformat()
     n = lambda sql, args=(): one(sql, args)['n']
@@ -215,7 +277,30 @@ def stats():
         weeks.append({'start': start + timedelta(days=1), 'end': end,
                       'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
                       'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
-    return render_template('admin/stats.html', s=s, top=top[:20], weeks=weeks)
+    return render_template('admin/stats.html', s=s, adj=stat_adjustments(), top=top[:20], weeks=weeks)
+
+
+# the headline numbers on Stats the owner may adjust by hand
+STAT_KEYS = ('won_here', 'won', 'placed', 'members', 'engaged', 'active30', 'schools', 'tracked', 'saved', 'reminded',
+             'live', 'reviewed', 'removed')
+
+
+def stat_adjustments():
+    return {r['key'][9:]: int(r['value']) for r in all_("SELECT key, value FROM app_meta WHERE key LIKE 'stat_adj:%'") if int(r['value'])}
+
+
+@bp.context_processor
+def tab_badges():
+    """How many things are waiting on each admin tab, for the number badges in the admin menu."""
+    if not current_user() or current_user()['role'] != 'admin':
+        return {}
+    return {'badges': dict(one('''SELECT
+        (SELECT COUNT(*) FROM opportunities WHERE status='pending_review') listings,
+        (SELECT COUNT(*) FROM intern_applications WHERE status='new') interns,
+        (SELECT COUNT(*) FROM contact_messages WHERE status='new') messages,
+        (SELECT COUNT(*) FROM partner_inquiries WHERE status='new') partners,
+        (SELECT COUNT(*) FROM access_grants WHERE status='new') grants,
+        (SELECT COUNT(*) FROM testimonials WHERE status='pending') voices'''))}
 
 
 @bp.get('/backup')
@@ -237,13 +322,48 @@ def backup():
 @bp.get('/activity')
 @admin_required
 def activity():
-    reviews = all_('''SELECT e.action, e.message, e.created_at at, o.title, o.id opp_id, COALESCE(u.name, 'System') actor
-                      FROM review_events e JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
-                      ORDER BY e.id DESC LIMIT 60''')
-    audits = all_('''SELECT a.action, '' message, a.created_at at, a.target title, NULL opp_id, COALESCE(u.name, 'System') actor
-                     FROM audit_log a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.id DESC LIMIT 60''')
-    items = sorted([dict(r) for r in reviews] + [dict(r) for r in audits], key=lambda r: r['at'], reverse=True)[:60]
-    return render_template('admin/activity.html', items=items)
+    """Everything admins and the system did: listing reviews and account actions, newest first, searchable by who,
+    when and what. An action's kind is its first word (e.g. user_updated for a role change)."""
+    every = '''SELECT e.action, e.message, e.created_at at, o.title title, o.id opp_id, COALESCE(u.name, 'System') actor, u.email actor_email
+               FROM review_events e JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
+               UNION ALL
+               SELECT a.action, '', a.created_at, a.target, NULL, COALESCE(u.name, 'System'), u.email
+               FROM audit_log a LEFT JOIN users u ON u.id=a.actor_id'''
+    kind = "substr(action, 1, instr(action || ' ', ' ') - 1)"
+    a = request.args
+    f = {'who': a.get('who', '')[:100].strip(), 'kind': a.get('kind', '')[:60],
+         'from': a.get('from') if data.parse_date(a.get('from', '')) else '',
+         'to': a.get('to') if data.parse_date(a.get('to', '')) else ''}
+    where, args = [], []
+    if f['who']:
+        where.append('(lower(actor) LIKE ? OR lower(actor_email) LIKE ?)')
+        args += [f"%{f['who'].lower()}%"] * 2
+    if f['kind']:
+        where.append(f'{kind} = ?')
+        args.append(f['kind'])
+    if f['from']:
+        where.append('substr(at, 1, 10) >= ?')
+        args.append(f['from'])
+    if f['to']:
+        where.append('substr(at, 1, 10) <= ?')
+        args.append(f['to'])
+    items, pg = paged(f'SELECT * FROM ({every})' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY at DESC', args)
+    kinds = [r['k'] for r in all_(f'SELECT DISTINCT {kind} k FROM ({every}) ORDER BY k')]
+    return render_template('admin/activity.html', items=items, pg=pg, f=f, kinds=kinds, names=ACTION_NAMES, filtered=any(f.values()))
+
+
+# readable names for the kinds of action in Activity; anything else shows as its kind with spaces
+ACTION_NAMES = {
+    'user_updated': 'Changed a user’s role or access', 'email_confirmed_by_admin': 'Confirmed a user’s email by hand',
+    'account_deleted': 'Deleted their account', 'password_changed': 'Changed their password', 'password_reset': 'Reset their password',
+    'approve': 'Approved a listing', 'reject': 'Rejected a listing', 'request_changes': 'Asked for listing changes',
+    'expire': 'Expired a listing', 'reopen': 'Reopened a listing', 'edited': 'Edited a listing', 'submitted': 'Submitted a listing',
+    'resubmitted': 'Resubmitted a listing', 'imported': 'Imported a listing', 'bulk_approve': 'Bulk-approved listings',
+    'grant_approved': 'Approved an Access Grant', 'grant_needs_info': 'Asked about an Access Grant',
+    'grant_declined': 'Declined an Access Grant', 'grant_paid': 'Recorded an Access Grant payment',
+    'grant_withdrawn': 'Withdrew an Access Grant request', 'stat_adjusted': 'Adjusted a stat by hand',
+    'database_backup_downloaded': 'Downloaded a database backup',
+}
 
 
 @bp.route('/messages', methods=['GET', 'POST'])

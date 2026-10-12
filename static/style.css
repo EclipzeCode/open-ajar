@@ -815,6 +815,35 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 24px; overflow-x: auto; }
 .tabs a { padding: 10px 14px; text-decoration: none; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tabs a[aria-current="page"] { color: var(--ink-strong); border-color: var(--accent); }
+/* how many things are waiting on an admin tab */
+.tabs__n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 4px; border-radius: 99px;
+  background: var(--accent); color: #fff; font: 600 .72rem/1 var(--sans); vertical-align: 1px; }
+.filterbar__label { align-self: center; font-size: .85rem; color: var(--muted); }
+.filterbar--users input[type=date], .filterbar--users .dp { flex: 0 1 170px; }
+.link-btn { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
+.user-verify { margin-top: 4px; }
+.user-link { color: var(--ink-strong); }
+/* Stats: hand adjustments are always shown with the real count */
+.stat__adj { color: var(--warn); margin: 6px 0 0; }
+.stat__edit { margin-top: 8px; font-size: .85rem; }
+.stat__edit summary { cursor: pointer; color: var(--accent); }
+.stat__edit form { margin-top: 8px; }
+/* Admin user details, on its own page or in the pop-up */
+.user-detail__head { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+.user-detail__name { margin: 0; font-size: 1.4rem; }
+.user-detail__head p { margin: 2px 0 0; }
+.user-detail__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 20px; margin: 0 0 20px; }
+.user-detail__facts dt { font-size: .75rem; color: var(--muted); }
+.user-detail__facts dd { margin: 0; }
+.user-detail h3 { font-size: 1rem; margin: 20px 0 8px; }
+.user-detail__item { border-top: 1px solid var(--line); padding: 10px 0; }
+.user-detail__item p { margin: 0 0 4px; }
+.modal { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 64px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 30px 80px rgba(28, 25, 23, .25); }
+.modal::backdrop { background: rgba(28, 25, 23, .45); }
+.modal__body { padding: 28px; max-height: calc(100vh - 66px); overflow-y: auto; }
+.modal__close { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--soft);
+  font-size: 1.4rem; line-height: 1; cursor: pointer; z-index: 1; }
 .filterbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .filterbar input { flex: 1 1 220px; }
 .filterbar select { width: auto; }

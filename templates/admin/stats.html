@@ -1,42 +1,59 @@
 {% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
 {% block title %}Stats{% endblock %}
-{% macro stat(n, label, note=None, accent=False) %}
-  <div class="stat{% if accent %} stat--accent{% endif %}"><div class="stat__n">{{ '{:,}'.format(n) }}</div><p>{{ label }}</p>{% if note %}<p class="small stat__note">{{ note }}</p>{% endif %}</div>
+{# A headline number: the database count plus any hand adjustment, which is always shown. The owner can change it. #}
+{% macro stat(key, label, note=None, accent=False) %}
+  {% set extra = adj.get(key, 0) %}
+  <div class="stat{% if accent %} stat--accent{% endif %}" id="{{ key }}">
+    <div class="stat__n">{{ '{:,}'.format(s[key] + extra) }}</div><p>{{ label }}</p>
+    {% if note %}<p class="small stat__note">{{ note }}</p>{% endif %}
+    {% if extra %}<p class="small stat__adj">Includes {{ '{:+,}'.format(extra) }} added by hand · database count {{ '{:,}'.format(s[key]) }}</p>{% endif %}
+    {% if is_owner(user) %}
+      <details class="stat__edit"><summary>Adjust</summary>
+        <form class="inline-form" method="post">{{ m.csrf() }}<input type="hidden" name="key" value="{{ key }}">
+          <label class="sr-only" for="adj-{{ key }}">Add or subtract</label>
+          <input id="adj-{{ key }}" name="adjust" value="{{ '{:+d}'.format(extra) if extra else '' }}" placeholder="e.g. +3 or -1" inputmode="numeric" maxlength="7">
+          <button class="btn btn--sm btn--ghost" type="submit">Save</button>
+        </form>
+        <p class="small muted">Added to the database count. Use 0 to remove it. Recorded in Activity.</p>
+      </details>
+    {% endif %}
+  </div>
 {% endmacro %}
 {% block content %}
 <div class="wrap">
   <header class="page-head"><p class="eyebrow">Admin</p><h1>Stats</h1>
-    <p class="lead">Straight counts from the database, so every number here can be backed up.</p>
+    <p class="lead">Straight counts from the database{% if adj %}, plus any hand adjustments, each shown with its real count{% endif %}.</p>
     <p class="small"><a href="{{ url_for('admin.backup') }}">Download a backup of the database</a> <span class="muted">· holds everyone’s data, so keep it private</span></p></header>
   {% include 'admin/_nav.html' %}
 
   <h2 class="stats__h">Outcomes</h2>
   <div class="stats">
-    {{ stat(s.won_here, 'acceptances found on OpenAjar', s.won_students ~ ' different students', accent=True) }}
-    {{ stat(s.won, 'acceptances tracked in total', s.won_elsewhere ~ ' found elsewhere, ' ~ (s.won - s.won_here - s.won_elsewhere) ~ ' not answered yet') }}
-    {{ stat(s.placed, 'students placed as interns', s.intern_apps ~ ' intern applications') }}
+    {{ stat('won_here', 'acceptances found on OpenAjar', s.won_students ~ ' different students', accent=True) }}
+    {{ stat('won', 'acceptances tracked in total', s.won_elsewhere ~ ' found elsewhere, ' ~ (s.won - s.won_here - s.won_elsewhere) ~ ' not answered yet') }}
+    {{ stat('placed', 'students placed as interns', s.intern_apps ~ ' intern applications') }}
   </div>
 
   <h2 class="stats__h">Members and reach</h2>
   <div class="stats">
-    {{ stat(s.members, 'members', s.verified ~ ' confirmed their email') }}
-    {{ stat(s.engaged, 'engaged members', 'Saved or tracked at least one listing') }}
-    {{ stat(s.active30, 'active in the last 30 days', s.active7 ~ ' in the last 7 days') }}
-    {{ stat(s.schools, 'schools', s.with_school ~ ' members gave a school') }}
+    {{ stat('members', 'members', s.verified ~ ' confirmed their email') }}
+    {{ stat('engaged', 'engaged members', 'Saved or tracked at least one listing') }}
+    {{ stat('active30', 'active in the last 30 days', s.active7 ~ ' in the last 7 days') }}
+    {{ stat('schools', 'schools', s.with_school ~ ' members gave a school') }}
   </div>
 
   <h2 class="stats__h">Engagement</h2>
   <div class="stats">
-    {{ stat(s.tracked, 'applications tracked') }}
-    {{ stat(s.saved, 'listings saved') }}
-    {{ stat(s.reminded, 'deadline reminders sent') }}
+    {{ stat('tracked', 'applications tracked') }}
+    {{ stat('saved', 'listings saved') }}
+    {{ stat('reminded', 'deadline reminders sent') }}
   </div>
 
   <h2 class="stats__h">Listings</h2>
   <div class="stats">
-    {{ stat(s.live, 'live listings', (s.live - s.live_jobs) ~ ' opportunities, ' ~ s.live_jobs ~ ' jobs') }}
-    {{ stat(s.reviewed, 'listings reviewed by the team', s.checked ~ ' checked against the official page') }}
-    {{ stat(s.removed, 'removed as outdated or unconfirmed') }}
+    {{ stat('live', 'live listings', (s.live - s.live_jobs) ~ ' opportunities, ' ~ s.live_jobs ~ ' jobs') }}
+    {{ stat('reviewed', 'listings reviewed by the team', s.checked ~ ' checked against the official page') }}
+    {{ stat('removed', 'removed as outdated or unconfirmed') }}
   </div>
 
   <div class="stats-cols">
