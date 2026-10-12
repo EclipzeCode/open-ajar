@@ -544,6 +544,13 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 /* content pages */
 .about section { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding: 40px 0; border-top: 1px solid var(--line); }
 .about .pull { font-size: 1.6rem; line-height: 1.3; font-weight: 600; letter-spacing: -.03em; color: var(--ink-strong); }
+/* About: partner names in a tidy grid; a partner's testimonial shows under its name once there is one */
+.partners { list-style: none; padding: 0; margin: 8px 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.partner { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: #fff; }
+.partner__name { display: flex; align-items: center; gap: 12px; font: 600 1rem/1.3 var(--display); color: var(--ink-strong); }
+.partner__mark { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: .85rem; letter-spacing: .02em; }
+.partner__quote { margin: 12px 0 0; font-size: .92rem; color: var(--ink); }
+.partner__quote footer { margin-top: 6px; font-size: .82rem; color: var(--muted); }
 .levels { list-style: none; padding: 0; }
 .levels li { margin-bottom: 12px; }
 @media (max-width: 760px) { .about section { grid-template-columns: 1fr; gap: 8px; } }

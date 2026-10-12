@@ -113,6 +113,7 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 - [ ] Confirm email delivery from `hello@openajar.org` (see Current state).
 - [ ] Google Search Console: add `openajar.org` as a Domain property, add Google's TXT record in Shopify DNS, then submit `https://www.openajar.org/sitemap.xml`. Then import into Bing Webmaster Tools.
 - [ ] Link `www.openajar.org` from the team's social profiles and school pages (helps it rank for "Open Ajar").
+- [ ] Partner testimonials: Moon Tea, Coders Over Borders, Creator Colosseum and Partner Portal will send quotes. Paste each into its `quote` (plus `by` and `role`) in the partners list at the top of the Our partners section in `templates/about.html`; it shows under the name automatically.
 - [ ] Admin accounts for teammates: `flask --app app create-admin their@email` in the Render Shell.
 - [ ] Ideas not built yet:
   - A weekly "deadlines this month" email digest.

@@ -93,6 +93,12 @@ class Flows(unittest.TestCase):
         self.assertIn('<loc>https://www.example.org/jobs</loc>', xml)
         self.assertEqual(xml.count('<loc>https://www.example.org/o/'), 1)
 
+    def test_about_lists_partners_without_placeholder_quotes(self):
+        page = self.c.get('/about').get_data(as_text=True)
+        for name in ('Moon Tea', 'Ryujin', 'One Dollar Zone of Cedar Knolls', 'Coders Over Borders', 'Creator Colosseum', 'Partner Portal'):
+            self.assertIn(name, page)
+        self.assertNotIn('partner__quote', page)  # no quotes until partners send real ones
+
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
 
