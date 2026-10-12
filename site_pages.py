@@ -184,7 +184,7 @@ def submit(opp_id=None):
     if not u['email_verified']:
         return render_template('submit.html', unverified=True, values={}, errors={})
 
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         values = dict(existing or {}, requirements='\n'.join((existing or {}).get('requirements', [])))
         return render_template('submit.html', values=values, errors={}, existing=existing)
 
@@ -212,7 +212,7 @@ def submit(opp_id=None):
 
 @bp.route('/apply', methods=['GET', 'POST'])
 def apply():
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('apply.html', values={}, errors={})
     f = data.Form(request.form)
     f.text('full_name', 'Your name', min=2, max=120)
@@ -240,7 +240,7 @@ def apply():
 @bp.route('/partner', methods=['GET', 'POST'])
 def partner():
     """Businesses offering to host an intern. Saved first, then the team is emailed, so nothing is lost if email fails."""
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('partner.html', values={}, errors={})
     f = data.Form(request.form)
     f.text('business', 'Business name', min=2, max=160)
@@ -266,7 +266,7 @@ def partner():
 @bp.route('/contact', methods=['GET', 'POST'])
 def contact():
     """The footer's Contact form. Saved first, then forwarded to the team, so nothing is lost if email fails."""
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         u = current_user()
         return render_template('contact.html', values={'name': u['name'], 'email': u['email']} if u else {}, errors={})
     f = data.Form(request.form)
@@ -301,7 +301,7 @@ def grants():
     room = grant_room(u['id']) if u else data.GRANT_CAP
     can_apply = bool(u and u['email_verified'] and not pending and room)
     page = dict(mine=mine, pending=pending, room=room, can_apply=can_apply)
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         opp = get_public(request.args.get('opp', '')) if request.args.get('opp') else None
         values = {'program': opp['title'], 'org': opp['org'], 'url': opp['url'] or '', 'opportunity_id': opp['id']} if opp else {}
         return render_template('grants.html', values=values, errors={}, **page)
