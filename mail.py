@@ -119,8 +119,17 @@ def application_update(config, to, name, kind, title, status=None, message=''):
                   *([message] if message else [])]
     send(config, to, f"Update on your {what}: {title}", *_layout(
         status or 'An update from OpenAjar', paragraphs, 'See it on your profile', config['APP_URL'] + '/account#applications',
-        'Questions? Reply to this email. To see this on your profile, sign in with this email address.'),
+        'Reply from your profile, or just reply to this email. To see it on your profile, sign in with this email address.'),
         reply_to=config['CONTACT_EMAIL'])
+
+
+def applicant_reply(config, name, email, kind, title, message, link):
+    """Tell the team an applicant wrote back from their profile. Replying to the email goes straight to them."""
+    what = data.APPLICATION_KINDS[kind]['noun']
+    send(config, config['CONTACT_EMAIL'], f"{name} replied about their {what}", *_layout(
+        f"{name} replied about their {what}", [f"About: {title}", message], 'Open it in admin', config['APP_URL'] + link,
+        'Reply to this email to answer them directly, or send an update from admin so it shows on their profile.'),
+        reply_to=email)
 
 
 def _when(days):

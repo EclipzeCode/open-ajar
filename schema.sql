@@ -153,8 +153,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at  TEXT NOT NULL
 );
 
--- What the team told an applicant: a status change, a message, or both. Shown on the applicant's profile and emailed.
--- Listing submissions keep theirs in review_events.
+-- The conversation about an application: the team's updates (a status change, a message, or both; emailed) and the
+-- applicant's replies from their profile (by_applicant = 1). Listing submissions keep theirs in review_events.
 CREATE TABLE IF NOT EXISTS application_updates (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   kind       TEXT NOT NULL CHECK (kind IN ('intern','partner','grant')),   -- data.APPLICATION_KINDS
@@ -162,6 +162,7 @@ CREATE TABLE IF NOT EXISTS application_updates (
   actor_id   TEXT REFERENCES users(id) ON DELETE SET NULL,
   status     TEXT,                           -- the status it moved to, if it changed
   message    TEXT NOT NULL DEFAULT '',
+  by_applicant INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_updates_item ON application_updates(kind, item_id);

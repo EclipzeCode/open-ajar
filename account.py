@@ -3,13 +3,14 @@ import hashlib
 import json
 import secrets
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import data
 import mail
-from core import (all_, audit, client_ip, current_user, events_for, limited, login_required, new_id, one,
+from core import (add_event, all_, audit, client_ip, current_user, events_for, limited, login_required, new_id, one,
                   opp_dict, run, safe_next, sign_in)
 
 bp = Blueprint('account', __name__)
@@ -203,13 +204,13 @@ def account():
                            counts=dict(counts, applications=len(apps)), errors={})
 
 
-# review actions on a listing that the submitter sees as updates (not edits, imports or their own submitting)
-LISTING_UPDATES = ('approve', 'request_changes', 'reject', 'expire', 'reopen', 'message')
+# review events on a listing that make up its conversation with the submitter (not edits, imports or the submitting itself)
+LISTING_UPDATES = ('approve', 'request_changes', 'reject', 'expire', 'reopen', 'message', 'reply')
 
 
 def applications(u):
     """Everything this person has applied for or sent in, most recent activity first, each with its status, progress
-    steps and the team's updates. Internship applications and partner inquiries are sent without an account, so they're
+    steps and its conversation with the team (oldest first; `mine` marks their own replies). Internship applications and partner inquiries are sent without an account, so they're
     matched by email, and only once this account has confirmed it owns that email."""
     def item(kind, row, title, meta, updates, link=None, action=None):
         k = data.APPLICATION_KINDS[kind]
@@ -221,9 +222,10 @@ def applications(u):
         out = {}
         if ids:
             labels = data.APPLICATION_KINDS[kind]['statuses']
-            for r in all_(f"SELECT * FROM application_updates WHERE kind=? AND item_id IN ({','.join('?' * len(ids))}) ORDER BY id DESC",
+            for r in all_(f"SELECT * FROM application_updates WHERE kind=? AND item_id IN ({','.join('?' * len(ids))}) ORDER BY id",
                           (kind, *ids)):
-                out.setdefault(r['item_id'], []).append({'at': r['created_at'], 'status': labels.get(r['status']), 'message': r['message']})
+                out.setdefault(r['item_id'], []).append({'at': r['created_at'], 'status': labels.get(r['status']), 'message': r['message'],
+                                                         'mine': bool(r['by_applicant'])})
         return out
 
     items = []
@@ -240,16 +242,40 @@ def applications(u):
     ups = updates('grant', [r['id'] for r in rows])
     for r in rows:
         # requests answered before updates were kept still show their last message
-        old = [{'at': r['updated_at'], 'status': None, 'message': r['message']}] if r['message'] and r['id'] not in ups else []
+        old = [{'at': r['updated_at'], 'status': None, 'message': r['message'], 'mine': False}] if r['message'] and r['id'] not in ups else []
         items.append(item('grant', r, r['program'], f"{r['org']} · ${r['amount']} asked · sent {data.nice_date(r['created_at'])}",
                           ups.get(r['id'], old), url_for('site.grants')))
     for r in all_('SELECT * FROM opportunities WHERE submitted_by=?', (u['id'],)):
-        ups = [{'at': e['created_at'], 'status': None if e['action'] == 'message' else data.STATUSES[e['to_status']], 'message': e['message']}
-               for e in reversed(events_for(r['id'])) if e['action'] in LISTING_UPDATES]
+        ups = [{'at': e['created_at'], 'status': None if e['action'] in ('message', 'reply') else data.STATUSES[e['to_status']],
+                'message': e['message'], 'mine': e['action'] == 'reply'} for e in events_for(r['id']) if e['action'] in LISTING_UPDATES]
         items.append(item('listing', r, r['title'], f"{r['org']} · sent {data.nice_date(r['created_at'])}", ups,
                           url_for('site.detail', opp_id=r['id']) if r['status'] == 'approved' else None,
                           ('Revise and resend', url_for('site.submit', opp_id=r['id'])) if r['status'] == 'changes_requested' else None))
     return sorted(items, key=lambda x: x['at'], reverse=True)
+
+
+@bp.post('/account/applications/<kind>/<item_id>')
+@login_required
+def reply(kind, item_id):
+    """A message from the applicant to the team about one of their applications, from its card on the profile."""
+    u = current_user()
+    a = next((a for a in applications(u) if a['kind'] == kind and a['id'] == item_id), None)  # only their own
+    if not a:
+        abort(404)
+    message = data.clean(request.form.get('message', ''), multiline=True)[:1000]
+    if len(message) < 2:
+        return back('applications', 'Write a message first.')
+    if limited('reply:' + u['id'], 30, 3600):
+        return back('applications', 'You’ve sent a lot of messages in the last hour. Please try again later.')
+    if kind == 'listing':
+        add_event(item_id, u['id'], 'reply', a['status'], message)
+        link = f'/admin/o/{item_id}'
+    else:
+        run('INSERT INTO application_updates (kind, item_id, actor_id, message, by_applicant, created_at) VALUES (?,?,?,?,1,?)',
+            (kind, item_id, u['id'], message, data.now_iso()))
+        link = {'intern': '/admin/interns', 'partner': '/admin/partners', 'grant': '/admin/grants'}[kind] + '?' + urlencode({'q': u['email']})
+    mail.later('reply notice', mail.applicant_reply, current_app.config, u['name'], u['email'], kind, a['title'], message, link)
+    return redirect(url_for('account.account') + f'#app-{kind}-{item_id}')
 
 
 def back(section, msg, ok=False):

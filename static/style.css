@@ -799,6 +799,20 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .app__when strong { color: var(--ink-strong); font-weight: 600; }
 .app__msg { margin: 6px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--soft); font-size: .92rem; white-space: pre-line; }
 
+/* The conversation on an application card: the team's messages on the left, yours on the right, a one-line reply box */
+.thread { list-style: none; display: grid; gap: 10px; margin: 16px 0 0; padding: 0; }
+.thread__item { max-width: 85%; }
+.thread__item.is-mine { justify-self: end; text-align: right; }
+.thread__meta { margin: 0 0 4px; font-size: .78rem; color: var(--muted); }
+.thread__meta strong { color: var(--ink-strong); font-weight: 600; }
+.thread__msg { display: inline-block; margin: 0; padding: 9px 12px; border-radius: 12px; background: var(--soft); font-size: .92rem;
+  text-align: left; white-space: pre-line; overflow-wrap: anywhere; }
+.is-mine .thread__msg { background: var(--accent-soft); color: var(--ink-strong); }
+.thread__reply { display: flex; align-items: flex-end; gap: 8px; margin-top: 14px; }
+.thread__reply textarea { flex: 1; min-height: 40px; max-height: 160px; padding: 9px 12px; field-sizing: content; }
+.thread__reply .btn { height: 40px; }
+.app__updates li.is-reply .app__msg { background: var(--accent-soft); }
+
 /* Admin: an application on the left, the form to update the applicant on the right */
 .review-app { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; scroll-margin-top: 100px; }
 .review-app__head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
@@ -862,7 +876,21 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .filterbar__label { align-self: center; font-size: .85rem; color: var(--muted); }
 .filterbar--users input[type=date], .filterbar--users .dp { flex: 0 1 170px; }
 .link-btn { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
-.user-verify { margin-top: 4px; }
+/* Admin users: email verification badges, the Verify manually button and the Disabled switch */
+.user-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 8px; }
+.vbadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font: 600 .72rem/1.3 var(--sans); }
+.vbadge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.vbadge--yes { background: var(--ok-soft); color: var(--ok); }
+.vbadge--no { background: var(--warn-soft); color: var(--warn); }
+.vbadge--off { background: var(--danger-soft); color: var(--danger); }
+.btn--icon { gap: 6px; }
+.btn--icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.user-badges .btn--sm { padding: 3px 10px; font-size: .78rem; }
+.table .switch { min-height: 0; font-size: .875rem; gap: 8px; }
+.table .switch__track { width: 34px; height: 20px; }
+.table .switch__track::after { width: 14px; height: 14px; }
+.table .switch input:checked + .switch__track::after { transform: translateX(14px); }
+.switch--danger input:checked + .switch__track { background: var(--danger); }
 .user-link { color: var(--ink-strong); }
 /* Tracker: a header with three numbers, one row of stage filters, then a card per application */
 .tracker-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 32px; flex-wrap: wrap; margin-bottom: 20px; }

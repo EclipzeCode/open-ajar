@@ -1,14 +1,14 @@
 {# Shared parts of the admin pages for applications (interns, partners, grants). #}
 {% import '_macros.html' as m with context %}
 
-{# What the team has told this applicant, newest first (admin.updates_for). #}
+{# The conversation with this applicant, newest first (admin.updates_for): the team's updates and their replies. #}
 {% macro history(ups, labels) %}
 {% if ups %}
-<h3 class="review-app__h">Updates sent</h3>
+<h3 class="review-app__h">Messages</h3>
 <ol class="app__updates">
   {% for up in ups %}
-  <li>
-    <p class="app__when">{{ up.created_at|nice_date }} · {{ up.actor }}{% if up.status %} · <strong>{{ labels[up.status] }}</strong>{% endif %}</p>
+  <li{% if up.by_applicant %} class="is-reply"{% endif %}>
+    <p class="app__when">{{ up.created_at|nice_date }} · {{ ('Reply from ' ~ up.actor) if up.by_applicant else up.actor }}{% if up.status %} · <strong>{{ labels[up.status] }}</strong>{% endif %}</p>
     {% if up.message %}<p class="app__msg">{{ up.message }}</p>{% endif %}
   </li>
   {% endfor %}

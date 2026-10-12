@@ -228,6 +228,38 @@ class Flows(unittest.TestCase):
         self.assertIn('Welcome aboard!', page)  # admins see what was sent
         self.assertEqual(self.c.get('/admin/interns').status_code, 403)
 
+    def test_applicants_reply_from_their_profile(self):
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute('UPDATE users SET email_verified=1')
+        db.commit()
+        self.post('/apply', {'full_name': 'Sam Rivera', 'email': 'sam@example.org', 'statement': 'I want to learn how a small business runs.'})
+        self.post('/submit', LISTING)
+        aid = db.execute('SELECT id FROM intern_applications').fetchone()['id']
+        oid = db.execute('SELECT id FROM opportunities').fetchone()['id']
+        mail.OUTBOX.clear()
+        r = self.post(f'/account/applications/intern/{aid}', {'message': 'I’m free after 3 pm on weekdays.'})
+        self.assertTrue(r.headers['Location'].endswith(f'#app-intern-{aid}'))
+        self.post(f'/account/applications/listing/{oid}', {'message': 'The deadline is March 1.'})
+        self.assertEqual([m['to'] for m in mail.OUTBOX], [self.app.config['CONTACT_EMAIL']] * 2)  # the team hears about each
+        self.assertIn('Sam Rivera replied about their internship application', mail.OUTBOX[1]['subject'])
+        profile = self.c.get('/account').get_data(as_text=True)
+        self.assertEqual(profile.count('class="thread__item is-mine"'), 2)
+        self.assertIn('I’m free after 3 pm on weekdays.', profile)
+        admin = self.make_admin()
+        self.assertIn('Reply from Sam Rivera', admin.get('/admin/interns').get_data(as_text=True))
+        self.assertIn('The deadline is March 1.', admin.get(f'/admin/o/{oid}').get_data(as_text=True))
+        # nobody can write on someone else's application, and an empty message isn't sent
+        other = self.app.test_client()
+        self.register('lee@example.org', other)
+        self.assertEqual(self.post(f'/account/applications/intern/{aid}', {'message': 'Hi'}, other).status_code, 404)
+        self.post(f'/account/applications/intern/{aid}', {'message': ' '})
+        self.assertEqual(db.execute('SELECT COUNT(*) n FROM application_updates').fetchone()['n'], 1)
+        users = admin.get('/admin/users').get_data(as_text=True)
+        self.assertIn('vbadge--yes', users)  # Sam: verified
+        self.assertIn('vbadge--no', users)  # Lee: not yet
+        self.assertIn('Verify manually', users)
+
     def test_partners_grants_and_listing_submitters_get_updates_too(self):
         self.register()
         db = connect(self.app.config['DB_PATH'])

@@ -501,7 +501,7 @@ ACTION_NAMES = {
     'grant_declined': 'Declined an Access Grant', 'grant_paid': 'Recorded an Access Grant payment',
     'grant_withdrawn': 'Withdrew an Access Grant request', 'stat_adjusted': 'Adjusted a stat by hand',
     'database_backup_downloaded': 'Downloaded a database backup', 'application_update': 'Updated an applicant',
-    'message': 'Sent a listing submitter an update',
+    'message': 'Sent a listing submitter an update', 'reply': 'Replied about their listing',
 }
 
 
