@@ -478,6 +478,28 @@ document.addEventListener('submit', (e) => {
   if (el.willValidate && shownOn(el).getAttribute('aria-invalid') === 'true' && el.checkValidity()) clearError(el);
 }));
 
+// Password fields: an eye button shows or hides what's typed. It goes back to hidden on submit, so password managers
+// still recognise the field.
+const EYE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.1A10.7 10.7 0 0 1 12 6c6.5 0 10 6 10 6a17.6 17.6 0 0 1-3.2 3.9M6.6 6.6C3.8 8.4 2 12 2 12s3.5 6 10 6a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+document.querySelectorAll('input[type=password]').forEach((input) => {
+  const wrap = document.createElement('span'), btn = document.createElement('button');
+  wrap.className = 'pw';
+  btn.type = 'button';
+  btn.className = 'pw__toggle';
+  const show = (on) => {
+    input.type = on ? 'text' : 'password';
+    btn.innerHTML = on ? EYE_OFF : EYE;
+    btn.setAttribute('aria-pressed', on);
+    btn.setAttribute('aria-label', on ? 'Hide password' : 'Show password');
+  };
+  btn.addEventListener('click', () => { show(input.type === 'password'); input.focus(); });
+  input.form?.addEventListener('submit', () => show(false));
+  input.replaceWith(wrap);
+  wrap.append(input, btn);
+  show(false);
+});
+
 // Listing cards: the star saves or unsaves without reloading. Signed out, it goes to sign in instead, which finishes
 // the save afterwards. If anything goes wrong it falls back to a normal form post.
 document.addEventListener('submit', async (e) => {
