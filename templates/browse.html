@@ -50,6 +50,9 @@
 
     <div class="fbar" role="group" aria-label="Filters">
       <div class="fbar__pills">
+        {% if user %}
+          <label class="fpop__btn fsaved{% if f.saved_by %} is-active{% endif %}"><input type="checkbox" name="saved" value="1" {% if f.saved_by %}checked{% endif %}>Saved</label>
+        {% endif %}
         {{ pill('Grade', 'grade', D.GRADES, 'radio', {9: 'Grade 9', 10: 'Grade 10', 11: 'Grade 11', 12: 'Grade 12'}, 'Any grade') }}
         {{ pill('State', 'state', D.STATES|dictsort(by='value')|map('first')|list, 'radio', D.STATES, 'Any state') }}
         {% if sector != 'jobs' %}

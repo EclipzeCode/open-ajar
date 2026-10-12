@@ -421,6 +421,7 @@ document.querySelectorAll('form[data-autosubmit]').forEach((form) => {
   const pops = [...form.querySelectorAll('details.fpop')];
   let dirty = false;
   const closeAll = (except) => pops.forEach((d) => { if (d !== except) d.open = false; });
+  form.querySelectorAll('input[name="saved"]').forEach((i) => i.addEventListener('change', () => form.requestSubmit()));
   form.querySelectorAll('.fpop__done').forEach((b) => b.addEventListener('click', () => { b.closest('details').open = false; }));
   pops.forEach((d) => d.addEventListener('toggle', () => {
     if (d.open) closeAll(d);
