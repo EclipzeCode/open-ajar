@@ -41,7 +41,7 @@
       <a href="{{ url_for('site.grants') }}" {% if ep == 'site.grants' %}aria-current="page"{% endif %}>Access Grants</a>
       <a href="{{ url_for('site.about') }}" {% if ep in ('site.about', 'site.support') %}aria-current="page"{% endif %}>About</a>
       {% if user %}
-        {% if user.role == 'admin' %}<a href="{{ url_for('admin.queue') }}" {% if ep.startswith('admin.') %}aria-current="page"{% endif %}>Admin</a>{% endif %}
+        {% if user.role == 'admin' %}<a href="{{ url_for('admin.stats') }}" {% if ep.startswith('admin.') %}aria-current="page"{% endif %}>Admin</a>{% endif %}
         <a class="nav__account" href="{{ url_for('account.account') }}" {% if ep in ('account.account', 'account.tracker') %}aria-current="page"{% endif %}><span class="avatar" aria-hidden="true">{{ user.name[:1]|upper }}</span>Profile</a>
       {% else %}
         <a class="btn btn--sm" href="{{ url_for('account.login') }}">Sign in</a>

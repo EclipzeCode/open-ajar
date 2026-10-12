@@ -75,6 +75,11 @@ def load_user():
             session.clear()
 
 
+def is_owner(user):
+    """The owner is an admin with the email in OWNER_EMAIL."""
+    return bool(user) and user['role'] == 'admin' and user['email'] == current_app.config['OWNER_EMAIL']
+
+
 def sign_in(user):
     pending = session.get('pending')
     session.clear()

@@ -1,62 +1,67 @@
 {% extends 'base.html' %}
-{% block title %}Stats{% endblock %}
-{% macro stat(n, label, note=None, accent=False) %}
-  <div class="stat{% if accent %} stat--accent{% endif %}"><div class="stat__n">{{ '{:,}'.format(n) }}</div><p>{{ label }}</p>{% if note %}<p class="small stat__note">{{ note }}</p>{% endif %}</div>
-{% endmacro %}
+{% import '_macros.html' as m with context %}
+{% import 'admin/_charts.html' as c with context %}
+{% block title %}Overview{% endblock %}
 {% block content %}
+{# A number as shown: the database count plus any hand adjustment #}
+{% macro num(key) %}{{ '{:,}'.format(s[key] + adj.get(key, 0)) }}{% endmacro %}
+{% macro tile(key, label, sub) %}
+  <div class="kpi">
+    <p class="kpi__label">{{ label }}</p>
+    <p class="kpi__n">{{ num(key) }}</p>
+    <p class="kpi__sub">{{ sub }}{% if adj.get(key) %} · <span class="kpi__adj">{{ '{:+,}'.format(adj[key]) }} by hand</span>{% endif %}</p>
+  </div>
+{% endmacro %}
 <div class="wrap">
-  <header class="page-head"><p class="eyebrow">Admin</p><h1>Stats</h1>
-    <p class="lead">Straight counts from the database, so every number here can be backed up.</p>
-    <p class="small"><a href="{{ url_for('admin.backup') }}">Download a backup of the database</a> <span class="muted">· holds everyone’s data, so keep it private</span></p></header>
+  <header class="page-head admin-head">
+    <div><p class="eyebrow">Admin</p><h1>Overview</h1></div>
+    <div class="admin-head__actions">
+      <a class="btn btn--sm" href="{{ url_for('admin.export') }}">Download data (CSV)</a>
+      <a class="small muted" href="{{ url_for('admin.backup') }}" title="The whole database as one file, for restoring the site. Keep it private.">Full backup file</a>
+    </div>
+  </header>
   {% include 'admin/_nav.html' %}
 
-  <h2 class="stats__h">Outcomes</h2>
-  <div class="stats">
-    {{ stat(s.won_here, 'acceptances found on OpenAjar', s.won_students ~ ' different students', accent=True) }}
-    {{ stat(s.won, 'acceptances tracked in total', s.won_elsewhere ~ ' found elsewhere, ' ~ (s.won - s.won_here - s.won_elsewhere) ~ ' not answered yet') }}
-    {{ stat(s.placed, 'students placed as interns', s.intern_apps ~ ' intern applications') }}
+  <section class="kpis" aria-label="Headline numbers">
+    {{ tile('members', 'Members', '+' ~ s.joined7 ~ ' this week') }}
+    {{ tile('active30', 'Active, last 30 days', s.active7 ~ ' in the last 7 days') }}
+    {{ tile('won_here', 'Acceptances found here', s.won_students ~ ' student' ~ ('' if s.won_students == 1 else 's')) }}
+    {{ tile('live', 'Live listings', s.reviewed ~ ' reviewed by the team') }}
+  </section>
+
+  <div class="charts">
+    <section class="chart-card"><h2>New members per week</h2>{{ c.columns(weeks, 'signups', 'New members') }}</section>
+    <section class="chart-card"><h2>Active members per week</h2>{{ c.line(weeks, 'active', 'Active members') }}</section>
+    <section class="chart-card"><h2>Where accepted students found it</h2>
+      {{ c.donut(found, 'acceptances', 'No acceptances tracked yet. Students mark one by moving a tracked listing to Accepted.') }}</section>
+    <section class="chart-card"><h2>Tracked applications by stage</h2>{{ c.bars(stages, 'Tracked applications by stage') }}</section>
+    <section class="chart-card"><h2>Live listings by type</h2>{{ c.bars(types, 'Live listings by type') }}</section>
+    <section class="chart-card"><h2>Top schools</h2>{{ c.bars(s.top_schools, 'Members by school', 'No schools yet. Members can add theirs at signup or on their account page.') }}</section>
   </div>
 
-  <h2 class="stats__h">Members and reach</h2>
-  <div class="stats">
-    {{ stat(s.members, 'members', s.verified ~ ' confirmed their email') }}
-    {{ stat(s.engaged, 'engaged members', 'Saved or tracked at least one listing') }}
-    {{ stat(s.active30, 'active in the last 30 days', s.active7 ~ ' in the last 7 days') }}
-    {{ stat(s.schools, 'schools', s.with_school ~ ' members gave a school') }}
-  </div>
-
-  <h2 class="stats__h">Engagement</h2>
-  <div class="stats">
-    {{ stat(s.tracked, 'applications tracked') }}
-    {{ stat(s.saved, 'listings saved') }}
-    {{ stat(s.reminded, 'deadline reminders sent') }}
-  </div>
-
-  <h2 class="stats__h">Listings</h2>
-  <div class="stats">
-    {{ stat(s.live, 'live listings', (s.live - s.live_jobs) ~ ' opportunities, ' ~ s.live_jobs ~ ' jobs') }}
-    {{ stat(s.reviewed, 'listings reviewed by the team', s.checked ~ ' checked against the official page') }}
-    {{ stat(s.removed, 'removed as outdated or unconfirmed') }}
-  </div>
-
-  <div class="stats-cols">
-    <section class="panel">
-      <h2>Last 8 weeks</h2>
-      <table class="table">
-        <thead><tr><th>Week</th><th>New members</th><th>Active members</th></tr></thead>
-        <tbody>{% for w in weeks %}<tr><td>{{ w.start.strftime('%b %-d') }} – {{ w.end.strftime('%b %-d') }}</td><td>{{ w.signups }}</td><td>{{ w.active }}</td></tr>{% endfor %}</tbody>
-      </table>
-      <p class="muted small">Active means signed in and used the site that week. Counting started when this page was added.</p>
-    </section>
-    <section class="panel">
-      <h2>Schools</h2>
-      {% if top %}
-      <table class="table">
-        <thead><tr><th>School</th><th>Members</th></tr></thead>
-        <tbody>{% for name, c in top %}<tr><td>{{ name }}</td><td>{{ c }}</td></tr>{% endfor %}</tbody>
-      </table>
-      {% else %}<p class="muted">No schools yet. Members can add theirs at signup or on their account page.</p>{% endif %}
-    </section>
-  </div>
+  <section class="panel more" id="more">
+    <h2>All numbers</h2>
+    <p class="muted small">Straight counts from the database{% if is_owner(user) %}. As the owner you can add or subtract by hand for things the site can’t see (like a placement arranged offline); it’s always shown next to the real count and recorded in Activity{% endif %}.</p>
+    <table class="table more__table">
+      <tbody>
+        {% for key, label in labels.items() %}
+        <tr>
+          <th scope="row">{{ label }}</th>
+          <td class="more__n">{{ num(key) }}</td>
+          <td class="small">{% if adj.get(key) %}<span class="kpi__adj">{{ '{:+,}'.format(adj[key]) }} by hand</span> · database count {{ '{:,}'.format(s[key]) }}{% endif %}</td>
+          {% if is_owner(user) %}
+          <td class="more__edit">
+            <form class="inline-form" method="post">{{ m.csrf() }}<input type="hidden" name="key" value="{{ key }}">
+              <label class="sr-only" for="adj-{{ key }}">Add or subtract for {{ label }}</label>
+              <input id="adj-{{ key }}" name="adjust" value="{{ '{:+d}'.format(adj[key]) if adj.get(key) else '' }}" placeholder="±0" inputmode="numeric" maxlength="7">
+              <button class="btn btn--sm btn--ghost" type="submit">Save</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
 </div>
 {% endblock %}

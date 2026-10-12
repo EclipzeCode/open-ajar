@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{{ u.name }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin · <a href="{{ url_for('admin.users') }}">Users</a></p><h1>{{ u.name }}</h1></header>
+  {% include 'admin/_nav.html' %}
+  {# app.js lifts this block into a pop-up on the Users page #}
+  <div class="user-detail">
+    <div class="user-detail__head">
+      <span class="acct-avatar" aria-hidden="true">{{ u.name[:1]|upper }}</span>
+      <div>
+        <h2 class="user-detail__name">{{ u.name }}
+          {% if is_owner(u) %}<span class="pill pill--approved">Owner</span>{% endif %}
+          {% if u.disabled %}<span class="pill pill--declined">Disabled</span>{% endif %}</h2>
+        <p class="muted small"><a href="mailto:{{ u.email }}">{{ u.email }}</a> · {{ 'email confirmed' if u.email_verified else 'email not confirmed' }}</p>
+      </div>
+    </div>
+
+    <dl class="user-detail__facts">
+      <div><dt>Role</dt><dd>{{ u.role|capitalize }}</dd></div>
+      <div><dt>Joined</dt><dd>{{ u.created_at|day }}</dd></div>
+      <div><dt>Last active</dt><dd>{{ counts.last_seen or 'Not recorded' }}{% if counts.days %} · {{ counts.days }} day{{ '' if counts.days == 1 else 's' }} active{% endif %}</dd></div>
+      <div><dt>Grade</dt><dd>{{ u.grade or '—' }}</dd></div>
+      <div><dt>School</dt><dd>{{ u.school or '—' }}</dd></div>
+      <div><dt>Location</dt><dd>{{ u.location or '—' }}</dd></div>
+      <div><dt>Interests</dt><dd>{{ (u.interests|fromjson)|join(', ') or '—' }}</dd></div>
+      <div><dt>Tracker</dt><dd>{{ counts.tracked }} tracked · {{ counts.saved }} saved</dd></div>
+      <div><dt>Reminder emails</dt><dd>{{ 'On' if u.email_reminders else 'Off' }}</dd></div>
+    </dl>
+
+    <h3>Intern applications <span class="muted">({{ apps|length }})</span></h3>
+    {% for a in apps %}
+      <div class="user-detail__item">
+        <p><strong>Applied {{ a.created_at|day }}</strong> <span class="pill pill--{{ a.status }}">{{ a.status|capitalize }}</span></p>
+        <p class="small muted">{% if a.grade %}Grade {{ a.grade }} · {% endif %}{{ a.school or 'No school given' }}{% if a.location %} · {{ a.location }}{% endif %}{% if a.availability %} · {{ a.availability }}{% endif %}</p>
+        <p class="small">{{ a.statement }}</p>
+        {% if a.admin_note %}<p class="note small"><strong>Note:</strong> {{ a.admin_note }}</p>{% endif %}
+      </div>
+    {% else %}<p class="muted small">None.</p>{% endfor %}
+
+    <h3>Access Grant requests <span class="muted">({{ grants|length }})</span></h3>
+    {% for g in grants %}
+      <div class="user-detail__item">
+        <p><strong>{{ g.program }}</strong> · ${{ g.amount }} of ${{ g.total_cost }} <span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span></p>
+        <p class="small muted">{{ g.org }} · {{ g.covers }} · sent {{ g.created_at|day }}{% if g.paid_amount %} · paid ${{ g.paid_amount }} on {{ g.paid_on }}{% endif %}</p>
+      </div>
+    {% else %}<p class="muted small">None.</p>{% endfor %}
+
+    <h3>Listings submitted <span class="muted">({{ listings|length }})</span></h3>
+    {% for o in listings %}
+      <p class="small"><a href="{{ url_for('admin.review', opp_id=o.id) }}">{{ o.title }}</a> <span class="pill pill--{{ o.status }}">{{ D.STATUSES[o.status] }}</span> <span class="muted">· {{ o.created_at|day }}</span></p>
+    {% else %}<p class="muted small">None.</p>{% endfor %}
+
+    {% if quote %}
+      <h3>Community voices quote</h3>
+      <p class="small">“{{ quote.quote }}” <span class="pill pill--{{ quote.status }}">{{ quote.status|capitalize }}</span></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

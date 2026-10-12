@@ -1,8 +1,13 @@
 """Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries, contact messages,
 Community Voices and Access Grants."""
+import csv
+import io
+import json
 import os
+import re
 import sqlite3
 import tempfile
+import zipfile
 from datetime import date, timedelta
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_file, url_for
@@ -10,7 +15,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 import data
 import mail
 from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, grant_room,
-                  one, run, update_opp)
+                  is_owner, one, run, update_opp)
 
 bp = Blueprint('admin', __name__)
 PER_PAGE = 100
@@ -149,29 +154,117 @@ def users():
         target = one('SELECT * FROM users WHERE id=?', (request.form.get('id', ''),))
         if not target:
             abort(404)
-        role = request.form.get('role') if request.form.get('role') in data.ROLES else target['role']
-        disabled = 1 if request.form.get('disabled') else 0
-        loses_admin = target['role'] == 'admin' and (role != 'admin' or disabled)
-        admins = one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n']
-        if target['id'] == me['id'] and loses_admin:
-            flash('You can’t demote or disable your own account.', 'error')
-        elif loses_admin and admins <= 1:
-            flash('That would leave no active admin.', 'error')
-        elif (role, disabled) != (target['role'], target['disabled']):
-            # changing a role or disabling signs that person out everywhere, so new permissions apply immediately
-            run('UPDATE users SET role=?, disabled=?, session_version=session_version+1 WHERE id=?', (role, disabled, target['id']))
-            audit(me['id'], f"user_updated role={role} disabled={disabled}", target['email'])
-            flash(f"Updated {target['email']}.")
-        return redirect(url_for('admin.users'))
+        if is_owner(target) and not is_owner(me):
+            flash('Only the owner can change the owner’s account.', 'error')
+        elif request.form.get('action') == 'verify':
+            if not target['email_verified']:
+                run('UPDATE users SET email_verified=1 WHERE id=?', (target['id'],))
+                audit(me['id'], 'email_confirmed_by_admin', target['email'])
+                flash(f"Confirmed {target['email']}.")
+        else:
+            role = request.form.get('role') if request.form.get('role') in data.ROLES else target['role']
+            disabled = 1 if request.form.get('disabled') else 0
+            loses_admin = target['role'] == 'admin' and (role != 'admin' or disabled)
+            admins = one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n']
+            if target['id'] == me['id'] and loses_admin:
+                flash('You can’t demote or disable your own account.', 'error')
+            elif loses_admin and admins <= 1:
+                flash('That would leave no active admin.', 'error')
+            elif (role, disabled) != (target['role'], target['disabled']):
+                # changing a role or disabling signs that person out everywhere, so new permissions apply immediately
+                run('UPDATE users SET role=?, disabled=?, session_version=session_version+1 WHERE id=?', (role, disabled, target['id']))
+                audit(me['id'], f"user_updated role={role} disabled={disabled}", target['email'])
+                flash(f"Updated {target['email']}.")
+        return redirect(request.full_path)
+    a = request.args
+    f = {'q': a.get('q', ''), 'role': a.get('role') if a.get('role') in data.ROLES else '',
+         'status': a.get('status') if a.get('status') in USER_STATUSES else '',
+         'joined_from': a.get('joined_from') if data.parse_date(a.get('joined_from', '')) else '',
+         'joined_to': a.get('joined_to') if data.parse_date(a.get('joined_to', '')) else ''}
     cond, args = searched(('name', 'email', 'school'))
-    users, pg = paged('SELECT * FROM users' + (f' WHERE {cond}' if cond else '') + ' ORDER BY created_at DESC', args)
-    return render_template('admin/users.html', users=users, pg=pg, q=request.args.get('q', ''), status='')
+    where = [cond] if cond else []
+    if f['role']:
+        where.append('role=?')
+        args.append(f['role'])
+    if f['status']:
+        where.append(USER_STATUSES[f['status']][1])
+    if f['joined_from']:
+        where.append('substr(created_at, 1, 10) >= ?')
+        args.append(f['joined_from'])
+    if f['joined_to']:
+        where.append('substr(created_at, 1, 10) <= ?')
+        args.append(f['joined_to'])
+    users, pg = paged('SELECT * FROM users' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
+    return render_template('admin/users.html', users=users, pg=pg, f=f, statuses=USER_STATUSES,
+                           filtered=any(f.values()))
 
 
-@bp.get('/stats')
+USER_STATUSES = {'active': ('Active', 'disabled=0'), 'disabled': ('Disabled', 'disabled=1'),
+                 'unconfirmed': ('Email not confirmed', 'email_verified=0')}
+
+
+@bp.get('/users/<uid>')
+@admin_required
+def user_detail(uid):
+    """One person: their account, intern applications (matched by email), Access Grant requests, listings they
+    submitted and what they track. Opens in a pop-up on the Users page; on its own it's a normal page."""
+    u = one('SELECT * FROM users WHERE id=?', (uid,))
+    if not u:
+        abort(404)
+    return render_template('admin/user.html', u=u,
+        apps=all_('SELECT * FROM intern_applications WHERE lower(email)=? ORDER BY created_at DESC', (u['email'].lower(),)),
+        grants=all_('SELECT * FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (uid,)),
+        listings=all_('SELECT id, title, status, created_at FROM opportunities WHERE submitted_by=? ORDER BY created_at DESC', (uid,)),
+        counts=one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracked, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved,
+                      (SELECT COUNT(*) FROM user_days WHERE user_id=:u) days, (SELECT MAX(day) FROM user_days WHERE user_id=:u) last_seen''', {'u': uid}),
+        quote=one('SELECT quote, status FROM testimonials WHERE user_id=?', (uid,)))
+
+
+@bp.route('/stats', methods=['GET', 'POST'])
 @admin_required
 def stats():
-    """Numbers you can stand behind: every figure here is a straight count from the database."""
+    """The overview: headline numbers, a few charts, and every other count in one table. Straight counts from the
+    database; the owner can add a hand adjustment to a number (for things the site can't see, like a placement arranged
+    offline), which is always shown next to the real count and recorded in Activity."""
+    if request.method == 'POST':
+        me, key = current_user(), request.form.get('key', '')
+        value = request.form.get('adjust', '').strip().replace('+', '')
+        if not is_owner(me):
+            abort(403)
+        if key not in STAT_LABELS or not value.lstrip('-').isdigit() or abs(int(value)) > 100000:
+            flash('Enter a whole number, like 3 or -2.', 'error')
+        else:
+            old = stat_adjustments().get(key, 0)
+            run("INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                ('stat_adj:' + key, int(value)))
+            audit(me['id'], f'stat_adjusted {key} {old:+d} to {int(value):+d}', key)
+            flash('Adjustment saved.')
+        return redirect(url_for('admin.stats') + '#more')
+    s, adj = _stat_numbers(), stat_adjustments()
+    today = date.fromisoformat(data.now_iso()[:10])
+    n = lambda sql, args=(): one(sql, args)['n']
+    weeks = []  # the last 12 weeks, oldest first
+    for i in reversed(range(12)):
+        end, start = today - timedelta(days=7 * i), today - timedelta(days=7 * (i + 1))
+        weeks.append({'label': (start + timedelta(days=1)).strftime('%b %-d'),
+                      'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
+                      'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
+    stage_n = {r['stage']: r['n'] for r in all_('SELECT stage, COUNT(*) n FROM tracked GROUP BY stage')}
+    return render_template('admin/stats.html', s=s, adj=adj, weeks=weeks, labels=STAT_LABELS, nice=_nice_top,
+        stages=[(st, stage_n.get(st, 0)) for st in data.STAGES],
+        found=[('Found on OpenAjar', s['won_here']), ('Found elsewhere', s['won_elsewhere']),
+               ('Not answered yet', s['won'] - s['won_here'] - s['won_elsewhere'])],
+        types=_top_and_other([(('Teen jobs' if r['type'] == 'Job' else r['type']), r['n']) for r in
+               all_("SELECT type, COUNT(*) n FROM opportunities WHERE status='approved' GROUP BY type ORDER BY n DESC")]))
+
+
+def _top_and_other(items, keep=7):
+    """The biggest few, with the rest added up as Other, so a chart stays short."""
+    return items if len(items) <= keep + 1 else items[:keep] + [('Other', sum(n for _, n in items[keep:]))]
+
+
+def _stat_numbers():
+    """Every count on Stats and in the export's summary, straight from the database."""
     today = date.fromisoformat(data.now_iso()[:10])  # UTC, the same clock user_days and created_at use
     ago = lambda days: (today - timedelta(days=days)).isoformat()
     n = lambda sql, args=(): one(sql, args)['n']
@@ -180,6 +273,7 @@ def stats():
     s = {
         'members': n('SELECT COUNT(*) n FROM users WHERE disabled=0'),
         'verified': n('SELECT COUNT(*) n FROM users WHERE disabled=0 AND email_verified=1'),
+        'joined7': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ?', (ago(7),)),
         'engaged': n("""SELECT COUNT(*) n FROM users u WHERE disabled=0 AND (EXISTS (SELECT 1 FROM saved WHERE user_id=u.id)
                         OR EXISTS (SELECT 1 FROM tracked WHERE user_id=u.id))"""),
         'active7': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ?', (ago(7),)),
@@ -194,28 +288,57 @@ def stats():
         'placed': n("SELECT COUNT(*) n FROM intern_applications WHERE status='placed'"),
         'intern_apps': n('SELECT COUNT(*) n FROM intern_applications'),
         'live': n("SELECT COUNT(*) n FROM opportunities WHERE status='approved'"),
-        'live_jobs': n("SELECT COUNT(*) n FROM opportunities WHERE status='approved' AND type='Job'"),
         'reviewed': n('SELECT COUNT(DISTINCT opportunity_id) n FROM review_events'),
         'checked': n("SELECT COUNT(*) n FROM opportunities WHERE verification='verified'"),
         'removed': n("SELECT COUNT(*) n FROM opportunities WHERE status IN ('rejected','expired')"),
+        'grants_paid': n("SELECT COALESCE(SUM(paid_amount), 0) n FROM access_grants WHERE status='paid'"),
     }
     # Schools: typed freely, so group case- and space-insensitively and show the most common spelling
     schools = {}
     for r in all_("SELECT school FROM users WHERE disabled=0 AND school <> ''"):
-        key = ' '.join(r['school'].lower().split())
-        names = schools.setdefault(key, {})
+        names = schools.setdefault(' '.join(r['school'].lower().split()), {})
         names[r['school']] = names.get(r['school'], 0) + 1
-    top = sorted(((max(v, key=v.get), sum(v.values())) for v in schools.values()), key=lambda x: -x[1])
+    s['top_schools'] = sorted(((max(v, key=v.get), sum(v.values())) for v in schools.values()), key=lambda x: -x[1])[:8]
     s['schools'] = len(schools)
-    s['with_school'] = sum(c for _, c in top)
-    # Last 8 weeks, newest first
-    weeks = []
-    for i in range(8):
-        end, start = today - timedelta(days=7 * i), today - timedelta(days=7 * (i + 1))
-        weeks.append({'start': start + timedelta(days=1), 'end': end,
-                      'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
-                      'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
-    return render_template('admin/stats.html', s=s, top=top[:20], weeks=weeks)
+    return s
+
+
+def _nice_top(v):
+    """A round top for a chart axis at or above v whose half is whole too: 2, 4, 6, 10, 20, 40, 60, 100... (37 -> 40)."""
+    step = 1
+    while True:
+        for m in (2, 4, 6, 10):
+            if v <= m * step:
+                return m * step
+        step *= 10
+
+
+# the numbers on Stats (and in the export's summary) the owner may adjust by hand, in the order they're listed
+STAT_LABELS = {
+    'members': 'Members', 'active30': 'Active in the last 30 days', 'engaged': 'Engaged (saved or tracked a listing)',
+    'schools': 'Schools', 'won_here': 'Acceptances found on OpenAjar', 'won': 'Acceptances tracked in total',
+    'placed': 'Students placed as interns', 'tracked': 'Applications tracked', 'saved': 'Listings saved',
+    'reminded': 'Deadline reminders sent', 'live': 'Live listings', 'reviewed': 'Listings reviewed by the team',
+    'removed': 'Listings removed as outdated', 'grants_paid': 'Access Grants paid ($)',
+}
+
+
+def stat_adjustments():
+    return {r['key'][9:]: int(r['value']) for r in all_("SELECT key, value FROM app_meta WHERE key LIKE 'stat_adj:%'") if int(r['value'])}
+
+
+@bp.context_processor
+def tab_badges():
+    """How many things are waiting on each admin tab, for the number badges in the admin menu."""
+    if not current_user() or current_user()['role'] != 'admin':
+        return {}
+    return {'badges': dict(one('''SELECT
+        (SELECT COUNT(*) FROM opportunities WHERE status='pending_review') listings,
+        (SELECT COUNT(*) FROM intern_applications WHERE status='new') interns,
+        (SELECT COUNT(*) FROM contact_messages WHERE status='new') messages,
+        (SELECT COUNT(*) FROM partner_inquiries WHERE status='new') partners,
+        (SELECT COUNT(*) FROM access_grants WHERE status='new') grants,
+        (SELECT COUNT(*) FROM testimonials WHERE status='pending') voices'''))}
 
 
 @bp.get('/backup')
@@ -234,16 +357,127 @@ def backup():
     return resp
 
 
+@bp.get('/export')
+@admin_required
+def export():
+    """Everything people can read in a spreadsheet: a zip with one CSV per area, readable headers, emails and titles
+    instead of internal ids, and plain dates. Password hashes and sign-in tokens are left out."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:
+        for name, sql in EXPORTS.items():
+            cur = get_db().execute(sql)
+            out = io.StringIO()
+            w = csv.writer(out)
+            w.writerow([c[0] for c in cur.description])
+            w.writerows([_cell(v) for v in row] for row in cur)
+            z.writestr(f'{name}.csv', '﻿' + out.getvalue())  # the BOM tells Excel it's UTF-8
+        s, adj = _stat_numbers(), stat_adjustments()
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow(['Number', 'Database count', 'Added by hand', 'Shown on Stats'])
+        w.writerows([label, s[k], adj.get(k, 0), s[k] + adj.get(k, 0)] for k, label in STAT_LABELS.items())
+        z.writestr('summary.csv', '﻿' + out.getvalue())
+    audit(current_user()['id'], 'data_exported', 'all data (CSV)')
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name=f"openajar-data-{data.now_iso()[:10]}.zip", mimetype='application/zip')
+
+
+def _cell(v):
+    """A database value as people read it: dates without the T and seconds, lists one after another."""
+    if isinstance(v, str) and ISO_TIME.match(v):
+        return v[:10] + ' ' + v[11:16]
+    if isinstance(v, str) and v.startswith('['):
+        try:
+            items = json.loads(v)
+        except ValueError:
+            return v
+        return '; '.join(('✓ ' if i.get('done') else '') + i.get('text', '') if isinstance(i, dict) else str(i) for i in items)
+    return '' if v is None else v
+
+
+ISO_TIME = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}')
+YES = lambda col: f"CASE WHEN {col} THEN 'Yes' ELSE 'No' END"
+EXPORTS = {  # file name -> query with readable column names
+    'members': f'''SELECT name "Name", email "Email", role "Role", school "School", grade "Grade", location "Location",
+        interests "Interests", {YES('email_verified')} "Email confirmed", {YES('email_reminders')} "Reminder emails",
+        {YES('disabled')} "Disabled", created_at "Joined" FROM users ORDER BY created_at''',
+    'listings': '''SELECT title "Title", org "Organization", type "Type", status "Status", verification "Checked", cost "Cost",
+        cost_note "Cost note", format "Format", location "Location", state "State", commitment "Commitment", grades "Grades",
+        interests "Interests", deadline_date "Deadline", deadline_note "Deadline note", url "Link", summary "Summary",
+        eligibility "Eligibility", requirements "Requirements", source "Source", published_at "Published", expires_at "Expires",
+        updated_at "Last updated" FROM opportunities ORDER BY title''',
+    'tracker': f'''SELECT u.email "Student", o.title "Listing", t.stage "Stage", t.deadline "Own deadline", t.checklist "Checklist",
+        t.notes "Notes", CASE t.found_here WHEN 1 THEN 'Yes' WHEN 0 THEN 'No' END "Found on OpenAjar", t.added_at "Added"
+        FROM tracked t JOIN users u ON u.id=t.user_id JOIN opportunities o ON o.id=t.opportunity_id ORDER BY t.added_at''',
+    'saved': '''SELECT u.email "Student", o.title "Listing", s.created_at "Saved" FROM saved s JOIN users u ON u.id=s.user_id
+        JOIN opportunities o ON o.id=s.opportunity_id ORDER BY s.created_at''',
+    'intern-applications': '''SELECT full_name "Name", email "Email", grade "Grade", school "School", location "Location",
+        interests "Interests", skills "Skills", availability "Availability", statement "Why they want to intern", link "Link",
+        status "Status", admin_note "Private note", created_at "Applied" FROM intern_applications ORDER BY created_at''',
+    'partner-inquiries': '''SELECT business "Business", contact_name "Contact", email "Email", phone "Phone", location "Location",
+        message "Message", status "Status", admin_note "Private note", created_at "Sent" FROM partner_inquiries ORDER BY created_at''',
+    'messages': '''SELECT name "Name", email "Email", topic "Topic", message "Message", status "Status", admin_note "Private note",
+        created_at "Sent" FROM contact_messages ORDER BY created_at''',
+    'quotes': '''SELECT name "Name", role_label "Role", quote "Quote", status "Status", updated_at "Updated" FROM testimonials
+        ORDER BY updated_at''',
+    'access-grants': '''SELECT name "Student", email "Email", parent_email "Parent or guardian", program "Program", org "Organization",
+        url "Link", covers "Fee for", total_cost "Total cost ($)", amount "Asked for ($)", due_date "Due", accepted "Accepted",
+        asked_program "Asked the program for aid", reason "Why", status "Status", approved_amount "Approved ($)",
+        approved_at "Approved", paid_amount "Paid ($)", paid_on "Paid on", paid_method "Paid by", paid_ref "Reference",
+        admin_note "Private note", created_at "Sent" FROM access_grants ORDER BY created_at''',
+    'activity': '''SELECT at "When", actor "Who", action "Action", title "About", message "Note" FROM (
+        SELECT e.created_at at, COALESCE(u.email, 'System') actor, e.action, o.title, e.message FROM review_events e
+        JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
+        UNION ALL SELECT a.created_at, COALESCE(u.email, 'System'), a.action, a.target, '' FROM audit_log a
+        LEFT JOIN users u ON u.id=a.actor_id) ORDER BY at DESC''',
+}
+
+
 @bp.get('/activity')
 @admin_required
 def activity():
-    reviews = all_('''SELECT e.action, e.message, e.created_at at, o.title, o.id opp_id, COALESCE(u.name, 'System') actor
-                      FROM review_events e JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
-                      ORDER BY e.id DESC LIMIT 60''')
-    audits = all_('''SELECT a.action, '' message, a.created_at at, a.target title, NULL opp_id, COALESCE(u.name, 'System') actor
-                     FROM audit_log a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.id DESC LIMIT 60''')
-    items = sorted([dict(r) for r in reviews] + [dict(r) for r in audits], key=lambda r: r['at'], reverse=True)[:60]
-    return render_template('admin/activity.html', items=items)
+    """Everything admins and the system did: listing reviews and account actions, newest first, searchable by who,
+    when and what. An action's kind is its first word (e.g. user_updated for a role change)."""
+    every = '''SELECT e.action, e.message, e.created_at at, o.title title, o.id opp_id, COALESCE(u.name, 'System') actor, u.email actor_email
+               FROM review_events e JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
+               UNION ALL
+               SELECT a.action, '', a.created_at, a.target, NULL, COALESCE(u.name, 'System'), u.email
+               FROM audit_log a LEFT JOIN users u ON u.id=a.actor_id'''
+    kind = "substr(action, 1, instr(action || ' ', ' ') - 1)"
+    a = request.args
+    f = {'who': a.get('who', '')[:100].strip(), 'kind': a.get('kind', '')[:60],
+         'from': a.get('from') if data.parse_date(a.get('from', '')) else '',
+         'to': a.get('to') if data.parse_date(a.get('to', '')) else ''}
+    where, args = [], []
+    if f['who']:
+        where.append('(lower(actor) LIKE ? OR lower(actor_email) LIKE ?)')
+        args += [f"%{f['who'].lower()}%"] * 2
+    if f['kind']:
+        where.append(f'{kind} = ?')
+        args.append(f['kind'])
+    if f['from']:
+        where.append('substr(at, 1, 10) >= ?')
+        args.append(f['from'])
+    if f['to']:
+        where.append('substr(at, 1, 10) <= ?')
+        args.append(f['to'])
+    items, pg = paged(f'SELECT * FROM ({every})' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY at DESC', args)
+    kinds = [r['k'] for r in all_(f'SELECT DISTINCT {kind} k FROM ({every}) ORDER BY k')]
+    return render_template('admin/activity.html', items=items, pg=pg, f=f, kinds=kinds, names=ACTION_NAMES, filtered=any(f.values()))
+
+
+# readable names for the kinds of action in Activity; anything else shows as its kind with spaces
+ACTION_NAMES = {
+    'user_updated': 'Changed a user’s role or access', 'email_confirmed_by_admin': 'Confirmed a user’s email by hand',
+    'account_deleted': 'Deleted their account', 'password_changed': 'Changed their password', 'password_reset': 'Reset their password',
+    'approve': 'Approved a listing', 'reject': 'Rejected a listing', 'request_changes': 'Asked for listing changes',
+    'expire': 'Expired a listing', 'reopen': 'Reopened a listing', 'edited': 'Edited a listing', 'submitted': 'Submitted a listing',
+    'resubmitted': 'Resubmitted a listing', 'imported': 'Imported a listing', 'bulk_approve': 'Bulk-approved listings',
+    'grant_approved': 'Approved an Access Grant', 'grant_needs_info': 'Asked about an Access Grant',
+    'grant_declined': 'Declined an Access Grant', 'grant_paid': 'Recorded an Access Grant payment',
+    'grant_withdrawn': 'Withdrew an Access Grant request', 'stat_adjusted': 'Adjusted a stat by hand',
+    'database_backup_downloaded': 'Downloaded a database backup',
+}
 
 
 @bp.route('/messages', methods=['GET', 'POST'])

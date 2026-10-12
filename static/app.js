@@ -760,6 +760,30 @@ function enhanceDate(input) {
 }
 document.querySelectorAll('input[type=date]').forEach(enhanceDate);
 
+// Admin Users: a name opens that person's details in a pop-up. The link still works as a normal page (new tab, no JS).
+const userLinks = document.querySelectorAll('[data-user-modal]');
+if (userLinks.length) {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'modal';
+  dialog.innerHTML = '<button class="modal__close" type="button" aria-label="Close">×</button><div class="modal__body"></div>';
+  document.body.append(dialog);
+  const body = dialog.querySelector('.modal__body');
+  dialog.querySelector('.modal__close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); }); // a click on the backdrop
+  userLinks.forEach((a) => a.addEventListener('click', async (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    try {
+      const r = await fetch(a.href);
+      if (!r.ok) throw new Error();
+      const detail = new DOMParser().parseFromString(await r.text(), 'text/html').querySelector('.user-detail');
+      body.replaceChildren(document.importNode(detail, true));
+      dialog.showModal();
+      body.scrollTop = 0;
+    } catch { location.href = a.href; }
+  }));
+}
+
 // Admin queue: select-all checkbox
 document.querySelector('[data-select-all]')?.addEventListener('change', (e) => {
   e.target.closest('form').querySelectorAll('input[name=ids]').forEach((c) => { c.checked = e.target.checked; });

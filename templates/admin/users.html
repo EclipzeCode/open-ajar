@@ -4,18 +4,42 @@
 {% block content %}
 <div class="wrap">
   <header class="page-head"><p class="eyebrow">Admin</p><h1>Users</h1>
-    <p class="muted">Changing someone’s role or disabling them signs them out everywhere. The last admin can’t be removed.</p></header>
+    <p class="muted">Click a name to see their details and applications. Changing someone’s role or disabling them signs them out
+      everywhere. The last admin can’t be removed, and only the owner can change the owner’s account.</p></header>
   {% include 'admin/_nav.html' %}
-  {% with placeholder='Search name, email or school' %}{% include 'admin/_find.html' %}{% endwith %}
+
+  <form class="filterbar filterbar--users" method="get">
+    <label class="sr-only" for="uq">Name, email or school</label><input id="uq" name="q" value="{{ f.q }}" placeholder="Name, email or school">
+    <label class="sr-only" for="urole">Role</label>
+    <select id="urole" name="role"><option value="">Any role</option>{% for r in D.ROLES %}<option value="{{ r }}" {% if f.role == r %}selected{% endif %}>{{ r|capitalize }}</option>{% endfor %}</select>
+    <label class="sr-only" for="ustatus">Status</label>
+    <select id="ustatus" name="status"><option value="">Any status</option>{% for k, (label, _) in statuses.items() %}<option value="{{ k }}" {% if f.status == k %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <label class="filterbar__label" for="ufrom">Joined</label><input id="ufrom" type="date" name="joined_from" value="{{ f.joined_from }}" aria-label="Joined on or after">
+    <label class="filterbar__label" for="uto">to</label><input id="uto" type="date" name="joined_to" value="{{ f.joined_to }}" aria-label="Joined on or before">
+    <button class="btn btn--sm" type="submit">Filter</button>
+    {% if filtered %}<a class="link small" href="{{ url_for('admin.users') }}">Clear</a>{% endif %}
+  </form>
+
   <div class="table-wrap">
     <table class="table">
       <thead><tr><th>Person</th><th>Joined</th><th>Role and access</th></tr></thead>
       <tbody>
         {% for u in users %}
+        {% set locked = is_owner(u) and not is_owner(user) %}
         <tr>
-          <td><strong>{{ u.name }}</strong><br><span class="muted small">{{ u.email }}{% if not u.email_verified %} · unconfirmed{% endif %}</span></td>
+          <td><a class="user-link" href="{{ url_for('admin.user_detail', uid=u.id) }}" data-user-modal><strong>{{ u.name }}</strong></a>
+            {% if is_owner(u) %}<span class="pill pill--approved">Owner</span>{% endif %}
+            {% if u.disabled %}<span class="pill pill--declined">Disabled</span>{% endif %}
+            <br><span class="muted small">{{ u.email }}{% if not u.email_verified %} · unconfirmed{% endif %}</span>
+            {% if not u.email_verified and not locked %}
+              <form class="inline-form user-verify" method="post">{{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
+                <button class="link-btn small" type="submit" name="action" value="verify" data-confirm="Mark {{ u.email }} as confirmed without the email link?">Mark email confirmed</button></form>
+            {% endif %}</td>
           <td class="small">{{ u.created_at|day }}</td>
           <td>
+            {% if locked %}
+              <span class="muted small">{{ u.role|capitalize }} · only the owner can change this</span>
+            {% else %}
             <form class="inline-form" method="post">
               {{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
               <label class="sr-only" for="role-{{ u.id }}">Role</label>
@@ -23,8 +47,11 @@
               <label class="check"><input type="checkbox" name="disabled" value="1" {% if u.disabled %}checked{% endif %}><span>Disabled</span></label>
               <button class="btn btn--sm btn--ghost" type="submit">Save</button>
             </form>
+            {% endif %}
           </td>
         </tr>
+        {% else %}
+        <tr><td colspan="3" class="muted">No one matches those filters.</td></tr>
         {% endfor %}
       </tbody>
     </table>

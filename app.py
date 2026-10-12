@@ -23,7 +23,7 @@ from werkzeug.security import generate_password_hash
 
 import data
 import mail
-from core import add_event, connect, current_user, expire_due, insert_opp, load_user, new_id, same_program_rows, update_opp
+from core import add_event, connect, current_user, expire_due, insert_opp, is_owner, load_user, new_id, same_program_rows, update_opp
 
 ROOT = Path(__file__).parent
 # Runs in <head> before the first paint, so animated sections start in their animated layout instead of jumping when
@@ -59,6 +59,8 @@ def create_app(test_config=None):
         REMINDER_DAYS=min(30, max(1, int(env('REMINDER_DAYS') or 7))),
         REMINDERS_ENABLED=env('REMINDERS_ENABLED', '1') == '1',
         CONTACT_EMAIL='openajar27116@gmail.com',
+        # The owner: an admin whom other admins can't demote or disable, and the only one who can adjust Stats numbers
+        OWNER_EMAIL=(env('OWNER_EMAIL') or 'madishetty.vrishank2008@gmail.com').lower(),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
         SESSION_COOKIE_SECURE=production,
@@ -161,7 +163,7 @@ def create_app(test_config=None):
 
     app.jinja_env.add_extension('jinja2.ext.do')
     app.jinja_env.tests['section_message'] = lambda m: ' ' in m[0]  # category like 'error profile'
-    app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url)
+    app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url, is_owner=is_owner)
     app.jinja_env.filters['fromjson'] = json.loads
     app.jinja_env.filters['day'] = lambda iso: (iso or '')[:10]
 

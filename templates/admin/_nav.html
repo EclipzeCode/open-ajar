@@ -1,12 +1,16 @@
+{# Admin menu. The number on a tab is how many things are waiting there (admin.tab_badges). #}
+{% macro tab(endpoint, label, current, n=0) %}
+  <a href="{{ url_for(endpoint) }}" {% if current %}aria-current="page"{% endif %}>{{ label }}{% if n %} <span class="tabs__n" aria-label="{{ n }} waiting">{{ n }}</span>{% endif %}</a>
+{% endmacro %}
 <nav class="tabs" aria-label="Admin">
   {% set ep = request.endpoint %}
-  <a href="{{ url_for('admin.stats') }}" {% if ep == 'admin.stats' %}aria-current="page"{% endif %}>Stats</a>
-  <a href="{{ url_for('admin.queue') }}" {% if ep in ('admin.queue', 'admin.review') %}aria-current="page"{% endif %}>Listings</a>
-  <a href="{{ url_for('admin.interns') }}" {% if ep == 'admin.interns' %}aria-current="page"{% endif %}>Intern applications</a>
-  <a href="{{ url_for('admin.messages') }}" {% if ep == 'admin.messages' %}aria-current="page"{% endif %}>Messages</a>
-  <a href="{{ url_for('admin.partners') }}" {% if ep == 'admin.partners' %}aria-current="page"{% endif %}>Partner inquiries</a>
-  <a href="{{ url_for('admin.grants') }}" {% if ep == 'admin.grants' %}aria-current="page"{% endif %}>Access Grants</a>
-  <a href="{{ url_for('admin.voices') }}" {% if ep == 'admin.voices' %}aria-current="page"{% endif %}>Community voices</a>
-  <a href="{{ url_for('admin.users') }}" {% if ep == 'admin.users' %}aria-current="page"{% endif %}>Users</a>
-  <a href="{{ url_for('admin.activity') }}" {% if ep == 'admin.activity' %}aria-current="page"{% endif %}>Activity</a>
+  {{ tab('admin.stats', 'Overview', ep == 'admin.stats') }}
+  {{ tab('admin.queue', 'Listings', ep in ('admin.queue', 'admin.review'), badges.listings) }}
+  {{ tab('admin.interns', 'Interns', ep == 'admin.interns', badges.interns) }}
+  {{ tab('admin.messages', 'Messages', ep == 'admin.messages', badges.messages) }}
+  {{ tab('admin.partners', 'Partners', ep == 'admin.partners', badges.partners) }}
+  {{ tab('admin.grants', 'Grants', ep == 'admin.grants', badges.grants) }}
+  {{ tab('admin.voices', 'Quotes', ep == 'admin.voices', badges.voices) }}
+  {{ tab('admin.users', 'Users', ep in ('admin.users', 'admin.user_detail')) }}
+  {{ tab('admin.activity', 'Activity', ep == 'admin.activity') }}
 </nav>

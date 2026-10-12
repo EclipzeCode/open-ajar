@@ -2,16 +2,29 @@
 {% block title %}Activity{% endblock %}
 {% block content %}
 <div class="wrap">
-  <header class="page-head"><p class="eyebrow">Admin</p><h1>Recent activity</h1></header>
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Activity</h1></header>
   {% include 'admin/_nav.html' %}
+  <form class="filterbar filterbar--users" method="get">
+    <label class="sr-only" for="awho">Who</label><input id="awho" name="who" value="{{ f.who }}" placeholder="Who (name or email)">
+    <label class="sr-only" for="akind">Action</label>
+    <select id="akind" name="kind"><option value="">Any action</option>
+      {% for k in kinds %}<option value="{{ k }}" {% if f.kind == k %}selected{% endif %}>{{ names.get(k, k|replace('_', ' ')|capitalize) }}</option>{% endfor %}
+    </select>
+    <label class="filterbar__label" for="afrom">From</label><input id="afrom" type="date" name="from" value="{{ f.from }}" aria-label="On or after">
+    <label class="filterbar__label" for="ato">to</label><input id="ato" type="date" name="to" value="{{ f.to }}" aria-label="On or before">
+    <button class="btn btn--sm" type="submit">Search</button>
+    {% if filtered %}<a class="link small" href="{{ url_for('admin.activity') }}">Clear</a>{% endif %}
+  </form>
   <ol class="history history--wide">
     {% for e in items %}
-      <li><span class="muted small">{{ e.at|day }}</span> <strong>{{ e.actor }}</strong> {{ e.action|replace('_', ' ') }}
+      {% set k = e.action.split(' ')[0] %}
+      <li><span class="muted small">{{ e.at|day }}</span> <strong>{{ e.actor }}</strong> · {{ names.get(k, k|replace('_', ' ')|capitalize) }}{% if ' ' in e.action %} <span class="muted small">({{ e.action.split(' ', 1)[1] }})</span>{% endif %}:
         {% if e.opp_id %}<a href="{{ url_for('admin.review', opp_id=e.opp_id) }}">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}
         {% if e.message %}<br><span class="muted small">{{ e.message|truncate(200) }}</span>{% endif %}</li>
     {% else %}
-      <li class="muted">Nothing yet.</li>
+      <li class="muted">{{ 'Nothing matches that search.' if filtered else 'Nothing yet.' }}</li>
     {% endfor %}
   </ol>
+  {% include 'admin/_pager.html' %}
 </div>
 {% endblock %}
