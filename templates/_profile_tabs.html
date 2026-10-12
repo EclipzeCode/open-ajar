@@ -1,5 +1,5 @@
-{# Profile and Tracker are one nav item; these tabs switch between them. #}
-<nav class="explore explore--static acct-tabs" aria-label="Profile">
-  <a href="{{ url_for('account.account') }}" aria-current="{{ 'true' if request.endpoint == 'account.account' else 'false' }}">Profile</a>
-  <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'true' if request.endpoint == 'account.tracker' else 'false' }}">Tracker</a>
+{# Profile and Tracker are one nav item; this switch moves between them. #}
+<nav class="segmented acct-tabs" aria-label="Profile">
+  <a href="{{ url_for('account.account') }}" aria-current="{{ 'page' if request.endpoint == 'account.account' else 'false' }}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Profile</a>
+  <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'page' if request.endpoint == 'account.tracker' else 'false' }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Tracker</a>
 </nav>
