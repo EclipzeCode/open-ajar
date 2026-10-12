@@ -130,9 +130,14 @@ def login_required(view):
             if request.method == 'POST' and request.endpoint in PENDING:
                 session['pending'] = {'action': PENDING[request.endpoint], 'opp': kw.get('opp_id')}
                 flash('Sign in to finish. We’ll save it for you.')
-                return redirect(url_for('account.login', next=_here()))
-            flash('Sign in to continue.')
-            return redirect(url_for('account.login', next=_here()))
+            else:
+                flash('Sign in to continue.')
+            login = url_for('account.login', next=_here())
+            if request.headers.get('X-Requested-With') == 'fetch':
+                # a background request (a card's star): following a redirect would use up the message above
+                # before the page got there, so the page goes to sign in itself
+                return {'login': login}, 401
+            return redirect(login)
         return view(*a, **kw)
     return wrapper
 
@@ -165,6 +170,10 @@ def limited(key, max_hits, window_seconds):
     now, q = time.monotonic(), _hits[key]
     while q and q[0] <= now - window_seconds:
         q.popleft()
+    if len(_hits) > 10000:  # forget keys idle for longer than any window (an hour at most), so memory doesn't keep growing
+        for k, d in list(_hits.items()):
+            if k != key and (not d or d[-1] <= now - 3600):
+                del _hits[k]
     if len(q) >= max_hits:
         return True
     q.append(now)
@@ -248,7 +257,8 @@ def search_public(f, limit=20, offset=0):
     w, params, tokens = _filters(f)
     order, order_params = 'o.published_at DESC', []
     if f.get('sort') == 'deadline':
-        order = '(o.deadline_date IS NULL OR o.deadline_date < date()), o.deadline_date, o.title'
+        order = '(o.deadline_date IS NULL OR o.deadline_date < ?), o.deadline_date, o.title'
+        order_params.append(data.today().isoformat())  # students' today (US Eastern), like "Due today"
     elif f.get('sort') == 'title':
         order = 'lower(o.title)'
     elif tokens:

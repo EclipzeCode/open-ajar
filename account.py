@@ -314,7 +314,7 @@ def tracker_counts(uid):
     rows = all_('''SELECT t.stage, COALESCE(NULLIF(t.deadline, ''), o.deadline_date) deadline FROM tracked t
                    JOIN opportunities o ON o.id = t.opportunity_id WHERE t.user_id=?''', (uid,))
     return {'counts': {s: sum(r['stage'] == s for r in rows) for s in data.STAGES}, 'total': len(rows),
-            'due_soon': sum(data.deadline_info(r['deadline'])[1] for r in rows)}
+            'due_soon': sum(data.deadline_info(r['deadline'])[1] for r in rows if r['stage'] in data.TO_APPLY)}
 
 
 @bp.get('/tracker.ics')

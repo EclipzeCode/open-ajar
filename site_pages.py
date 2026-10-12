@@ -1,5 +1,6 @@
 """Public pages: home, browsing, listing detail, submitting, intern applications and the static content pages."""
 import json
+import re
 from html import escape
 from urllib.parse import urlencode
 
@@ -123,7 +124,34 @@ def detail(opp_id):
         return render_template('error.html', code=404, message='That opportunity isn’t available. It may have closed or been removed.'), 404
     u, saved = current_user(), _saved_ids()
     tracked = u and one('SELECT stage FROM tracked WHERE user_id=? AND opportunity_id=?', (u['id'], opp_id))
-    return render_template('detail.html', o=opp, saved=opp_id in saved, saved_ids=saved, tracked=tracked, similar=_similar(opp))
+    return render_template('detail.html', o=opp, saved=opp_id in saved, saved_ids=saved, tracked=tracked, similar=_similar(opp),
+                           job_posting=_job_posting(opp))
+
+
+def _job_posting(o):
+    """Google's JobPosting data for a teen job, so it can appear in Google's job search. Only what the listing states:
+    no pay or hours, and the city only when the location is plainly "City, ST"."""
+    if o['type'] != 'Job':
+        return None
+    desc = ''.join(f'<p>{escape(t)}</p>' for t in (o['summary'], o['eligibility']) if t)
+    if o['requirements']:
+        desc += '<ul>' + ''.join(f'<li>{escape(r)}</li>' for r in o['requirements']) + '</ul>'
+    job = {'@context': 'https://schema.org', '@type': 'JobPosting', 'title': o['title'], 'description': desc,
+           'datePosted': (o['published_at'] or o['created_at'])[:10], 'directApply': False,
+           'hiringOrganization': {'@type': 'Organization', 'name': o['org']}}
+    if o['deadline_date']:
+        job['validThrough'] = o['deadline_date']
+    if o['format'] == 'Online':
+        job.update(jobLocationType='TELECOMMUTE', applicantLocationRequirements={'@type': 'Country', 'name': 'USA'})
+    else:
+        address = {'@type': 'PostalAddress', 'addressCountry': 'US'}
+        if o['state']:
+            address['addressRegion'] = o['state']
+            city = re.fullmatch(r'\s*([^,]+?),\s*[A-Za-z]{2}\.?\s*', o['location'] or '')
+            if city:
+                address['addressLocality'] = city.group(1)
+        job['jobLocation'] = {'@type': 'Place', 'address': address}
+    return job
 
 
 def _similar(opp):
@@ -386,8 +414,8 @@ def robots():
 def sitemap():
     """The public pages plus every live listing, for search engines."""
     base = current_app.config['APP_URL']
-    pages = [(url_for(e), None) for e in ('site.home', 'site.browse', 'site.jobs', 'site.apply', 'site.about',
-                                          'site.support', 'site.privacy', 'site.terms')]
+    pages = [(url_for(e), None) for e in ('site.home', 'site.browse', 'site.jobs', 'site.apply', 'site.grants', 'site.partner',
+                                          'site.about', 'site.support', 'site.contact', 'site.privacy', 'site.terms')]
     pages += [(url_for('site.detail', opp_id=r['id']), (r['updated_at'] or '')[:10])
               for r in all_(f'SELECT o.id, o.updated_at FROM opportunities o WHERE {PUBLIC} ORDER BY o.published_at DESC', (now_iso(),))]
     urls = ''.join(f'<url><loc>{escape(base + path)}</loc>{f"<lastmod>{d}</lastmod>" if d else ""}</url>' for path, d in pages)

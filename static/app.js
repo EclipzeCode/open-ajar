@@ -508,8 +508,8 @@ document.querySelectorAll('input[type=password]').forEach((input) => {
   show(false);
 });
 
-// Listing cards: the star saves or unsaves without reloading. Signed out, it goes to sign in instead, which finishes
-// the save afterwards. If anything goes wrong it falls back to a normal form post.
+// Listing cards: the star saves or unsaves without reloading. Signed out, the server answers 401 with where to sign in,
+// which finishes the save afterwards. If anything else goes wrong it falls back to a normal form post.
 document.addEventListener('submit', async (e) => {
   const form = e.target.closest('.card__save');
   if (!form || e.defaultPrevented) return;
@@ -517,7 +517,7 @@ document.addEventListener('submit', async (e) => {
   const btn = form.querySelector('button');
   try {
     const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'fetch' } });
-    if (r.redirected) { location.href = r.url; return; }
+    if (r.status === 401) { location.href = (await r.json()).login; return; }
     if (!r.ok) throw new Error();
     const { saved } = await r.json();
     btn.setAttribute('aria-pressed', saved);
@@ -800,13 +800,17 @@ document.querySelector('[data-select-all]')?.addEventListener('change', (e) => {
 // Tracker: save stage, checklist ticks, deadline and notes in the background as they change
 document.querySelectorAll('form[data-autosave]').forEach((form) => {
   const status = form.querySelector('.save-state');
-  let timer;
-  const save = async () => {
+  let timer, queue = Promise.resolve();
+  // one save at a time, each sending the form as it is when its turn comes, so a slow earlier save can't land after
+  // (and undo) a later one
+  const save = () => { queue = queue.then(send); };
+  const send = async () => {
     const body = new FormData(form);
     body.delete('new_item'); // adding an item reloads the page so it shows up
     status.textContent = 'Saving…';
     try {
       const r = await fetch(form.getAttribute('action'), { method: 'POST', body, headers: { 'X-Requested-With': 'fetch' } });
+      if (r.status === 401) { location.href = (await r.json()).login; return; } // signed out in the meantime
       if (!r.ok) throw new Error();
       status.textContent = 'Saved';
       const c = await r.json(); // fresh counts for the stage menu and the numbers at the top

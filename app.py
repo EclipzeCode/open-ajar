@@ -12,7 +12,7 @@ import json
 import os
 import threading
 import time
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlencode, urlsplit
 
@@ -197,7 +197,7 @@ _maintenance_lock = threading.Lock()
 
 
 def start_maintenance(app):
-    """Every 10 minutes: expire listings past their expiry date and send the daily deadline reminders.
+    """Every 10 minutes: expire listings past their expiry date and, from 8 am US Eastern, send deadline reminders.
     Started on the first request, inside the process that serves requests. Starting it when the app is created
     would put the thread in gunicorn's master process, and a process forked from one with a running thread can
     deadlock (which is exactly what hung the first Render deploys)."""
@@ -206,8 +206,8 @@ def start_maintenance(app):
         if _maintenance_started:
             return
         _maintenance_started = True
-    # ponytail: an in-process thread assumes one gunicorn worker (render.yaml uses -w 1); the reminder pass is
-    # still guarded per-day in the database, so an accidental second process would not double-send
+    # ponytail: an in-process thread assumes one gunicorn worker (render.yaml uses -w 1); two processes running the
+    # reminder pass at the same moment could both send the same reminder
     def loop():
         while True:
             try:
@@ -215,7 +215,8 @@ def start_maintenance(app):
                 expire_due(db)
                 db.execute("DELETE FROM auth_tokens WHERE used=1 OR expires_at < datetime('now','-1 day')")
                 db.commit()
-                mail.run_reminders(db, app.config)
+                if datetime.now(data.STUDENT_TZ).hour >= 8:  # in the morning, not at midnight
+                    mail.run_reminders(db, app.config)
                 db.close()
             except Exception as e:
                 print(f'[maintenance] {e}')
@@ -268,9 +269,8 @@ def register_cli(app):
 
     @app.cli.command('send-reminders')
     def send_reminders():
-        """Run today's deadline reminder pass now (it normally runs on its own)."""
+        """Run the deadline reminder pass now (it normally runs on its own every 10 minutes from 8 am Eastern)."""
         db = connect(app.config['DB_PATH'])
-        db.execute("DELETE FROM app_meta WHERE key='reminders'")
         click.echo(f'Sent {mail.run_reminders(db, app.config)} digest(s).')
 
 

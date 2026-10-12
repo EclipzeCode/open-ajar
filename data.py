@@ -59,6 +59,7 @@ GRANT_STATUSES = {'new': 'Submitted', 'needs_info': 'Needs info', 'approved': 'A
 GRANT_OPEN = ('new', 'needs_info', 'approved')  # a student can have one of these at a time
 STAGES = ['Interested', 'Preparing', 'Applied', 'Interview', 'Accepted', 'Completed']
 WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on OpenAjar
+TO_APPLY = ('Interested', 'Preparing')  # not applied yet: only these get deadline reminders and count as "due soon"
 VERIFICATION = {'unreviewed': 'Unreviewed', 'source': 'Source-linked', 'verified': 'Verified'}
 RELATIONSHIPS = {'organization_rep': 'I represent the organization', 'counselor_teacher': 'I’m a counselor or teacher',
                  'student_or_parent': 'I’m a student or parent', 'other': 'Something else'}

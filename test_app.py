@@ -1,4 +1,5 @@
 """End-to-end checks of the main flows. Run: python -m unittest"""
+import json
 import re
 import tempfile
 import unittest
@@ -388,6 +389,32 @@ class Flows(unittest.TestCase):
         self.register()  # signing up counts too
         self.assertTrue(db.execute('SELECT 1 FROM saved WHERE opportunity_id=?', (oid,)).fetchone())
 
+    def test_card_star_signed_out_goes_to_sign_in_with_its_message(self):
+        with self.app.app_context():
+            import_rows([{'id': '1', 'title': 'Kept Comp', 'organization': 'Org', 'summary': 'A program for high-school students to try.',
+                          'eligibility': 'Any high schooler', 'grades': '9', 'format': 'Online', 'location': 'Online',
+                          'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}], approve=True)
+        oid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM opportunities').fetchone()['id']
+        r = self.post(f'/o/{oid}/save', headers={'X-Requested-With': 'fetch', 'Referer': 'http://localhost/opportunities'})
+        self.assertEqual(r.status_code, 401)  # not a redirect: following one in the background would eat the message
+        self.assertIn('/login?next=/opportunities', r.json['login'])
+        self.assertIn('We’ll save it for you', self.c.get(r.json['login']).get_data(as_text=True))
+
+    def test_job_pages_carry_google_job_data_and_the_sitemap_lists_every_public_page(self):
+        with self.app.app_context():
+            import_rows([{'id': 'j1', 'title': 'Cashier', 'organization': 'Five Below', 'type': 'Job', 'summary': 'Ring up customers after school.',
+                          'eligibility': 'At least 16', 'grades': '11;12', 'cost': 'Award', 'format': 'In person',
+                          'location': 'Austin, TX', 'commitment': 'Flexible'}], approve=True)
+        oid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM opportunities').fetchone()['id']
+        page = self.c.get(f'/o/{oid}').get_data(as_text=True)
+        job = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', page).group(1))
+        self.assertEqual((job['@type'], job['hiringOrganization']['name']), ('JobPosting', 'Five Below'))
+        self.assertEqual(job['jobLocation']['address'], {'@type': 'PostalAddress', 'addressCountry': 'US', 'addressRegion': 'TX',
+                                                         'addressLocality': 'Austin'})
+        sitemap = self.c.get('/sitemap.xml').get_data(as_text=True)
+        for path in ('/access-grants', '/partner', '/contact', f'/o/{oid}'):
+            self.assertIn(f'{path}</loc>', sitemap)
+
     def test_tracked_deadlines_download_as_a_calendar(self):
         from datetime import date, timedelta
         due = (date.today() + timedelta(days=30)).isoformat()
@@ -478,10 +505,28 @@ class Flows(unittest.TestCase):
         self.post(f'/o/{opp_id}/track')
         mail.OUTBOX.clear()
         self.assertEqual(mail.run_reminders(db, self.app.config), 1)
-        db.execute("DELETE FROM app_meta")
-        self.assertEqual(mail.run_reminders(db, self.app.config), 0)  # same deadline is never reminded twice
+        self.assertEqual(mail.run_reminders(db, self.app.config), 0)  # runs every 10 minutes: nothing goes twice
         self.assertIn('Essay Prize', mail.OUTBOX[0]['text'])
+        day_before = date.today() + timedelta(days=2)
+        self.assertEqual(mail.run_reminders(db, self.app.config, today=day_before), 1)  # a last reminder the day before
+        self.assertIn('due tomorrow', mail.OUTBOX[0]['text'])
+        self.assertEqual(mail.run_reminders(db, self.app.config, today=day_before + timedelta(days=1)), 0)  # and no more
         del admin
+
+    def test_due_soon_only_counts_what_you_still_have_to_apply_to(self):
+        from datetime import date, timedelta
+        self.register()
+        with self.app.app_context():
+            import_rows([{'id': str(i), 'title': f'Prize {i}', 'organization': 'Org', 'type': 'Competition',
+                          'summary': 'An essay competition for high-school writers.', 'eligibility': 'Any high schooler',
+                          'grades': '9;10', 'cost': 'Award', 'format': 'Online', 'location': 'Online', 'commitment': 'One-off',
+                          'deadline_date': (date.today() + timedelta(days=3)).isoformat()} for i in (1, 2)], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        ids = [r['id'] for r in db.execute('SELECT id FROM opportunities ORDER BY title')]
+        for oid in ids:
+            self.post(f'/o/{oid}/track')
+        r = self.post(f'/tracker/{ids[1]}', {'stage': 'Accepted'}, headers={'X-Requested-With': 'fetch'})
+        self.assertEqual(r.json['due_soon'], 1)
 
 
 if __name__ == '__main__':

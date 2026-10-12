@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS tracked (
   notes          TEXT NOT NULL DEFAULT '',
   deadline       TEXT NOT NULL DEFAULT '',
   checklist      TEXT NOT NULL DEFAULT '[]',
-  reminded_for   TEXT,                -- the deadline we last emailed about, so each deadline is reminded once
+  reminded_for   TEXT,                -- the reminder last sent: mail.reminder_key (the deadline, + ' last' the day before)
   found_here     INTEGER,             -- once Accepted: did they find it on OpenAjar? 1 yes, 0 no, NULL not asked yet
   added_at       TEXT NOT NULL,
   PRIMARY KEY (user_id, opportunity_id)
