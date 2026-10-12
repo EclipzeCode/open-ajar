@@ -172,8 +172,7 @@ CREATE TABLE IF NOT EXISTS user_days (
 
 -- Access Grants: a student asks Open Ajar to cover a program fee; admins review under Admin > Access Grants.
 -- Money never goes to the student: an admin pays the program directly, then records the payment here.
--- Team requests (is_team) need two approvals from admins other than the requester, are paid only from the team's
--- personal money (paid_from = 'personal'), and are never counted in public numbers.
+-- Every request follows the same rules, whoever asks; nobody can approve or pay their own.
 CREATE TABLE IF NOT EXISTS access_grants (
   id              TEXT PRIMARY KEY,
   user_id         TEXT REFERENCES users(id) ON DELETE SET NULL,   -- kept as a record if the account is deleted
@@ -191,17 +190,15 @@ CREATE TABLE IF NOT EXISTS access_grants (
   accepted        TEXT NOT NULL,
   asked_program   TEXT NOT NULL,
   reason          TEXT NOT NULL,
-  is_team         INTEGER NOT NULL DEFAULT 0,
   status          TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','needs_info','approved','paid','declined','withdrawn')),
   approved_amount INTEGER,
-  approvals       TEXT NOT NULL DEFAULT '[]',   -- ids of admins who approved approved_amount
+  approved_by     TEXT,
   message         TEXT NOT NULL DEFAULT '',     -- latest message to the student
   admin_note      TEXT NOT NULL DEFAULT '',
   paid_amount     INTEGER,
   paid_on         TEXT,
   paid_method     TEXT,
   paid_ref        TEXT,
-  paid_from       TEXT CHECK (paid_from IN ('donations','personal')),
   paid_by         TEXT,
   created_at      TEXT NOT NULL,
   updated_at      TEXT NOT NULL

@@ -300,9 +300,9 @@ def grants():
     opp = get_public(request.form.get('opportunity_id', '')) if request.form.get('opportunity_id') else None
     now = data.now_iso()
     g = {**o, 'id': new_id(), 'user_id': u['id'], 'name': u['name'], 'email': u['email'], 'opportunity_id': opp['id'] if opp else None,
-         'is_team': int(u['role'] == 'admin'), 'created_at': now, 'updated_at': now}
+         'created_at': now, 'updated_at': now}
     cols = ('id', 'user_id', 'name', 'email', 'parent_email', 'opportunity_id', 'program', 'org', 'url', 'covers', 'total_cost', 'amount',
-            'due_date', 'accepted', 'asked_program', 'reason', 'is_team', 'created_at', 'updated_at')
+            'due_date', 'accepted', 'asked_program', 'reason', 'created_at', 'updated_at')
     run(f"INSERT INTO access_grants ({', '.join(cols)}) VALUES ({','.join('?' * len(cols))})", tuple(g[k] for k in cols))
     try:
         mail.grant_request(current_app.config, g)

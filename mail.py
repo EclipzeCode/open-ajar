@@ -81,7 +81,6 @@ def grant_request(config, g):
     facts = [f"Program: {g['program']} ({g['org']})", f"Covers: {g['covers']}",
              f"Asking for ${g['amount']:,} of ${g['total_cost']:,}" + (f", due {g['due_date']}" if g['due_date'] else ''),
              f"Accepted: {data.GRANT_ACCEPTED[g['accepted']]}", f"Asked the program for aid: {data.GRANT_ASKED[g['asked_program']]}",
-             *(['Team request: needs two other admins to approve, paid only from personal money.'] if g['is_team'] else []),
              g['reason']]
     send(config, config['CONTACT_EMAIL'], f"Access Grant request: {g['name']}, ${g['amount']:,}", *_layout(
         f"{g['name']} asked for an Access Grant", facts, 'Review requests', config['APP_URL'] + '/admin/grants',

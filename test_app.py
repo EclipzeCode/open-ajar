@@ -174,33 +174,21 @@ class Flows(unittest.TestCase):
         self.assertEqual(self.grant(gid)['status'], 'needs_info')
         self.post('/admin/grants', {'id': gid, 'action': 'approve', 'approved_amount': '150'}, admin)
         self.assertEqual(self.grant(gid)['status'], 'approved')
-        self.post('/admin/grants', {'id': gid, 'action': 'paid', 'paid_amount': '150', 'paid_on': '2026-10-12', 'paid_method': 'Card',
-                                    'paid_from': 'donations'}, admin)
+        self.post('/admin/grants', {'id': gid, 'action': 'paid', 'paid_amount': '150', 'paid_on': '2026-10-12', 'paid_method': 'Card'}, admin)
         g = self.grant(gid)
         self.assertEqual((g['status'], g['paid_amount'], g['paid_by']), ('paid', 150, 'admin1'))
         self.assertIn(b'We paid $150', self.c.get('/access-grants').data)
         self.assertEqual(self.post('/access-grants', GRANT).status_code, 422)  # only $100 of the yearly cap is left
 
-    def test_team_grant_needs_two_other_admins_and_personal_money(self):
-        asker, second, third = self.make_admin(), self.make_admin('b@example.org', 'admin2'), self.make_admin('c@example.org', 'admin3')
-        self.post('/access-grants', GRANT, client=asker)
-        g = connect(self.app.config['DB_PATH']).execute('SELECT * FROM access_grants').fetchone()
-        self.assertEqual(g['is_team'], 1)  # an admin asking is a team request
-        approve = {'id': g['id'], 'action': 'approve', 'approved_amount': '200'}
-        self.post('/admin/grants', approve, asker)  # never on your own request
-        self.assertEqual(self.grant(g['id'])['approvals'], '[]')
-        self.post('/admin/grants', approve, second)
-        self.post('/admin/grants', approve, second)  # the same admin twice doesn't count
-        self.assertEqual(self.grant(g['id'])['status'], 'new')
-        self.post('/admin/grants', approve, third)
-        self.assertEqual(self.grant(g['id'])['status'], 'approved')
-        paid = {'id': g['id'], 'action': 'paid', 'paid_amount': '200', 'paid_on': '2026-10-12', 'paid_method': 'Card'}
-        self.post('/admin/grants', {**paid, 'paid_from': 'donations'}, third)
-        self.assertEqual(self.grant(g['id'])['status'], 'approved')  # never from donations
-        self.post('/admin/grants', {**paid, 'paid_from': 'personal'}, third)
-        self.assertEqual(self.grant(g['id'])['status'], 'paid')
-        page = third.get('/admin/grants').get_data(as_text=True)
-        self.assertIn('Paid from donations to students: <strong>$0</strong>', page)  # team grants aren't counted with the rest
+    def test_nobody_handles_their_own_access_grant(self):
+        asker, other = self.make_admin(), self.make_admin('b@example.org', 'admin2')
+        self.post('/access-grants', GRANT, client=asker)  # admins ask the same way as any student
+        gid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM access_grants').fetchone()['id']
+        approve = {'id': gid, 'action': 'approve', 'approved_amount': '200'}
+        self.post('/admin/grants', approve, asker)
+        self.assertEqual(self.grant(gid)['status'], 'new')
+        self.post('/admin/grants', approve, other)
+        self.assertEqual((self.grant(gid)['status'], self.grant(gid)['approved_by']), ('approved', 'admin2'))
 
     def test_partner_inquiry_is_saved_emailed_and_listed_for_admins(self):
         form = {'business': 'Rosa’s Bakery', 'contact_name': 'Rosa Diaz', 'email': 'rosa@example.org', 'location': 'Austin, TX',

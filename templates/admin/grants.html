@@ -5,9 +5,8 @@
 <div class="wrap">
   <header class="page-head"><p class="eyebrow">Admin</p><h1>Access Grants</h1></header>
   {% include 'admin/_nav.html' %}
-  <p class="muted">Paid from donations to students: <strong>${{ '{:,}'.format(totals.paid) }}</strong> · Approved, not yet paid: <strong>${{ '{:,}'.format(totals.committed) }}</strong>
-    · Team requests paid from personal money (never counted publicly): ${{ '{:,}'.format(totals.team_paid) }}</p>
-  <p class="muted small">Pay the program directly, never the student. Nobody can act on their own request; team requests need two other admins to approve the same amount.</p>
+  <p class="muted">Paid: <strong>${{ '{:,}'.format(totals.paid) }}</strong> · Approved, not yet paid: <strong>${{ '{:,}'.format(totals.committed) }}</strong></p>
+  <p class="muted small">Pay the program directly, never the student. Nobody can act on their own request.</p>
   <nav class="stages" aria-label="Status">
     <a href="{{ url_for('admin.grants') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
     {% for s, label in D.GRANT_STATUSES.items() %}<a href="{{ url_for('admin.grants', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ label }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
@@ -16,8 +15,7 @@
     {% set own = g.user_id == user.id %}
     <article class="panel grant" id="g-{{ g.id }}">
       <h2>{{ g.name }}: ${{ g.amount }} for {{ g.program }}
-        <span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span>
-        {% if g.is_team %}<span class="pill pill--changes_requested">Team request</span>{% endif %}</h2>
+        <span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span></h2>
       <p class="muted small"><a href="mailto:{{ g.email }}">{{ g.email }}</a> · parent or guardian <a href="mailto:{{ g.parent_email }}">{{ g.parent_email }}</a> · sent {{ g.created_at|day }}
         · ${{ g.room }} of ${{ D.GRANT_CAP }} left this year</p>
       <dl class="grant__facts">
@@ -28,9 +26,8 @@
       </dl>
       <p>{{ g.reason }}</p>
       {% if g.message %}<p class="note"><strong>Last message to the student:</strong> {{ g.message }}</p>{% endif %}
-      {% if g.approvals and g.status != 'approved' %}<p class="note">Approved ${{ g.approved_amount }} by 1 of 2 admins. Needs one more to approve the same amount.</p>{% endif %}
       {% if g.status == 'approved' %}<p class="note">Approved for ${{ g.approved_amount }}. Pay the program, then record it below.</p>{% endif %}
-      {% if g.status == 'paid' %}<p class="note">Paid ${{ g.paid_amount }} on {{ g.paid_on }} by {{ g.paid_method }}{% if g.paid_ref %} ({{ g.paid_ref }}){% endif %}, from {{ 'donations' if g.paid_from == 'donations' else 'personal money' }}.</p>{% endif %}
+      {% if g.status == 'paid' %}<p class="note">Paid ${{ g.paid_amount }} on {{ g.paid_on }} by {{ g.paid_method }}{% if g.paid_ref %} ({{ g.paid_ref }}){% endif %}.</p>{% endif %}
 
       {% if own %}
         <p class="muted small">This is your own request, so another admin has to handle it.</p>
@@ -62,11 +59,6 @@
             <label class="sr-only" for="pd-{{ g.id }}">Date paid</label><input id="pd-{{ g.id }}" type="date" name="paid_on">
             <label class="sr-only" for="pm-{{ g.id }}">How it was paid</label><input id="pm-{{ g.id }}" name="paid_method" placeholder="How (card, check…)" maxlength="80">
             <label class="sr-only" for="pr-{{ g.id }}">Reference</label><input id="pr-{{ g.id }}" name="paid_ref" placeholder="Receipt or check no." maxlength="120">
-            <label class="sr-only" for="pf-{{ g.id }}">Paid from</label>
-            <select id="pf-{{ g.id }}" name="paid_from">
-              {% if not g.is_team %}<option value="donations">From donations</option>{% endif %}
-              <option value="personal">From personal money</option>
-            </select>
             <button class="btn btn--sm" type="submit" name="action" value="paid">Record payment</button>
           </form>
         {% endif %}
@@ -75,9 +67,6 @@
           <label class="sr-only" for="note-{{ g.id }}">Private note</label>
           <input id="note-{{ g.id }}" name="admin_note" value="{{ g.admin_note }}" placeholder="Private note" maxlength="2000">
           <button class="btn btn--sm btn--ghost" type="submit" name="action" value="note">Save note</button>
-          {% if not g.is_team and g.status in ('new', 'needs_info') %}
-            <button class="btn btn--sm btn--ghost" type="submit" name="action" value="mark_team" data-confirm="Mark as a team request? It will need two approvals and can only be paid from personal money.">Mark as team request</button>
-          {% endif %}
         </form>
       {% endif %}
     </article>
