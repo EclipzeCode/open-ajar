@@ -1,4 +1,4 @@
--- Open Ajar schema (SQLite). Lists (grades, interests, requirements, checklist) are stored as JSON text.
+-- OpenAjar schema (SQLite). Lists (grades, interests, requirements, checklist) are stored as JSON text.
 
 CREATE TABLE IF NOT EXISTS users (
   id               TEXT PRIMARY KEY,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS tracked (
   deadline       TEXT NOT NULL DEFAULT '',
   checklist      TEXT NOT NULL DEFAULT '[]',
   reminded_for   TEXT,                -- the deadline we last emailed about, so each deadline is reminded once
-  found_here     INTEGER,             -- once Accepted: did they find it on Open Ajar? 1 yes, 0 no, NULL not asked yet
+  found_here     INTEGER,             -- once Accepted: did they find it on OpenAjar? 1 yes, 0 no, NULL not asked yet
   added_at       TEXT NOT NULL,
   PRIMARY KEY (user_id, opportunity_id)
 );
@@ -169,3 +169,38 @@ CREATE TABLE IF NOT EXISTS user_days (
   day     TEXT NOT NULL,
   PRIMARY KEY (user_id, day)
 );
+
+-- Access Grants: a student asks OpenAjar to cover a program fee; admins review under Admin > Access Grants.
+-- Money never goes to the student: an admin pays the program directly, then records the payment here.
+-- Every request follows the same rules, whoever asks; nobody can approve or pay their own.
+CREATE TABLE IF NOT EXISTS access_grants (
+  id              TEXT PRIMARY KEY,
+  user_id         TEXT REFERENCES users(id) ON DELETE SET NULL,   -- kept as a record if the account is deleted
+  name            TEXT NOT NULL,
+  email           TEXT NOT NULL,
+  parent_email    TEXT NOT NULL,
+  opportunity_id  TEXT REFERENCES opportunities(id) ON DELETE SET NULL,
+  program         TEXT NOT NULL,
+  org             TEXT NOT NULL,
+  url             TEXT,
+  covers          TEXT NOT NULL,
+  total_cost      INTEGER NOT NULL,   -- whole dollars
+  amount          INTEGER NOT NULL,   -- requested
+  due_date        TEXT,
+  accepted        TEXT NOT NULL,
+  asked_program   TEXT NOT NULL,
+  reason          TEXT NOT NULL,
+  status          TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','needs_info','approved','paid','declined','withdrawn')),
+  approved_amount INTEGER,
+  approved_by     TEXT,
+  message         TEXT NOT NULL DEFAULT '',     -- latest message to the student
+  admin_note      TEXT NOT NULL DEFAULT '',
+  paid_amount     INTEGER,
+  paid_on         TEXT,
+  paid_method     TEXT,
+  paid_ref        TEXT,
+  paid_by         TEXT,
+  created_at      TEXT NOT NULL,
+  updated_at      TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_grants_user ON access_grants(user_id);

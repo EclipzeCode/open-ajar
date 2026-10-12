@@ -45,6 +45,7 @@
       <div class="acct-nav__links">
         <a href="#profile">Profile</a>
         <a href="#submissions">Submissions</a>
+        <a href="#grants">Access Grants</a>
         <a href="#story">Your story</a>
         <a href="#security">Security</a>
         <a href="#delete" class="acct-nav__danger">Delete account</a>
@@ -101,9 +102,28 @@
         {% endif %}
       </section>
 
+      <section class="acct-card" id="grants" aria-labelledby="grants-h">
+        <div class="acct-card__head acct-card__head--row">
+          <div><h2 id="grants-h">Access Grants</h2><p>Help with a program fee, up to ${{ D.GRANT_CAP }} a year.</p></div>
+          <a class="btn btn--ghost btn--sm" href="{{ url_for('site.grants') }}">{{ 'See details' if grants else 'Ask for one' }}</a>
+        </div>
+        {% if grants %}
+          <ul class="subs">
+            {% for g in grants %}
+            <li class="subs__item">
+              <div class="subs__main"><strong>{{ g.program }}</strong><span class="muted small">{{ g.org }} · ${{ g.amount }} · sent {{ g.created_at|day }}</span></div>
+              <div class="subs__side"><span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span></div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="acct-empty">A fee standing between you and a program? <a href="{{ url_for('site.grants') }}">Ask us to cover it</a>.</p>
+        {% endif %}
+      </section>
+
       <section class="acct-card" id="story" aria-labelledby="story-h">
         <div class="acct-card__head acct-card__head--row">
-          <div><h2 id="story-h">Your story</h2><p>A short quote about Open Ajar. Approved quotes appear on the home page.</p></div>
+          <div><h2 id="story-h">Your story</h2><p>A short quote about OpenAjar. Approved quotes appear on the home page.</p></div>
           {% if quote %}<span class="pill pill--{{ quote.status }}">{{ quote.status|capitalize }}</span>{% endif %}
         </div>
         {{ note('story') }}

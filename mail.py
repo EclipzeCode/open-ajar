@@ -4,6 +4,7 @@ import urllib.request
 from datetime import date
 from html import escape
 
+import data
 from data import parse_date
 
 OUTBOX = []  # development only: shown at /dev/inbox when no RESEND_API_KEY is set
@@ -29,12 +30,12 @@ def _layout(heading, paragraphs, button, link, footer, extra_html='', extra_text
     ps = ''.join(f'<p style="font-size:16px;line-height:1.55;margin:0 0 16px">{escape(p)}</p>' for p in paragraphs)
     html = f'''<!doctype html><html lang="en"><body style="margin:0;background:#FAF7F2;color:#1C1B18;font-family:Helvetica,Arial,sans-serif">
 <div style="max-width:520px;margin:0 auto;padding:32px 24px">
-<p style="font-size:20px;font-weight:700;margin:0 0 24px">Open Ajar</p>
+<p style="font-size:20px;font-weight:700;margin:0 0 24px">OpenAjar</p>
 <h1 style="font-size:26px;line-height:1.2;margin:0 0 16px">{escape(heading)}</h1>{ps}{extra_html}
 <p style="margin:24px 0"><a href="{escape(link)}" style="background:#1F5C4A;color:#fff;text-decoration:none;padding:13px 20px;border-radius:8px;font-weight:600;display:inline-block">{escape(button)}</a></p>
 <p style="font-size:14px;color:#6B675E;margin:0 0 8px">Or paste this link into your browser:<br><span style="word-break:break-all">{escape(link)}</span></p>
 <p style="font-size:14px;color:#6B675E;margin:24px 0 0">{escape(footer)}</p></div></body></html>'''
-    text = f"{heading}\n\n" + '\n\n'.join(paragraphs) + f"\n{extra_text}\n{button}: {link}\n\n{footer}\n\nOpen Ajar"
+    text = f"{heading}\n\n" + '\n\n'.join(paragraphs) + f"\n{extra_text}\n{button}: {link}\n\n{footer}\n\nOpenAjar"
     return html, text
 
 
@@ -43,17 +44,17 @@ def _first(name):
 
 
 def verify_email(config, user, link):
-    send(config, user['email'], 'Confirm your email for Open Ajar', *_layout(
+    send(config, user['email'], 'Confirm your email for OpenAjar', *_layout(
         f"Welcome, {_first(user['name'])}.",
-        ['Confirm your email address to finish setting up your Open Ajar account. You’ll need this before you can submit an opportunity.',
+        ['Confirm your email address to finish setting up your OpenAjar account. You’ll need this before you can submit an opportunity.',
          'This link works once and expires in 24 hours.'],
-        'Confirm my email', link, 'If you didn’t create an Open Ajar account, you can ignore this email.'))
+        'Confirm my email', link, 'If you didn’t create an OpenAjar account, you can ignore this email.'))
 
 
 def reset_password(config, user, link):
-    send(config, user['email'], 'Reset your Open Ajar password', *_layout(
+    send(config, user['email'], 'Reset your OpenAjar password', *_layout(
         'Reset your password',
-        [f"Hi {_first(user['name'])}, we got a request to reset the password for your Open Ajar account.",
+        [f"Hi {_first(user['name'])}, we got a request to reset the password for your OpenAjar account.",
          'This link works once and expires in 1 hour. After you choose a new password, you’ll be signed out everywhere.'],
         'Choose a new password', link, 'If you didn’t ask for this, ignore this email. Your password won’t change.'))
 
@@ -75,6 +76,25 @@ def contact_message(config, msg):
         reply_to=msg['email'])
 
 
+def grant_request(config, g):
+    """Tell the team a student asked for an Access Grant. Replying goes straight to the student."""
+    facts = [f"Program: {g['program']} ({g['org']})", f"Covers: {g['covers']}",
+             f"Asking for ${g['amount']:,} of ${g['total_cost']:,}" + (f", due {g['due_date']}" if g['due_date'] else ''),
+             f"Accepted: {data.GRANT_ACCEPTED[g['accepted']]}", f"Asked the program for aid: {data.GRANT_ASKED[g['asked_program']]}",
+             g['reason']]
+    send(config, config['CONTACT_EMAIL'], f"Access Grant request: {g['name']}, ${g['amount']:,}", *_layout(
+        f"{g['name']} asked for an Access Grant", facts, 'Review requests', config['APP_URL'] + '/admin/grants',
+        'Reply to this email to answer the student directly.'), reply_to=g['email'])
+
+
+def grant_update(config, g, heading, paragraphs):
+    """A decision or payment on an Access Grant, to the student and their parent or guardian."""
+    html_text = _layout(heading, [f"Hi {_first(g['name'])},", *paragraphs], 'See your request',
+                        config['APP_URL'] + '/access-grants', 'Questions? Reply to this email.')
+    for to in dict.fromkeys([g['email'], g['parent_email']]):
+        send(config, to, f"Your Access Grant request: {g['program']}", *html_text, reply_to=config['CONTACT_EMAIL'])
+
+
 def _when(days):
     return 'due today' if days == 0 else 'due tomorrow' if days == 1 else f'due in {days} days'
 
@@ -87,7 +107,7 @@ def deadline_digest(config, email, name, items):
     text = '\n'.join(f"- {it['title']} ({_when(it['days'])}, {it['deadline']})" for it in items)
     send(config, email, subject, *_layout(
         f"{_first(name)}, {'a deadline is' if one else f'{len(items)} deadlines are'} coming up.",
-        ['These are opportunities you’re tracking on Open Ajar. Confirm the exact deadline on the official page before you rely on it.'],
+        ['These are opportunities you’re tracking on OpenAjar. Confirm the exact deadline on the official page before you rely on it.'],
         'Open your tracker', config['APP_URL'] + '/tracker',
         'You get these because you’re tracking these opportunities. Turn reminders off any time on your account page.',
         f'<ul style="padding-left:18px;margin:0 0 20px">{li}</ul>', text + '\n'))

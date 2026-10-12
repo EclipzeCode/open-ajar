@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Support Open Ajar{% endblock %}
+{% block title %}Support OpenAjar{% endblock %}
 {# Keep these honest: real dollars raised and spent. Remaining is computed. Paste your GoFundMe link into donate_url. #}
 {% set raised = 4367 %}
 {% set used = 3199 %}
@@ -8,9 +8,9 @@
 {% block content %}
 <div class="wrap">
   <header class="page-head">
-    <p class="eyebrow">Support Open Ajar</p>
+    <p class="eyebrow">Support OpenAjar</p>
     <h1>Open more doors for more students.</h1>
-    <p class="lead">Open Ajar helps high-school students find real opportunities and actually pursue them, whether or not they know the right people. Support helps us reach more students, keep the platform free, and create new hands-on experiences with local organizations and businesses.</p>
+    <p class="lead">OpenAjar helps high-school students find real opportunities and actually pursue them, whether or not they know the right people. Support helps us reach more students, keep the platform free, and create new hands-on experiences with local organizations and businesses.</p>
   </header>
   <div class="stats" role="group" aria-label="Funding to date">
     <div class="stat"><p class="stat__n">${{ '{:,}'.format(raised) }}</p><p>Raised</p></div>
@@ -23,16 +23,22 @@
   </div>
   {% if donate_url %}<p class="muted small">Donations are handled securely by GoFundMe.</p>{% endif %}
 
+  <section class="section section--tight">
+    <p class="eyebrow">Access Grants</p>
+    <h2>Fees shouldn’t decide who gets in.</h2>
+    <p>Students can ask us to cover a program fee, up to ${{ D.GRANT_CAP }} a year. We pay the program directly, never the student, and donations like yours fund every grant.</p>
+    <div class="actions"><a class="link" href="{{ url_for('site.grants') }}">How Access Grants work →</a></div>
+  </section>
   <section class="section">
     <p class="eyebrow">What support makes possible</p>
     <h2>Where the money goes.</h2>
     <ol class="steps">
-      <li><h3>Keep Open Ajar free</h3><p>Students never pay to use Open Ajar. Contributions cover what it costs to run, so money is never the reason a student misses out.</p></li>
+      <li><h3>Keep OpenAjar free</h3><p>Students never pay to use OpenAjar. Contributions cover what it costs to run, so money is never the reason a student misses out.</p></li>
       <li><h3>Find and verify more</h3><p>We add and check internships, programs, scholarships and competitions, and confirm each links to a real application.</p></li>
       <li><h3>Place students as interns</h3><p>We reach out to local businesses, introduce them to motivated students, and help set up real, hands-on internships.</p></li>
-      <li><h3>Reach those who need it most</h3><p>We get Open Ajar in front of students who don’t already have someone pointing them toward opportunities.</p></li>
+      <li><h3>Reach those who need it most</h3><p>We get OpenAjar in front of students who don’t already have someone pointing them toward opportunities.</p></li>
     </ol>
-    <p class="muted">These describe how support is put to use, not a line-item breakdown. Open Ajar tracks funds raised and used so support goes directly to expanding student access.</p>
+    <p class="muted">These describe how support is put to use, not a line-item breakdown. OpenAjar tracks funds raised and used so support goes directly to expanding student access.</p>
   </section>
 </div>
 {% endblock %}

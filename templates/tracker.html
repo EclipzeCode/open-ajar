@@ -51,7 +51,7 @@
           {# Shown once a card reaches Accepted/Completed (app.js toggles it as the stage changes) until they answer. #}
           {% if o.found_here is none %}
           <div class="track__found" data-found {% if o.stage not in D.WON_STAGES %}hidden{% endif %}>
-            <p><strong>Congratulations!</strong> Did you find this opportunity on Open Ajar?</p>
+            <p><strong>Congratulations!</strong> Did you find this opportunity on OpenAjar?</p>
             <div class="track__found-btns">
               <button class="btn btn--sm" type="submit" name="found" value="1">Yes, found it here</button>
               <button class="btn btn--sm btn--ghost" type="submit" name="found" value="0">No</button>

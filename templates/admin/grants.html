@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Access Grants{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Access Grants</h1></header>
+  {% include 'admin/_nav.html' %}
+  <p class="muted">Paid: <strong>${{ '{:,}'.format(totals.paid) }}</strong> · Approved, not yet paid: <strong>${{ '{:,}'.format(totals.committed) }}</strong></p>
+  <p class="muted small">Pay the program directly, never the student. Nobody can act on their own request.</p>
+  <nav class="stages" aria-label="Status">
+    <a href="{{ url_for('admin.grants') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
+    {% for s, label in D.GRANT_STATUSES.items() %}<a href="{{ url_for('admin.grants', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ label }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
+  </nav>
+  {% for g in rows %}
+    {% set own = g.user_id == user.id %}
+    <article class="panel grant" id="g-{{ g.id }}">
+      <h2>{{ g.name }}: ${{ g.amount }} for {{ g.program }}
+        <span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span></h2>
+      <p class="muted small"><a href="mailto:{{ g.email }}">{{ g.email }}</a> · parent or guardian <a href="mailto:{{ g.parent_email }}">{{ g.parent_email }}</a> · sent {{ g.created_at|day }}
+        · ${{ g.room }} of ${{ D.GRANT_CAP }} left this year</p>
+      <dl class="grant__facts">
+        <div><dt>Program</dt><dd>{% if g.opportunity_id %}<a href="{{ url_for('site.detail', opp_id=g.opportunity_id) }}">{{ g.program }}</a>{% else %}{{ g.program }}{% endif %} · {{ g.org }}{% if g.url %} · <a href="{{ g.url }}" target="_blank" rel="noopener noreferrer">site ↗</a>{% endif %}</dd></div>
+        <div><dt>Fee</dt><dd>{{ g.covers }}: asking ${{ g.amount }} of ${{ g.total_cost }}{% if g.due_date %}, due {{ g.due_date }}{% endif %}</dd></div>
+        <div><dt>Accepted</dt><dd>{{ D.GRANT_ACCEPTED[g.accepted] }}</dd></div>
+        <div><dt>Asked the program for aid</dt><dd>{{ D.GRANT_ASKED[g.asked_program] }}</dd></div>
+      </dl>
+      <p>{{ g.reason }}</p>
+      {% if g.message %}<p class="note"><strong>Last message to the student:</strong> {{ g.message }}</p>{% endif %}
+      {% if g.status == 'approved' %}<p class="note">Approved for ${{ g.approved_amount }}. Pay the program, then record it below.</p>{% endif %}
+      {% if g.status == 'paid' %}<p class="note">Paid ${{ g.paid_amount }} on {{ g.paid_on }} by {{ g.paid_method }}{% if g.paid_ref %} ({{ g.paid_ref }}){% endif %}.</p>{% endif %}
+
+      {% if own %}
+        <p class="muted small">This is your own request, so another admin has to handle it.</p>
+      {% else %}
+        {% if g.status in ('new', 'needs_info') %}
+          <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+            {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
+            <label for="amt-{{ g.id }}">Approve $</label>
+            <input id="amt-{{ g.id }}" name="approved_amount" value="{{ g.approved_amount or [g.amount, g.room]|min }}" inputmode="numeric" maxlength="7">
+            <label class="sr-only" for="am-{{ g.id }}">Optional message to the student</label>
+            <input id="am-{{ g.id }}" name="message" placeholder="Optional message to the student" maxlength="1000">
+            <button class="btn btn--sm" type="submit" name="action" value="approve">Approve</button>
+          </form>
+        {% endif %}
+        {% if g.status in D.GRANT_OPEN %}
+          <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+            {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
+            <label class="sr-only" for="msg-{{ g.id }}">Message to the student</label>
+            <input id="msg-{{ g.id }}" name="message" placeholder="Message to the student (required)" maxlength="1000">
+            <button class="btn btn--sm btn--ghost" type="submit" name="action" value="needs_info">Ask for info</button>
+            <button class="btn btn--sm btn--ghost" type="submit" name="action" value="decline" data-confirm="Decline this request? The student and their parent or guardian will be emailed.">Decline</button>
+          </form>
+        {% endif %}
+        {% if g.status == 'approved' %}
+          <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+            {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
+            <label for="pa-{{ g.id }}">Paid $</label>
+            <input id="pa-{{ g.id }}" name="paid_amount" value="{{ g.approved_amount }}" inputmode="numeric" maxlength="7">
+            <label class="sr-only" for="pd-{{ g.id }}">Date paid</label><input id="pd-{{ g.id }}" type="date" name="paid_on">
+            <label class="sr-only" for="pm-{{ g.id }}">How it was paid</label><input id="pm-{{ g.id }}" name="paid_method" placeholder="How (card, check…)" maxlength="80">
+            <label class="sr-only" for="pr-{{ g.id }}">Reference</label><input id="pr-{{ g.id }}" name="paid_ref" placeholder="Receipt or check no." maxlength="120">
+            <button class="btn btn--sm" type="submit" name="action" value="paid">Record payment</button>
+          </form>
+        {% endif %}
+        <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+          {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
+          <label class="sr-only" for="note-{{ g.id }}">Private note</label>
+          <input id="note-{{ g.id }}" name="admin_note" value="{{ g.admin_note }}" placeholder="Private note" maxlength="2000">
+          <button class="btn btn--sm btn--ghost" type="submit" name="action" value="note">Save note</button>
+        </form>
+      {% endif %}
+    </article>
+  {% else %}
+    <p class="empty">No requests{% if status %} marked {{ D.GRANT_STATUSES[status]|lower }}{% endif %} yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

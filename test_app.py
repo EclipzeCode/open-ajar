@@ -20,6 +20,11 @@ LISTING = {'title': 'River Ecology Summer Lab', 'org': 'Green River Institute', 
            'relationship': 'counselor_teacher', 'contact_email': 'teacher@example.org'}
 
 
+GRANT = {'program': 'River Ecology Summer Lab', 'org': 'Green River Institute', 'covers': 'Program fee or tuition', 'total_cost': '400',
+         'amount': '200', 'accepted': 'accepted', 'asked_program': 'yes', 'parent_email': 'parent@example.org', 'consent': '1',
+         'reason': 'I want to study river health this summer, but the fee is more than my family can cover right now.'}
+
+
 class Flows(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -43,24 +48,27 @@ class Flows(unittest.TestCase):
     def register(self, email='sam@example.org', client=None):
         return self.post('/register', {'name': 'Sam Rivera', 'email': email, 'password': PW}, client)
 
-    def make_admin(self):
+    def make_admin(self, email='admin@example.org', uid='admin1'):
         db = connect(self.app.config['DB_PATH'])
-        db.execute("INSERT INTO users (id,email,password_hash,role,name,email_verified,created_at) VALUES ('admin1','admin@example.org',?,'admin','Ada',1,'2026-01-01')",
-                   (generate_password_hash(PW),))
+        db.execute("INSERT INTO users (id,email,password_hash,role,name,email_verified,created_at) VALUES (?,?,?,'admin','Ada',1,'2026-01-01')",
+                   (uid, email, generate_password_hash(PW)))
         db.commit()
         admin = self.app.test_client()
-        self.post('/login', {'email': 'admin@example.org', 'password': PW}, admin)
+        self.post('/login', {'email': email, 'password': PW}, admin)
         return admin
+
+    def grant(self, gid):
+        return connect(self.app.config['DB_PATH']).execute('SELECT * FROM access_grants WHERE id=?', (gid,)).fetchone()
 
     def test_nav_links_go_to_the_right_pages(self):
         page = self.c.get('/').data
         self.assertIn(b'href="/opportunities"', page)
         self.assertIn(b'href="/jobs"', page)
         nav = lambda client: re.findall(r'>([^<>]+)</a>', client.get('/about').get_data(as_text=True).split('id="nav"')[1].split('</nav>')[0])
-        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'About', 'Sign in'])
-        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Apply', 'About', 'Admin', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Sign in'])
+        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Admin', 'Profile'])
         self.register()
-        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'About', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Profile'])
 
     def test_static_files_are_versioned_and_cached(self):
         css = re.search(r'href="(/static/style\.css\?v=\d+)"', self.c.get('/').get_data(as_text=True)).group(1)
@@ -138,6 +146,49 @@ class Flows(unittest.TestCase):
         tracker = self.c.get('/tracker?stage=Applied').data
         self.assertIn(b'Ask for transcript', tracker)
         self.assertIn(b'Sent!', tracker)
+
+    def test_access_grant_is_reviewed_then_paid_to_the_program(self):
+        self.assertIn(b'Sign in to ask', self.c.get('/access-grants').data)
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute("UPDATE users SET email_verified=1")
+        db.commit()
+        self.assertEqual(self.post('/access-grants', {**GRANT, 'amount': '300', 'total_cost': '400'}).status_code, 422)  # over the $250 cap
+        self.assertEqual(self.post('/access-grants', {**GRANT, 'amount': '500'}).status_code, 422)  # more than it costs
+        self.assertEqual(self.post('/access-grants', {**GRANT, 'consent': ''}).status_code, 422)
+        mail.OUTBOX.clear()
+        self.post('/access-grants', GRANT)
+        self.assertIn('Access Grant request', mail.OUTBOX[0]['subject'])  # the team is told
+        self.assertIn(b'You have a request open', self.c.get('/access-grants').data)  # one at a time
+        gid = db.execute('SELECT id FROM access_grants').fetchone()['id']
+
+        admin = self.make_admin()
+        self.post(f'/access-grants/{gid}/withdraw', client=admin)  # not theirs: nothing happens
+        self.post('/admin/grants', {'id': gid, 'action': 'needs_info'}, admin)  # a message is required
+        self.assertEqual(self.grant(gid)['status'], 'new')
+        mail.OUTBOX.clear()
+        self.post('/admin/grants', {'id': gid, 'action': 'needs_info', 'message': 'Please send your acceptance letter.'}, admin)
+        self.assertEqual({m['to'] for m in mail.OUTBOX}, {'sam@example.org', 'parent@example.org'})  # student and parent
+        self.assertIn(b'Please send your acceptance letter.', self.c.get('/access-grants').data)
+        self.post('/admin/grants', {'id': gid, 'action': 'approve', 'approved_amount': '250'}, admin)  # more than asked for
+        self.assertEqual(self.grant(gid)['status'], 'needs_info')
+        self.post('/admin/grants', {'id': gid, 'action': 'approve', 'approved_amount': '150'}, admin)
+        self.assertEqual(self.grant(gid)['status'], 'approved')
+        self.post('/admin/grants', {'id': gid, 'action': 'paid', 'paid_amount': '150', 'paid_on': '2026-10-12', 'paid_method': 'Card'}, admin)
+        g = self.grant(gid)
+        self.assertEqual((g['status'], g['paid_amount'], g['paid_by']), ('paid', 150, 'admin1'))
+        self.assertIn(b'We paid $150', self.c.get('/access-grants').data)
+        self.assertEqual(self.post('/access-grants', GRANT).status_code, 422)  # only $100 of the yearly cap is left
+
+    def test_nobody_handles_their_own_access_grant(self):
+        asker, other = self.make_admin(), self.make_admin('b@example.org', 'admin2')
+        self.post('/access-grants', GRANT, client=asker)  # admins ask the same way as any student
+        gid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM access_grants').fetchone()['id']
+        approve = {'id': gid, 'action': 'approve', 'approved_amount': '200'}
+        self.post('/admin/grants', approve, asker)
+        self.assertEqual(self.grant(gid)['status'], 'new')
+        self.post('/admin/grants', approve, other)
+        self.assertEqual((self.grant(gid)['status'], self.grant(gid)['approved_by']), ('approved', 'admin2'))
 
     def test_partner_inquiry_is_saved_emailed_and_listed_for_admins(self):
         form = {'business': 'Rosa’s Bakery', 'contact_name': 'Rosa Diaz', 'email': 'rosa@example.org', 'location': 'Austin, TX',
@@ -247,13 +298,13 @@ class Flows(unittest.TestCase):
         opp_id = db.execute('SELECT id FROM opportunities').fetchone()['id']
         self.post(f'/o/{opp_id}/track')
         self.post(f'/tracker/{opp_id}', {'stage': 'Accepted'}, headers={'X-Requested-With': 'fetch'})
-        self.assertIn('Did you find this opportunity on Open Ajar?', self.c.get('/tracker').get_data(as_text=True))
+        self.assertIn('Did you find this opportunity on OpenAjar?', self.c.get('/tracker').get_data(as_text=True))
         self.post(f'/tracker/{opp_id}', {'stage': 'Accepted', 'found': '1'})
-        self.assertNotIn('Did you find this opportunity on Open Ajar?', self.c.get('/tracker').get_data(as_text=True))
+        self.assertNotIn('Did you find this opportunity on OpenAjar?', self.c.get('/tracker').get_data(as_text=True))
         page = admin.get('/admin/stats').get_data(as_text=True)
         self.assertIn('Lincoln High', page)
         n = lambda label: re.search(r'stat__n">([\d,]+)</div><p>' + label, page).group(1)
-        self.assertEqual(n('acceptances found on Open Ajar'), '1')
+        self.assertEqual(n('acceptances found on OpenAjar'), '1')
         self.assertEqual(n('engaged members'), '1')
         self.assertEqual(n('active in the last 30 days'), '2')  # Sam and the admin
         self.assertEqual(self.c.get('/admin/stats').status_code, 403)

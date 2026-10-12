@@ -1,10 +1,10 @@
-# Open Ajar: project handoff
+# OpenAjar: project handoff
 
 Context for picking this project up in a new chat. The technical setup is in `README.md`; this file covers history, current state, the gotchas we hit and what's next.
 
 ## What it is
 
-Open Ajar is a free site where high-school students find internships, programs, scholarships, competitions and teen jobs, then track their applications. Students can also apply to be placed as interns with partner businesses, and businesses can offer to host one.
+OpenAjar is a free site where high-school students find internships, programs, scholarships, competitions and teen jobs, then track their applications. Students can also apply to be placed as interns with partner businesses, and businesses can offer to host one.
 
 - **Live site:** https://www.openajar.org (hosted on Render, deployed automatically from `main`, usually live about 90 seconds after a merge). `openajar.org` and the old `open-ajar.onrender.com` both redirect there.
 - **Repo:** https://github.com/EclipzeCode/open-ajar (private)
@@ -18,7 +18,7 @@ Open Ajar is a free site where high-school students find internships, programs, 
 3. It was first restyled after thealumhub.com (blue gradient, floating pill header, custom dropdowns, home-page door and cursor effects).
 4. Deployed on Render. Listings were imported in the Render Shell and the owner (madishetty.vrishank2008@gmail.com) was made admin.
 5. Polish pass and **research pass** on all 752 flagged listings (PR #3): about 600 rewritten from official pages, 146 unpublished with a reason. Fixes live in `data/corrections.json` (`flask --app app apply-corrections data/corrections.json`; confirmed applied on production).
-6. **Metrics (PR #4):** Admin → Stats, an optional school field, the "Did you find this on Open Ajar?" tracker prompt, daily active tracking in `user_days`.
+6. **Metrics (PR #4):** Admin → Stats, an optional school field, the "Did you find this on OpenAjar?" tracker prompt, daily active tracking in `user_days`.
 7. **Evergreen redesign (PR #6):**
    - Colors: deep green `#1F5C46` (hover `#174A38`), soft tint `#EEF5F1`, brass `#E8A33D`; warm stone grays instead of slate. White backgrounds kept. No gradients: headline text, buttons and panels are flat.
    - The account, apply, submit and tracker pages scroll normally with a sticky, transparent side panel (no inner scroll box). Apply and submit have a plain page header, a numbered stepper, interest chips and a submit bar. The help cards ("How it works", "What happens next", "Need a hand?", "Find more") are gone; Delete account sits with the other account links.
@@ -28,8 +28,8 @@ Open Ajar is a free site where high-school students find internships, programs, 
 9. **Professional polish:** flat 8px buttons (no glow or lift), underline tabs, plain-text section labels instead of outlined pills.
 10. **Job categories and card art (PR #8, #9, #16):** six broad job categories (Food & drink, Retail, Grocery, Entertainment, Recreation & outdoors, Community & public service) assigned from keywords in the employer name, then the title; /jobs has a Category filter. Every listing card shows four large icons in the top-right corner: by category for jobs (`static/img/jobs/`), by listing type for everything else (`static/img/types/`).
 11. **Browse layout (PR #10, #13):** the sort dropdown sits in the filter row; a short last row of cards stays in its columns instead of centering.
-12. **Custom domain:** `openajar.org`, bought through Shopify (DNS is managed in Shopify → Settings → Domains → openajar.org → DNS settings). Records: `@` A `216.24.57.1`, `www` CNAME `open-ajar.onrender.com`, plus Resend's `resend._domainkey` TXT and `send`/`rsend` CNAMEs. Shopify's `_dmarc` and `_provider` records were left as they are. Render's `APP_URL` is `https://www.openajar.org`; `EMAIL_FROM` is `Open Ajar <hello@openajar.org>`.
-13. **Search engines (PR #11):** non-canonical hosts 301 to `APP_URL` (except `/healthz` and form posts), canonical + Open Graph tags on every page, WebSite/Organization structured data naming the site "Open Ajar", `/robots.txt` and `/sitemap.xml` (public pages plus every live listing).
+12. **Custom domain:** `openajar.org`, bought through Shopify (DNS is managed in Shopify → Settings → Domains → openajar.org → DNS settings). Records: `@` A `216.24.57.1`, `www` CNAME `open-ajar.onrender.com`, plus Resend's `resend._domainkey` TXT and `send`/`rsend` CNAMEs. Shopify's `_dmarc` and `_provider` records were left as they are. Render's `APP_URL` is `https://www.openajar.org`; `EMAIL_FROM` is `OpenAjar <hello@openajar.org>`.
+13. **Search engines (PR #11):** non-canonical hosts 301 to `APP_URL` (except `/healthz` and form posts), canonical + Open Graph tags on every page, WebSite/Organization structured data naming the site "OpenAjar", `/robots.txt` and `/sitemap.xml` (public pages plus every live listing).
 14. **Partner with us (PR #12) and Contact (PR #16):** the Partner with us button opens `/partner`, a short form for businesses, saved to `partner_inquiries` and listed under Admin → Partner inquiries. The footer's Contact link opens `/contact` (name, email, topic, message), saved to `contact_messages` and listed under Admin → Messages. Both email the team with reply-to set to the sender, after saving.
 15. **Testimonials (PR #12, #14):** photos for Vanessa Gunawan, Heewon Park, Arnav Dedhia, Samay Malde, Ciara DeCarlo and Chayan Malkari (96px JPEGs, about 4 KB each). Mark Rydberg and Bobby DeCarlo were removed; Nate John and Sam Lui are hidden for now (their quotes are in a comment in `home.html`). The FAQ slide was rebuilt with the Web Animations API so it works in every browser.
 16. **Simpler nav (PR #17):** Opportunities · Apply · About · Admin (admins only) · Profile. Jobs is a tab on the Opportunities page (with a Submit a listing link), the tracker is a tab on Profile, and Team/Support are reached from About; the footer still lists every page. A test checks the nav for visitors, students and admins.
@@ -38,12 +38,16 @@ Open Ajar is a free site where high-school students find internships, programs, 
 19. **About: Our partners (PR #20):** Moon Tea, Ryujin, One Dollar Zone of Cedar Knolls, Coders Over Borders, Creator Colosseum and Partner Portal, as monogram tiles (no logos yet). Each has an empty `quote`/`by`/`role` slot in the list at the top of the section in `templates/about.html`; a quote shows under the name once filled in. Moon Tea, Coders Over Borders, Creator Colosseum and Partner Portal will send testimonials. Never put placeholder text there; a test checks that only real quotes render.
 20. **Partners redesign (PR #22–#25):** "Our partners" now sits on its own above the other About sections. Each partner is a full-width row (photo on alternating sides, name, testimonial) instead of a card, and fades in once as it scrolls into view. Photos are in `static/img/partners/`, set by each partner's `img`; `'wide': True` shows a non-portrait image uncropped instead of cropping it to the 4:5 frame. In `app.js`, a `.reveal` element drops its reveal classes once it has faded in, so it never animates again.
 21. **Partner details (PR #27–#28, #30):** order is Moon Tea, Creator Colosseum, Partner Portal, Ryujin, One Dollar Zone, Coders Over Borders. All six testimonials are in (a test expects six). Each row's text slides in from the photo's side after the row fades up, and ends with the address (`address`) and a website link (`url`; `link` overrides the "Visit website" text, e.g. "View on Yelp"). `'big': True` gives a wide photo a 3:2 column instead of 400px (Partner Portal, Coders Over Borders).
-22. **Discord and the home band (PR #29, #30):** the green band has a third column, "Join the community.", linking to the Discord (`https://discord.gg/n3WwuRcVWz`, set at the top of the column in `templates/home.html`; the column hides if it's empty). The three columns share rows through CSS subgrid, so headings, text and the three white buttons line up; they fade in one after another. There's 72px of space before "Open right now".
+22. **Discord and the home band (PR #29, #30):** the green band has a third column, "Join the community.", linking to the Discord (`https://discord.gg/n3WwuRcVWz`, set at the top of the column in `templates/home.html`; the column hides if it's empty). The three columns share rows through CSS subgrid, so headings, text and the three white buttons line up; they fade in one after another. (PR #33 moved this band below Community voices.)
 23. **Saved filter (PR #30):** signed-in users get a "Saved" toggle at the start of the filter row on Opportunities and Teen jobs (`?saved=1`, filtered in `core._filters` via the `saved` table), shown as a removable chip.
+24. **Team page removed (PR #32):** `/team` 301-redirects to About; the footer link, photos and styles are gone.
+25. **Access Grants (PR #33):** students ask OpenAjar to cover a program fee at `/access-grants` (navbar link; "Need help with the fee?" on listings with a fee pre-fills the form). Up to `data.GRANT_CAP` ($250) per student per calendar year (`core.grant_room`), one open request at a time, a parent or guardian's email required and copied on every decision. Admins work them under Admin → Access Grants (`admin.grant_action`): approve an amount, ask for info, decline, then record the payment after paying the program directly; the student is never sent money. Nobody can act on their own request; otherwise every request, admin or not, follows the same rules. Stored in `access_grants`, kept if the account is deleted. Privacy and terms cover it. The About page has an Access Grants section under Why "ajar".
+26. **Home order and the receipt (PR #33):** hero, door, ribbon and feature rows, Access Grants, Open right now, Community voices, the three-button green band, FAQ. The ribbon now runs into the Access Grants section (`data-band`) and fades into its deep green (#123829). Access Grants is a pinned, scroll-driven receipt like the door: a sample $250 fee prints, the grant line covers it, "You pay" counts down to $0 and a stamp lands; then the $250 / 100% / $0 stats, three steps and the button. The door and the receipt share `playOnScroll` in `app.js` (plays once, then the section collapses to one screen).
+27. **Name (PR #33):** always written **OpenAjar**, no space, across the site, emails, docs and code. The domain stays `openajar.org`.
 
 ## Current state (Oct 2026)
 
-- Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#30 are merged into `main`; nothing is open.
+- Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#33 are merged into `main`; nothing is open.
 - **Email confirmed working (Oct 2026):** a password-reset email from `hello@openajar.org` arrived on the live site. Resend's DNS records (DKIM, `send`/`rsend`, SPF, MX, DMARC) all resolve. If emails ever stop arriving, check Resend → Emails and search Render → Logs for `[email]` (a 403 means the domain isn't verified or `EMAIL_FROM` is wrong).
 - **Not done yet:** Google Search Console (see to-dos).
 - A local test account exists only in the local database; its login is in `var/LOCAL_TEST_LOGIN.txt` (gitignored).
@@ -106,7 +110,7 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 - **"Engaged members":** saved or tracked at least one listing.
 - **"Vetted":** about 990 listings have been reviewed, and 752 were checked one by one in the research pass. Vet about 200 more new ones to say 1k+ honestly.
 - **"50+ interns":** only count students marked "placed" under Admin → Intern applications. Applications don't count. Reword the line if the number isn't reached.
-- **Strongest metric:** "students accepted to programs they found on Open Ajar", from the tracker prompt.
+- **Strongest metric:** "students accepted to programs they found on OpenAjar", from the tracker prompt.
 
 ## Team plan (6 people, one metric each)
 
@@ -124,11 +128,10 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 - [x] Confirm `apply-corrections` has run on production.
 - [x] Testimonial photos. Nate John and Sam Lui are hidden until they have photos.
 - [x] Custom domain and HTTPS (`www.openajar.org`).
-- [ ] Confirm email delivery from `hello@openajar.org` (see Current state).
+- [ ] Set Render's `EMAIL_FROM` to `OpenAjar <hello@openajar.org>` so the sender name matches the new spelling.
+- [ ] Decide which account Access Grants are paid from before the first real grant.
 - [ ] Google Search Console: add `openajar.org` as a Domain property, add Google's TXT record in Shopify DNS, then submit `https://www.openajar.org/sitemap.xml`. Then import into Bing Webmaster Tools.
-- [ ] Link `www.openajar.org` from the team's social profiles and school pages (helps it rank for "Open Ajar").
-- [ ] Partner testimonials: Moon Tea, Coders Over Borders, Creator Colosseum and Partner Portal will send quotes. Paste each into its `quote` (plus `by` and `role`) in the partners list at the top of the Our partners section in `templates/about.html`; it shows under the name automatically.
-- [ ] Partner logos and one-line descriptions, to replace the monograms on the About page (none invented so far).
+- [ ] Link `www.openajar.org` from the team's social profiles and school pages (helps it rank for "OpenAjar").
 - [ ] Admin accounts for teammates: `flask --app app create-admin their@email` in the Render Shell.
 - [ ] Ideas not built yet:
   - A weekly "deadlines this month" email digest.

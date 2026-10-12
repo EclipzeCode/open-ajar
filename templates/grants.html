@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Access Grants{% endblock %}
+{% block description %}OpenAjar Access Grants help high-school students cover a program fee, up to ${{ D.GRANT_CAP }} a year, paid straight to the program.{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Access Grants</p>
+    <h1>Don’t let a fee close the door.</h1>
+    <p class="lead">Found a program you want to do, but the fee is in the way? Ask us to cover it. Access Grants pay up to ${{ D.GRANT_CAP }} a year per student toward application fees, program fees, tests and materials.</p>
+  </header>
+
+  <ol class="steps">
+    <li><h3>Tell us about it</h3><p>What the program is, what it costs, and why it matters to you. A parent or guardian should know you’re asking.</p></li>
+    <li><h3>We review it</h3><p>Someone on the team reads every request, and may email you with a question or ask for your acceptance letter or invoice.</p></li>
+    <li><h3>We pay the program</h3><p>If we approve it, we pay the program directly, never you, and email you and your parent or guardian once it’s done.</p></li>
+  </ol>
+
+  <section class="section section--tight grants">
+    <div class="grants__aside">
+      <h2>Before you ask</h2>
+      <p>Many programs waive their own fees if you ask, and that can cover more than we can. Check the program’s financial aid page or email them first.</p>
+      <p>Applying to college? The Common App, NACAC and College Board all have application fee waivers for students who qualify. Your school counselor can help you use them.</p>
+      <p class="muted small">Grants depend on the funds we have and aren’t guaranteed. One open request at a time.</p>
+    </div>
+
+    <div class="grants__main">
+      {% if mine %}
+        <h2>Your requests</h2>
+        <ul class="subs grants__mine">
+          {% for g in mine %}
+          <li class="subs__item">
+            <div class="subs__main">
+              <strong>{{ g.program }}</strong>
+              <span class="muted small">{{ g.org }} · ${{ g.amount }} of ${{ g.total_cost }} · sent {{ g.created_at|day }}</span>
+              {% if g.status == 'approved' %}<p class="note">Approved for ${{ g.approved_amount }}. We’ll pay the program directly and email you when it’s done.</p>{% endif %}
+              {% if g.status == 'paid' %}<p class="note">We paid ${{ g.paid_amount }} to {{ g.org }} on {{ g.paid_on }}.</p>{% endif %}
+              {% if g.message and g.status in ('needs_info', 'declined', 'approved') %}<p class="note"><strong>From the team:</strong> {{ g.message }}</p>{% endif %}
+            </div>
+            <div class="subs__side">
+              <span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span>
+              {% if g.status in D.GRANT_OPEN %}
+                <form method="post" action="{{ url_for('site.withdraw_grant', gid=g.id) }}">{{ m.csrf() }}<button class="icon-btn text" type="submit" data-confirm="Withdraw this request?">Withdraw</button></form>
+              {% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if can_apply %}
+        <h2>Ask for an Access Grant</h2>
+        {{ m.summary(errors) }}
+        <form class="form" method="post" novalidate>
+          {{ m.csrf() }}
+          <input type="hidden" name="opportunity_id" value="{{ values.get('opportunity_id', '') }}">
+          <div class="row2">
+            {{ m.input('program', 'Program name', values, errors, required=True, max=160) }}
+            {{ m.input('org', 'Who runs it', values, errors, required=True, max=160, placeholder='e.g. Stanford, Girls Who Code') }}
+          </div>
+          {{ m.input('url', 'Link to the program', values, errors, type='url', max=500, placeholder='https://') }}
+          <div class="row2">
+            {{ m.select('covers', 'What the fee is for', D.GRANT_COVERS, values, errors, required=True) }}
+            {{ m.input('due_date', 'When it’s due', values, errors, type='date') }}
+          </div>
+          <div class="row2">
+            {{ m.input('total_cost', 'Total cost ($)', values, errors, required=True, max=10, placeholder='e.g. 400') }}
+            {{ m.input('amount', 'How much you’re asking for ($)', values, errors, required=True, max=10, placeholder='Up to ' ~ room ~ ' this year') }}
+          </div>
+          <div class="row2">
+            {{ m.select('accepted', 'Have you been accepted?', D.GRANT_ACCEPTED, values, errors, required=True) }}
+            {{ m.select('asked_program', 'Have you asked the program for aid?', D.GRANT_ASKED, values, errors, required=True) }}
+          </div>
+          {{ m.textarea('reason', 'Why this program, and why you’re asking', values, errors, required=True, max=2000, rows=5,
+                        help='What you hope to get out of it, and what makes the fee hard right now. Only the OpenAjar team reads this.') }}
+          {{ m.input('parent_email', 'Parent or guardian’s email', values, errors, type='email', required=True,
+                     help='We copy them on our decision. If you’re 18 or older, you can use your own.') }}
+          <div class="field{% if errors.get('consent') %} has-error{% endif %}">
+            <label class="check"><input type="checkbox" name="consent" value="1" {% if values.get('consent') %}checked{% endif %}>
+              <span>My parent or guardian knows I’m asking for this grant.</span></label>
+            {{ m.err(errors, 'consent') }}
+          </div>
+          <button class="btn btn--block" type="submit">Send request</button>
+        </form>
+      {% elif not user %}
+        <div class="panel">
+          <h2>Sign in to ask</h2>
+          <p>You need a free OpenAjar account to ask for an Access Grant, so we can tell you what we decide.</p>
+          <div class="actions"><a class="btn" href="{{ url_for('account.login', next=request.full_path) }}">Sign in</a><a class="link" href="{{ url_for('account.register') }}">Create an account →</a></div>
+        </div>
+      {% elif not user.email_verified %}
+        <div class="panel"><h2>Confirm your email first</h2><p>Use the link we emailed you, or resend it from your <a href="{{ url_for('account.account') }}">account page</a>.</p></div>
+      {% elif pending %}
+        <p class="panel">You have a request open. You can ask for another once it’s paid, declined or withdrawn.</p>
+      {% else %}
+        <p class="panel">You’ve reached this year’s ${{ D.GRANT_CAP }} limit. You can ask again in January.</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

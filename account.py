@@ -78,7 +78,7 @@ def register():
     user = one('SELECT * FROM users WHERE id=?', (uid,))
     sign_in(user)
     send_verification(user)
-    flash('Welcome to Open Ajar. We sent you an email to confirm your address.')
+    flash('Welcome to OpenAjar. We sent you an email to confirm your address.')
     return redirect(safe_next(url_for('site.browse')))
 
 
@@ -196,8 +196,9 @@ def account():
     quote = one('SELECT quote, role_label, status FROM testimonials WHERE user_id=?', (u['id'],))
     quote = dict(quote) if quote else None
     counts = one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracking, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved''', {'u': u['id']})
+    grants = all_('SELECT program, org, amount, status, created_at FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (u['id'],))
     return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), submissions=subs, quote=quote,
-                           counts=dict(counts, submitted=len(subs)), errors={})
+                           counts=dict(counts, submitted=len(subs)), grants=grants, errors={})
 
 
 def back(section, msg, ok=False):

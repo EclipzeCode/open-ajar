@@ -154,6 +154,14 @@ def opp_dict(row):
 PUBLIC = "o.status = 'approved' AND (o.expires_at IS NULL OR o.expires_at > ?)"
 
 
+def grant_room(user_id, exclude=None):
+    """Dollars a student can still be granted this calendar year: data.GRANT_CAP minus what's approved or paid."""
+    used = one("""SELECT COALESCE(SUM(COALESCE(paid_amount, approved_amount)), 0) n FROM access_grants
+                  WHERE user_id=? AND status IN ('approved', 'paid') AND substr(created_at, 1, 4)=? AND id<>?""",
+               (user_id, now_iso()[:4], exclude or ''))['n']
+    return max(0, data.GRANT_CAP - used)
+
+
 def get_public(opp_id):
     return opp_dict(one(f'SELECT o.* FROM opportunities o WHERE o.id=? AND {PUBLIC}', (opp_id, now_iso())))
 

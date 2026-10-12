@@ -38,8 +38,15 @@ JOB_CATEGORIES = {
 JOB_CATEGORY_FALLBACK = 'Retail'
 
 CONTACT_TOPICS = ['A question', 'A listing', 'My account', 'Partnering with us', 'Something else']
+GRANT_CAP = 250  # dollars per student per calendar year, approved or paid
+GRANT_COVERS = ['Application fee', 'Program fee or tuition', 'Test or exam fee', 'Materials or travel', 'Something else']
+GRANT_ACCEPTED = {'accepted': 'Yes, I’ve been accepted', 'applied': 'Not yet: I’ve applied', 'not_applied': 'Not yet: I haven’t applied'}
+GRANT_ASKED = {'yes': 'Yes, I’ve asked', 'no': 'Not yet', 'none': 'They don’t offer any'}
+GRANT_STATUSES = {'new': 'Submitted', 'needs_info': 'Needs info', 'approved': 'Approved', 'paid': 'Paid',
+                  'declined': 'Declined', 'withdrawn': 'Withdrawn'}
+GRANT_OPEN = ('new', 'needs_info', 'approved')  # a student can have one of these at a time
 STAGES = ['Interested', 'Preparing', 'Applied', 'Interview', 'Accepted', 'Completed']
-WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on Open Ajar
+WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on OpenAjar
 VERIFICATION = {'unreviewed': 'Unreviewed', 'source': 'Source-linked', 'verified': 'Verified'}
 RELATIONSHIPS = {'organization_rep': 'I represent the organization', 'counselor_teacher': 'I’m a counselor or teacher',
                  'student_or_parent': 'I’m a student or parent', 'other': 'Something else'}
@@ -161,6 +168,23 @@ class Form:
             self.out[key] = v
         else:
             self.errors[key] = 'Enter a full link starting with https://'
+
+    def dollars(self, key, label, max=100000):
+        """Whole dollars, rounded up: "$1,250.50" -> 1251."""
+        v = clean(self.src.get(key, '')).replace('$', '').replace(',', '')
+        if not re.fullmatch(r'\d{1,7}(\.\d{1,2})?', v) or not 0 < float(v) <= max:
+            self.errors[key] = f'Enter {label.lower()} in dollars, like 75'
+        else:
+            self.out[key] = -int(-float(v) // 1)
+
+    def date(self, key, required=False):
+        v = clean(self.src.get(key, ''))
+        if not v and not required:
+            self.out[key] = None
+        elif parse_date(v):
+            self.out[key] = v
+        else:
+            self.errors[key] = 'Choose a date'
 
     def email(self, key, message='Enter a valid email address'):
         v = norm_email(self.src.get(key, ''))
