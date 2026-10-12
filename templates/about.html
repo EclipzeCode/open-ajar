@@ -6,6 +6,42 @@
     <p class="eyebrow">About</p>
     <h1>A door that’s open enough to see through.</h1>
   </header>
+  {#
+    PARTNERS: edit this list. When a partner sends a testimonial, fill in its quote (and optionally who said it and
+    their role). Add a photo by dropping it in static/img/partners/ and setting 'img' to its filename; until then
+    the partner's initials show in its place.
+    Set 'wide': True for a wide photo that shouldn't be cropped to the portrait frame. Never put placeholder text here: it goes live.
+  #}
+  {% set partners = [
+    {'name': 'Moon Tea', 'quote': '', 'by': '', 'role': '', 'img': 'moon-tea.jpg'},
+    {'name': 'One Dollar Zone of Cedar Knolls', 'img': 'one-dollar-zone.webp'},
+    {'name': 'Coders Over Borders', 'quote': '', 'by': '', 'role': '', 'img': 'coders-over-borders.webp', 'wide': True},
+    {'name': 'Creator Colosseum', 'quote': '', 'by': '', 'role': '', 'img': 'creator-colosseum.png', 'wide': True},
+    {'name': 'Partner Portal', 'quote': '', 'by': '', 'role': '', 'img': 'partner-portal.webp', 'wide': True},
+    {'name': 'Ryujin', 'img': 'ryujin.png', 'wide': True},
+  ] %}
+  <section class="partners">
+    <header class="partners__head">
+      <h2>Our partners</h2>
+      <p>The businesses and organizations we work with to open more doors for students.</p>
+    </header>
+    {% for p in partners %}
+      <section class="partner">
+        {% if p.img %}
+          <img class="partner__img{% if p.wide %} partner__img--wide{% endif %}" src="{{ url_for('static', filename='img/partners/' ~ p.img) }}" alt="{{ p.name }}">
+        {% else %}
+          <div class="partner__img partner__img--blank" aria-hidden="true">{{ p.name.split()[:2]|map('first')|join|upper }}</div>
+        {% endif %}
+        <div class="partner__body">
+          <h3>{{ p.name }}</h3>
+          {% if p.quote %}
+            <blockquote class="partner__quote">“{{ p.quote }}”{% if p.by %}<footer>{{ p.by }}{% if p.role %}, {{ p.role }}{% endif %}</footer>{% endif %}</blockquote>
+          {% endif %}
+        </div>
+      </section>
+    {% endfor %}
+    <p class="small muted">Run a business that could host a high-school intern? <a href="{{ url_for('site.partner') }}">Partner with us</a>.</p>
+  </section>
   <div class="about">
     <section>
       <h2>Why we exist</h2>
@@ -13,38 +49,6 @@
         <p class="pull">Your next opportunity shouldn’t depend on who you know.</p>
         <p>Opportunities live in counselor emails, university sites, career pages, nonprofit newsletters, Instagram, LinkedIn, and conversations with parents and coaches. Students with strong networks tend to hear about the good ones. Students without those connections can miss them entirely.</p>
         <p>Open Ajar is a student-founded attempt to change that: one organized place to find opportunities, understand them, and follow them through.</p>
-      </div>
-    </section>
-    {#
-      PARTNERS: edit this list. When a partner sends a testimonial, fill in its quote (and optionally who said it and
-      their role). Partners without a quote just show their name. Never put placeholder text here: it goes live.
-    #}
-    {% set partners = [
-      {'name': 'Moon Tea', 'quote': '', 'by': '', 'role': ''},
-      {'name': 'Ryujin'},
-      {'name': 'One Dollar Zone of Cedar Knolls'},
-      {'name': 'Coders Over Borders', 'quote': '', 'by': '', 'role': ''},
-      {'name': 'Creator Colosseum', 'quote': '', 'by': '', 'role': ''},
-      {'name': 'Partner Portal', 'quote': '', 'by': '', 'role': ''},
-    ] %}
-    <section>
-      <h2>Our partners</h2>
-      <div class="prose">
-        <p>The businesses and organizations we work with to open more doors for students.</p>
-        <ul class="partners">
-          {% for p in partners %}
-            <li class="partner">
-              <div class="partner__name">
-                <span class="partner__mark" aria-hidden="true">{{ p.name.split()[:2]|map('first')|join|upper }}</span>
-                {{ p.name }}
-              </div>
-              {% if p.quote %}
-                <blockquote class="partner__quote">“{{ p.quote }}”{% if p.by %}<footer>{{ p.by }}{% if p.role %}, {{ p.role }}{% endif %}</footer>{% endif %}</blockquote>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-        <p class="small muted">Run a business that could host a high-school intern? <a href="{{ url_for('site.partner') }}">Partner with us</a>.</p>
       </div>
     </section>
     <section>
