@@ -544,13 +544,20 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 /* content pages */
 .about section { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding: 40px 0; border-top: 1px solid var(--line); }
 .about .pull { font-size: 1.6rem; line-height: 1.3; font-weight: 600; letter-spacing: -.03em; color: var(--ink-strong); }
-/* About: partner names in a tidy grid; a partner's testimonial shows under its name once there is one */
-.partners { list-style: none; padding: 0; margin: 8px 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.partner { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: #fff; }
-.partner__name { display: flex; align-items: center; gap: 12px; font: 600 1rem/1.3 var(--display); color: var(--ink-strong); }
-.partner__mark { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: .85rem; letter-spacing: .02em; }
-.partner__quote { margin: 12px 0 0; font-size: .92rem; color: var(--ink); }
-.partner__quote footer { margin-top: 6px; font-size: .82rem; color: var(--muted); }
+/* About: partners sit above the about sections, each one its own row (photo, name, testimonial once there is one) */
+.partners { padding: 8px 0 48px; }
+.partners__head { margin-bottom: 8px; }
+.partners__head p { color: #57534E; max-width: 65ch; }
+.partner { display: grid; grid-template-columns: 400px 1fr; gap: 48px; align-items: center; padding: 40px 0; border-top: 1px solid var(--line); }
+.partner:nth-of-type(even) { grid-template-columns: 1fr 400px; }
+.partner:nth-of-type(even) .partner__img { order: 2; }
+.partner__img { width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
+.partner__img--wide { aspect-ratio: auto; }
+.partner__img--blank { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 600 3.2rem/1 var(--display); letter-spacing: .02em; }
+.partner h3 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -.02em; margin: 0; }
+.partner__quote { margin: 14px 0 0; font-size: 1.1rem; line-height: 1.5; color: var(--ink); max-width: 60ch; }
+.partner__quote footer { margin-top: 8px; font-size: .9rem; color: var(--muted); }
+@media (max-width: 760px) { .partner, .partner:nth-of-type(even) { grid-template-columns: 1fr; gap: 16px; } .partner:nth-of-type(even) .partner__img { order: 0; } .partner__img { max-width: 400px; } }
 .levels { list-style: none; padding: 0; }
 .levels li { margin-bottom: 12px; }
 @media (max-width: 760px) { .about section { grid-template-columns: 1fr; gap: 8px; } }
