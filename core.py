@@ -112,7 +112,7 @@ def track_opp(user_id, opp):
 
 def _here():
     """Where to come back to after signing in. A POST (like Save) returns to the page the button was on."""
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return request.full_path.rstrip('?')
     ref = urlparse(request.referrer or '')
     return ref.path if ref.netloc == request.host else '/'

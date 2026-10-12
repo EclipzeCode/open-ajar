@@ -57,7 +57,7 @@ def send_verification(user):
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('auth/register.html', values={}, errors={})
     f = data.Form(request.form)
     f.text('name', 'Your name', min=1, max=80)
@@ -84,7 +84,7 @@ def register():
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('auth/login.html', values={}, error=None)
     if too_many_auth():
         return render_template('auth/login.html', values=request.form, error='Too many attempts. Please wait a few minutes and try again.'), 429
@@ -112,7 +112,7 @@ def logout():
 def verify():
     """GET shows a button; only the POST spends the token, so email scanners that pre-open links can't use it up."""
     token = request.values.get('token', '')
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('auth/verify.html', token=token)
     if too_many_auth():
         abort(429, 'Too many attempts. Please wait a few minutes and try again.')
@@ -142,7 +142,7 @@ def resend_verification():
 @bp.route('/forgot', methods=['GET', 'POST'])
 def forgot():
     """Answers the same way whether or not the address has an account."""
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('auth/forgot.html', sent=False, error=None)
     email = data.norm_email(request.form.get('email', ''))
     if not email:
@@ -162,7 +162,7 @@ def forgot():
 @bp.route('/reset', methods=['GET', 'POST'])
 def reset():
     token = request.values.get('token', '')
-    if request.method == 'GET':
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('auth/reset.html', token=token, error=None if token_user(token, 'reset_password', False) else BAD_LINK)
     if too_many_auth():
         abort(429, 'Too many attempts. Please wait a few minutes and try again.')
