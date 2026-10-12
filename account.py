@@ -17,8 +17,10 @@ DUMMY_HASH = generate_password_hash(secrets.token_hex(8))  # checked for unknown
 BAD_LINK = 'That link has expired or was already used. Request a new one.'
 
 
-def too_many_auth():
-    return limited('auth:' + client_ip(), 15, 15 * 60)
+def too_many_auth(account=None):
+    """Per network address the limit is generous, because a whole school (or a counselor's room) shares one; per account
+    (an email or user id) it's tight, so nobody can keep guessing one person's password from anywhere."""
+    return limited('auth:' + client_ip(), 100, 15 * 60) or bool(account) and limited('account:' + account, 10, 15 * 60)
 
 
 def _sha(token):
@@ -42,11 +44,16 @@ def token_user(token, purpose, spend):
     return r['user_id'] if r else None
 
 
-def send_verification(user):
+def send_verification(user, wait=True):
+    """Emails a confirmation link. With wait=False it sends in the background and always returns True."""
     token = issue_token(user, 'verify_email', 24)
+    link = f"{current_app.config['APP_URL']}/verify?token={token}"
+    if not wait:
+        mail.later('verification', mail.verify_email, current_app.config, user, link)
+        return True
     try:
-        mail.verify_email(current_app.config, user, f"{current_app.config['APP_URL']}/verify?token={token}")
-    except Exception as e:  # never block sign-up on email; the account page offers a resend
+        mail.verify_email(current_app.config, user, link)
+    except Exception as e:
         print(f'[email] verification failed: {e}')
         return False
     return True
@@ -77,7 +84,7 @@ def register():
         (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], f.out.get('school', ''), data.now_iso()))
     user = one('SELECT * FROM users WHERE id=?', (uid,))
     sign_in(user)
-    send_verification(user)
+    send_verification(user, wait=False)  # never hold up sign-up on email; the account page offers a resend
     flash('Welcome to OpenAjar. We sent you an email to confirm your address.')
     return redirect(safe_next(url_for('site.browse')))
 
@@ -86,9 +93,9 @@ def register():
 def login():
     if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
         return render_template('auth/login.html', values={}, error=None)
-    if too_many_auth():
-        return render_template('auth/login.html', values=request.form, error='Too many attempts. Please wait a few minutes and try again.'), 429
     email = data.norm_email(request.form.get('email', ''))
+    if too_many_auth(email):
+        return render_template('auth/login.html', values=request.form, error='Too many attempts. Please wait a few minutes and try again.'), 429
     pw = request.form.get('password', '')[:128]
     user = one('SELECT * FROM users WHERE email=?', (email,)) if email else None
     ok = check_password_hash(user['password_hash'] if user else DUMMY_HASH, pw)
@@ -152,10 +159,8 @@ def forgot():
     user = one('SELECT * FROM users WHERE email=? AND disabled=0', (email,))
     if user and not limited('forgot:' + email, 3, 3600):
         token = issue_token(user, 'reset_password', 1)
-        try:
-            mail.reset_password(current_app.config, user, f"{current_app.config['APP_URL']}/reset?token={token}")
-        except Exception as e:
-            print(f'[email] password reset failed: {e}')
+        # in the background, so the answer comes back just as fast whether or not the account exists
+        mail.later('password reset', mail.reset_password, current_app.config, user, f"{current_app.config['APP_URL']}/reset?token={token}")
     return render_template('auth/forgot.html', sent=True, error=None)
 
 
@@ -228,7 +233,7 @@ def save_profile():
 @login_required
 def change_password():
     u = current_user()
-    if too_many_auth():
+    if too_many_auth(u['id']):
         abort(429, 'Too many attempts. Please wait a few minutes and try again.')
     if not check_password_hash(u['password_hash'], request.form.get('current', '')[:128]):
         return back('security', 'That isn’t your current password.')
@@ -263,7 +268,7 @@ def save_quote():
 def delete_account():
     """Permanently deletes the account. Listings they submitted stay up (submitted_by becomes empty)."""
     u = current_user()
-    if too_many_auth():
+    if too_many_auth(u['id']):
         abort(429, 'Too many attempts. Please wait a few minutes and try again.')
     if not check_password_hash(u['password_hash'], request.form.get('password', '')[:128]):
         return back('delete', 'Enter your current password to delete your account.')

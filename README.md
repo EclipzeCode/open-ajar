@@ -72,4 +72,7 @@ Leave out `--approve` if you'd rather check the listings in the review queue bef
 - Every form carries a CSRF token. Security headers include a strict Content-Security-Policy (no inline scripts).
 - Email links are single-use, expire (24h verify, 1h reset), and are stored only as SHA-256 hashes. Opening a link doesn't use it up;
   pressing the button on the page does, so email scanners can't spend it.
-- Rate limits on sign-in, sign-up, password reset, submissions and intern applications. They're in memory, which is why Render runs one worker.
+- Rate limits on sign-in, sign-up, password reset, submissions and intern applications. Sign-in limits are generous per network
+  address (a whole school can share one) and tight per account. They're in memory, which is why Render runs one worker.
+- Emails sent while a page loads go out on a background thread, so pages don't wait on Resend and "forgot password" answers
+  just as fast for any address.

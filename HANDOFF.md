@@ -67,11 +67,11 @@ OpenAjar is a free site where high-school students find internships, programs, s
 See the file table in `README.md`. Key pieces:
 
 - **`core.py` `_filters(f, skip)`:** builds the search WHERE clause. `facets(f)` uses it to count each filter's options with every *other* filter applied.
-- **`core.py` `JOB_CATEGORY_SQL`:** one `CASE` expression built from `data.JOB_CATEGORIES` (employer name first, then title). There's no stored column, so new jobs are categorized automatically; edit the keyword lists to fix a miscategorized employer.
+- **`data.py` `job_category`:** a job's category from `data.JOB_CATEGORIES` (employer name first, then title), stored in `opportunities.job_category` when a listing is saved. `app.init_db` recomputes it for every listing at startup, so editing the keyword lists to fix a miscategorized employer takes effect on the next deploy. (It used to be one big SQL `CASE` run on every query, which made filtered job pages take ~1.8 s.)
 - **`admin.py` `stats()`:** straight database counts, plus an 8-week trend that runs on UTC dates.
 - **`app.py` `init_db`:** runs `schema.sql`, then adds any columns created after launch with `ALTER TABLE`. New tables only need `CREATE TABLE IF NOT EXISTS` in `schema.sql`; new columns go in both places.
 - **`app.py` `apply_correction_file`:** applies listing fixes through the same validation as the admin editor.
-- **`static/app.js`:** one file of small, independent blocks, each starting with a `// Home: ...` or similar comment: reveal on scroll, hero typer and counters, feature rows, door (`.doorway`, collapses once open), ribbon (`.trail`), testimonial arrows, hero cursor cells, account scrollspy, date picker, dropdowns, tracker autosave, FAQ slide, card save stars, home interest tabs, phone menu. Every page works without it.
+- **`static/app.js`:** one file of small, independent blocks, each starting with a `// Home: ...` or similar comment: reveal on scroll, hero search (its placeholder types example keywords) and counters, feature rows, door (`.doorway`, collapses once open), ribbon (`.trail`), testimonial arrows, hero cursor cells, account scrollspy, date picker, dropdowns, tracker autosave, FAQ slide, card save stars, home interest tabs, phone menu. Every page works without it.
 - **`static/img/jobs/*.svg` and `static/img/types/*.svg`:** icon tiles for listing cards (by job category and by listing type). **`static/img/testimonials/`:** testimonial photos; resize new ones to 96×96 (macOS: `sips -z 96 96 -s format jpeg -s formatOptions 78 in.png --out out.jpg`).
 
 ## Gotchas we hit (don't repeat them)

@@ -13,7 +13,7 @@ COMMITMENTS = ['One-off', 'Summer', 'School year', 'Flexible']
 INTERESTS = ['STEM', 'Computer science', 'Research', 'Health & medicine', 'Business & finance', 'Arts & media',
              'Writing & humanities', 'Civics & law', 'Service', 'Leadership', 'Career exploration', 'Environment',
              'Sports & outdoors', 'Academics & college prep']
-# Broad job categories, for the jobs filter and the icon art on job cards (core.JOB_CATEGORY_SQL turns this into SQL).
+# Broad job categories, for the jobs filter and the icon art on job cards (data.job_category applies it).
 # A job gets the first category whose keywords appear in its employer name; failing that, in its title (so a "Crew
 # Member" at Five Below stays Retail). Order matters within each pass: grocery before food ("Fresh Foods Clerk"),
 # entertainment before food (a server at Chuck E. Cheese). Keywords are lowercase, without apostrophes.
@@ -37,6 +37,17 @@ JOB_CATEGORIES = {
                'walmart', 'sales', 'store', 'retail', 'cashier', 'stock', 'merchandis', 'associate'],
 }
 JOB_CATEGORY_FALLBACK = 'Retail'
+
+
+def job_category(org, title):
+    """The JOB_CATEGORIES category for a job: employer name first, then title. Stored on the listing (core.opp_values),
+    and recomputed for every listing at startup, so editing the keywords above takes effect on the next deploy."""
+    for text in (org, title):
+        text = (text or '').lower().replace("'", '').replace('’', '')
+        for cat, keywords in JOB_CATEGORIES.items():
+            if any(k in text for k in keywords):
+                return cat
+    return JOB_CATEGORY_FALLBACK
 
 CONTACT_TOPICS = ['A question', 'A listing', 'My account', 'Partnering with us', 'Something else']
 GRANT_CAP = 250  # dollars per student per calendar year, approved or paid

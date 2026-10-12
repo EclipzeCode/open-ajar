@@ -14,21 +14,29 @@ document.querySelectorAll('.reveal').forEach((el) => seen.observe(el));
 
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Home: the search pill types a keyword, pauses, erases it, and moves to the next. Clicking searches that keyword.
+// Home: the search box's placeholder types a keyword, pauses, erases it, and moves to the next. It holds still while
+// you're in the box or have typed something. Searching with the box empty searches the keyword showing.
 const typer = document.querySelector('.typer[data-words]');
 if (typer) {
   const words = typer.dataset.words.split('|');
-  const out = typer.querySelector('.typer__word');
-  const base = typer.getAttribute('href').split('?')[0];
+  const input = typer.querySelector('input');
+  let word = words[0];
+  const narrow = matchMedia('(max-width: 520px)'); // phones drop "Search" so the longer keywords fit
+  const show = (w) => { input.placeholder = narrow.matches ? w : `Search ${w}`; };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  const type = async (word) => { for (let n = 1; n <= word.length; n++) { out.textContent = word.slice(0, n); await sleep(65 + Math.random() * 45); } };
-  const erase = async (word) => { for (let n = word.length - 1; n >= 0; n--) { out.textContent = word.slice(0, n); await sleep(28); } };
+  const idle = async () => { while (input.value || document.activeElement === input || document.hidden) await sleep(400); };
+  const type = async (w) => { for (let n = 1; n <= w.length; n++) { await idle(); show(w.slice(0, n)); await sleep(65 + Math.random() * 45); } };
+  const erase = async (w) => { for (let n = w.length - 1; n >= 0; n--) { await idle(); show(w.slice(0, n)); await sleep(28); } };
+  input.addEventListener('focus', () => show(word)); // the whole word that an empty search would use
+  typer.addEventListener('submit', () => { if (!input.value.trim()) input.value = word; });
+  show(word);
   (async function loop() {
     for (let i = 0; ; i = (i + 1) % words.length) {
-      typer.href = `${base}?q=${encodeURIComponent(words[i])}`;
-      if (calm) { out.textContent = words[i]; await sleep(2600); continue; }
-      if (out.textContent !== words[i]) await type(words[i]); // the first word is already on the page
+      word = words[i];
+      if (calm) { show(word); await sleep(2600); continue; }
+      if (i) await type(word); // the first word is already on the page
       await sleep(1700);
+      await idle();
       await erase(words[i]);
       await sleep(250);
     }

@@ -181,9 +181,13 @@ def init_db(path):
     db.executescript((ROOT / 'schema.sql').read_text())
     # Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database.
     for table, col, ddl in (('users', 'school', "TEXT NOT NULL DEFAULT ''"), ('tracked', 'found_here', 'INTEGER'),
-                            ('access_grants', 'approved_at', 'TEXT')):
+                            ('access_grants', 'approved_at', 'TEXT'), ('opportunities', 'job_category', 'TEXT')):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
+    # Job categories are stored so filtering is fast; recomputing them here picks up edits to data.JOB_CATEGORIES.
+    db.executemany('UPDATE opportunities SET job_category=? WHERE id=?',
+                   [(data.job_category(r['org'], r['title']) if r['type'] == 'Job' else None, r['id'])
+                    for r in db.execute('SELECT id, type, org, title FROM opportunities')])
     db.commit()
     db.close()
 
