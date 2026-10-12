@@ -94,22 +94,22 @@
 {# Full-width green band; the ribbon from the door runs down into its top edge. #}
 <section class="band" data-band>
   <div class="wrap band__inner">
-    <div>
+    <div class="reveal">
       <h2>Want real experience? Intern with us.</h2>
-      <p>We place high-school students as interns with local businesses. Apply once and we’ll reach out when there’s a fit.</p>
+      <p>Apply once and we’ll match you with a local business.</p>
       <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
     </div>
-    <div>
+    <div class="reveal d1">
       <h2>Host a high-school intern.</h2>
-      <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
-      <a class="btn btn--ghost-light" href="{{ url_for('site.partner') }}">Partner with us</a>
+      <p>Run a small business? We’ll introduce you to a student who wants to learn.</p>
+      <a class="btn btn--light" href="{{ url_for('site.partner') }}">Partner with us</a>
     </div>
     {% set discord = 'https://discord.gg/n3WwuRcVWz' %}{# Discord invite link; the column stays hidden while this is empty #}
     {% if discord %}
-    <div>
+    <div class="reveal d2">
       <h2>Join the community.</h2>
-      <p>Meet other students chasing opportunities, swap tips and hear about new listings first on our Discord.</p>
-      <a class="btn btn--ghost-light" href="{{ discord }}" target="_blank" rel="noopener">Join our Discord ↗</a>
+      <p>Meet other students, swap tips and hear about new listings first.</p>
+      <a class="btn btn--light" href="{{ discord }}" target="_blank" rel="noopener">Join our Discord ↗</a>
     </div>
     {% endif %}
   </div>

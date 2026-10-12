@@ -130,6 +130,11 @@ img { max-width: 100%; height: auto; display: block; }
 .band { background: var(--accent); color: #fff; padding: 88px 0; }
 .band__inner { display: grid; gap: 40px; grid-auto-flow: column; grid-auto-columns: 1fr; }
 .band h2 { color: #fff; }
+/* each column shares the band's three rows (heading, text, button), so the buttons line up across columns */
+.band__inner { grid-template-rows: auto auto auto; }
+.band__inner > div { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; align-items: start; }
+.band__inner .btn { justify-self: start; align-self: end; }
+.band + .section--tight { padding-top: 72px; }
 @media (max-width: 760px) { .band__inner { grid-auto-flow: row; } }
 .card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
 .card:hover { border-color: #B9D3C6; transform: translateY(-2px); }
