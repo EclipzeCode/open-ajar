@@ -27,11 +27,12 @@
     <a class="brand" href="{{ url_for('site.home') }}"><span class="brand__door" aria-hidden="true"></span>Open Ajar</a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav id="nav" class="nav" aria-label="Main">
-      {# Five items at most. Jobs and Submit live on the Opportunities page, the tracker on Profile, Team and Support
-         on About; the footer still lists everything. Each item stays highlighted on the pages it covers. #}
+      {# Keep this short. Jobs and Submit live on the Opportunities page, the tracker on Profile, Support on About;
+         the footer lists the rest. Each item stays highlighted on the pages it covers. #}
       {% set ep = request.endpoint or '' %}
       <a href="{{ url_for('site.browse') }}" {% if ep in ('site.browse', 'site.jobs', 'site.detail', 'site.submit') %}aria-current="page"{% endif %}>Opportunities</a>
       <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Apply</a>
+      <a href="{{ url_for('site.grants') }}" {% if ep == 'site.grants' %}aria-current="page"{% endif %}>Access Grants</a>
       <a href="{{ url_for('site.about') }}" {% if ep in ('site.about', 'site.support') %}aria-current="page"{% endif %}>About</a>
       {% if user %}
         {% if user.role == 'admin' %}<a href="{{ url_for('admin.queue') }}" {% if ep.startswith('admin.') %}aria-current="page"{% endif %}>Admin</a>{% endif %}
@@ -62,7 +63,6 @@
       <a href="{{ url_for('site.terms') }}">Terms</a>
       <a href="{{ url_for('site.apply') }}">Become an intern</a>
       <a href="{{ url_for('site.support') }}">Support us</a>
-      <a href="{{ url_for('site.grants') }}">Access Grants</a>
       <a href="{{ url_for('site.contact') }}">Contact</a>
       <a href="{{ url_for('site.submit') }}">Submit</a>
       {% if dev_inbox %}<a href="{{ url_for('site.dev_inbox') }}">Dev inbox</a>{% endif %}
