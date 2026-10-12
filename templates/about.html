@@ -15,6 +15,38 @@
         <p>Open Ajar is a student-founded attempt to change that: one organized place to find opportunities, understand them, and follow them through.</p>
       </div>
     </section>
+    {#
+      PARTNERS: edit this list. When a partner sends a testimonial, fill in its quote (and optionally who said it and
+      their role). Partners without a quote just show their name. Never put placeholder text here: it goes live.
+    #}
+    {% set partners = [
+      {'name': 'Moon Tea', 'quote': '', 'by': '', 'role': ''},
+      {'name': 'Ryujin'},
+      {'name': 'One Dollar Zone of Cedar Knolls'},
+      {'name': 'Coders Over Borders', 'quote': '', 'by': '', 'role': ''},
+      {'name': 'Creator Colosseum', 'quote': '', 'by': '', 'role': ''},
+      {'name': 'Partner Portal', 'quote': '', 'by': '', 'role': ''},
+    ] %}
+    <section>
+      <h2>Our partners</h2>
+      <div class="prose">
+        <p>The businesses and organizations we work with to open more doors for students.</p>
+        <ul class="partners">
+          {% for p in partners %}
+            <li class="partner">
+              <div class="partner__name">
+                <span class="partner__mark" aria-hidden="true">{{ p.name.split()[:2]|map('first')|join|upper }}</span>
+                {{ p.name }}
+              </div>
+              {% if p.quote %}
+                <blockquote class="partner__quote">“{{ p.quote }}”{% if p.by %}<footer>{{ p.by }}{% if p.role %}, {{ p.role }}{% endif %}</footer>{% endif %}</blockquote>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        <p class="small muted">Run a business that could host a high-school intern? <a href="{{ url_for('site.partner') }}">Partner with us</a>.</p>
+      </div>
+    </section>
     <section>
       <h2>Why “ajar”</h2>
       <div class="prose">
