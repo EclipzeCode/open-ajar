@@ -234,6 +234,18 @@ class Flows(unittest.TestCase):
         self.assertIn('NIH summer program', self.make_admin().get('/admin/messages').get_data(as_text=True))
         self.assertIn('href="/contact"', self.c.get('/').get_data(as_text=True))
 
+    def test_data_export_is_readable_csvs_without_passwords(self):
+        import io, zipfile
+        self.register()
+        r = self.make_admin().get('/admin/export')
+        z = zipfile.ZipFile(io.BytesIO(r.data))
+        self.assertIn('members.csv', z.namelist())
+        self.assertIn('summary.csv', z.namelist())
+        members = z.read('members.csv').decode('utf-8-sig')
+        self.assertTrue(members.startswith('Name,Email,Role'))
+        self.assertRegex(members, r'Sam Rivera,sam@example.org,student,.*,No,Yes,No,\d{4}-\d{2}-\d{2} \d{2}:\d{2}')
+        self.assertNotIn('scrypt', ''.join(z.read(n).decode('utf-8-sig') for n in z.namelist()))  # no password hashes
+
     def test_admins_can_download_a_backup(self):
         self.register()
         self.assertEqual(self.c.get('/admin/backup').status_code, 403)
@@ -269,7 +281,7 @@ class Flows(unittest.TestCase):
         self.assertNotIn(b'name="adjust"', other.get('/admin/stats').data)  # no adjust controls for other admins
         self.post('/admin/stats', {'key': 'placed', 'adjust': '+3'}, owner)
         page = other.get('/admin/stats').get_data(as_text=True)
-        self.assertIn('Includes +3 added by hand · database count 0', page)  # always shown next to the real count
+        self.assertIn('+3 by hand</span> · database count 0', page)  # always shown next to the real count
         self.assertIn('Adjusted a stat by hand', other.get('/admin/activity?kind=stat_adjusted').get_data(as_text=True))
 
     def test_admins_confirm_emails_filter_users_and_see_a_persons_applications(self):
@@ -430,10 +442,12 @@ class Flows(unittest.TestCase):
         self.assertNotIn('Did you find this opportunity on OpenAjar?', self.c.get('/tracker').get_data(as_text=True))
         page = admin.get('/admin/stats').get_data(as_text=True)
         self.assertIn('Lincoln High', page)
-        n = lambda label: re.search(r'stat__n">([\d,]+)</div><p>' + label, page).group(1)
-        self.assertEqual(n('acceptances found on OpenAjar'), '1')
-        self.assertEqual(n('engaged members'), '1')
-        self.assertEqual(n('active in the last 30 days'), '2')  # Sam and the admin
+        n = lambda label: re.search(r'<th scope="row">' + re.escape(label) + r'</th>\s*<td class="more__n">([\d,]+)<', page).group(1)
+        self.assertEqual(n('Acceptances found on OpenAjar'), '1')
+        self.assertEqual(n('Engaged (saved or tracked a listing)'), '1')
+        self.assertEqual(n('Active in the last 30 days'), '2')  # Sam and the admin
+        self.assertIn('Found on OpenAjar: 1 of 1', page)  # the donut slice
+        self.assertIn('Accepted: 1', page)  # the stage bars
         self.assertEqual(self.c.get('/admin/stats').status_code, 403)
 
     def test_reminders_send_once(self):

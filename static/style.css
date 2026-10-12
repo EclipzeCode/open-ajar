@@ -823,11 +823,54 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .link-btn { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
 .user-verify { margin-top: 4px; }
 .user-link { color: var(--ink-strong); }
-/* Stats: hand adjustments are always shown with the real count */
-.stat__adj { color: var(--warn); margin: 6px 0 0; }
-.stat__edit { margin-top: 8px; font-size: .85rem; }
-.stat__edit summary { cursor: pointer; color: var(--accent); }
-.stat__edit form { margin-top: 8px; }
+/* Admin overview: headline numbers, then charts in cards, then every number in one table */
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-head h1 { margin: 0; }
+.admin-head__actions { display: flex; align-items: center; gap: 14px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+.kpi__label { margin: 0; font-size: .85rem; color: var(--muted); }
+.kpi__n { margin: 6px 0 2px; font: 700 2.4rem/1.05 var(--display); letter-spacing: -.03em; color: var(--ink-strong); }
+.kpi__sub { margin: 0; font-size: .85rem; color: var(--muted); }
+.kpi__adj { color: var(--warn); }
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.chart-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px 14px; }
+.chart-card h2 { font-size: 1rem; margin: 0 0 12px; }
+.chart { display: block; width: 100%; height: auto; overflow: visible; }
+.chart__grid { stroke: var(--line); stroke-width: 1; }
+.chart__tick { fill: var(--muted); font: 500 11px var(--sans); }
+.chart__label { fill: var(--ink); font: 500 13px var(--sans); }
+.chart__value { fill: var(--ink-strong); font: 600 12px var(--sans); }
+.chart__bar { fill: #8FB9A3; }
+.chart__bar--now, .chart-card .chart__hit:hover .chart__bar { fill: var(--accent); }
+.chart__area { fill: var(--accent); opacity: .1; }
+.chart__line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart__dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.chart__dot--quiet { opacity: 0; }
+.chart__hit:hover .chart__dot--quiet { opacity: 1; }
+.chart__target { fill: transparent; }
+.chart__hit:hover .chart__target { fill: var(--soft); }
+.chart__empty { color: var(--muted); font-size: .9rem; margin: 8px 0; }
+.donut { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.donut__svg { width: 150px; height: 150px; flex: none; }
+.donut__track { fill: none; stroke: var(--soft); stroke-width: 20; }
+.donut__slice { fill: none; stroke-width: 20; }
+.donut__slice--1, .donut__key--1 { stroke: var(--accent); background: var(--accent); }
+.donut__slice--2, .donut__key--2 { stroke: #A8A29E; background: #A8A29E; }
+.donut__slice--3, .donut__key--3 { stroke: #D6D3D1; background: #D6D3D1; }
+.donut__n { fill: var(--ink-strong); font: 700 26px var(--display); }
+.donut__label { fill: var(--muted); font: 500 10px var(--sans); }
+.donut__legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: .9rem; }
+.donut__legend li { display: grid; grid-template-columns: 12px 1fr auto 3.2em; gap: 8px; align-items: center; }
+.donut__legend strong { font-variant-numeric: tabular-nums; text-align: right; }
+.donut__legend .muted { text-align: right; font-size: .8rem; }
+.donut__key { width: 12px; height: 12px; border-radius: 3px; }
+.more h2 { font-size: 1.1rem; }
+.more__table { max-width: 760px; }
+.table.more__table th { font-weight: 500; font-size: .95rem; color: var(--ink); text-transform: none; letter-spacing: 0; background: none; }
+.more__n { font: 600 1rem var(--sans); font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-strong); }
+.more__edit .inline-form input { flex: 0 0 90px; }
+@media (max-width: 900px) { .kpis { grid-template-columns: 1fr 1fr; } .charts { grid-template-columns: 1fr; } }
 /* Admin user details, on its own page or in the pop-up */
 .user-detail__head { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
 .user-detail__name { margin: 0; font-size: 1.4rem; }

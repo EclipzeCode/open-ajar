@@ -1,8 +1,13 @@
 """Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries, contact messages,
 Community Voices and Access Grants."""
+import csv
+import io
+import json
 import os
+import re
 import sqlite3
 import tempfile
+import zipfile
 from datetime import date, timedelta
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_file, url_for
@@ -218,14 +223,15 @@ def user_detail(uid):
 @bp.route('/stats', methods=['GET', 'POST'])
 @admin_required
 def stats():
-    """Straight counts from the database. The owner can add a hand adjustment to a headline number (for things the site
-    can't see, like a placement arranged offline); it's shown next to the real count and recorded in Activity."""
+    """The overview: headline numbers, a few charts, and every other count in one table. Straight counts from the
+    database; the owner can add a hand adjustment to a number (for things the site can't see, like a placement arranged
+    offline), which is always shown next to the real count and recorded in Activity."""
     if request.method == 'POST':
         me, key = current_user(), request.form.get('key', '')
         value = request.form.get('adjust', '').strip().replace('+', '')
         if not is_owner(me):
             abort(403)
-        if key not in STAT_KEYS or not value.lstrip('-').isdigit() or abs(int(value)) > 100000:
+        if key not in STAT_LABELS or not value.lstrip('-').isdigit() or abs(int(value)) > 100000:
             flash('Enter a whole number, like 3 or -2.', 'error')
         else:
             old = stat_adjustments().get(key, 0)
@@ -233,7 +239,32 @@ def stats():
                 ('stat_adj:' + key, int(value)))
             audit(me['id'], f'stat_adjusted {key} {old:+d} to {int(value):+d}', key)
             flash('Adjustment saved.')
-        return redirect(url_for('admin.stats') + '#' + key)
+        return redirect(url_for('admin.stats') + '#more')
+    s, adj = _stat_numbers(), stat_adjustments()
+    today = date.fromisoformat(data.now_iso()[:10])
+    n = lambda sql, args=(): one(sql, args)['n']
+    weeks = []  # the last 12 weeks, oldest first
+    for i in reversed(range(12)):
+        end, start = today - timedelta(days=7 * i), today - timedelta(days=7 * (i + 1))
+        weeks.append({'label': (start + timedelta(days=1)).strftime('%b %-d'),
+                      'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
+                      'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
+    stage_n = {r['stage']: r['n'] for r in all_('SELECT stage, COUNT(*) n FROM tracked GROUP BY stage')}
+    return render_template('admin/stats.html', s=s, adj=adj, weeks=weeks, labels=STAT_LABELS, nice=_nice_top,
+        stages=[(st, stage_n.get(st, 0)) for st in data.STAGES],
+        found=[('Found on OpenAjar', s['won_here']), ('Found elsewhere', s['won_elsewhere']),
+               ('Not answered yet', s['won'] - s['won_here'] - s['won_elsewhere'])],
+        types=_top_and_other([(('Teen jobs' if r['type'] == 'Job' else r['type']), r['n']) for r in
+               all_("SELECT type, COUNT(*) n FROM opportunities WHERE status='approved' GROUP BY type ORDER BY n DESC")]))
+
+
+def _top_and_other(items, keep=7):
+    """The biggest few, with the rest added up as Other, so a chart stays short."""
+    return items if len(items) <= keep + 1 else items[:keep] + [('Other', sum(n for _, n in items[keep:]))]
+
+
+def _stat_numbers():
+    """Every count on Stats and in the export's summary, straight from the database."""
     today = date.fromisoformat(data.now_iso()[:10])  # UTC, the same clock user_days and created_at use
     ago = lambda days: (today - timedelta(days=days)).isoformat()
     n = lambda sql, args=(): one(sql, args)['n']
@@ -242,6 +273,7 @@ def stats():
     s = {
         'members': n('SELECT COUNT(*) n FROM users WHERE disabled=0'),
         'verified': n('SELECT COUNT(*) n FROM users WHERE disabled=0 AND email_verified=1'),
+        'joined7': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ?', (ago(7),)),
         'engaged': n("""SELECT COUNT(*) n FROM users u WHERE disabled=0 AND (EXISTS (SELECT 1 FROM saved WHERE user_id=u.id)
                         OR EXISTS (SELECT 1 FROM tracked WHERE user_id=u.id))"""),
         'active7': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ?', (ago(7),)),
@@ -256,33 +288,39 @@ def stats():
         'placed': n("SELECT COUNT(*) n FROM intern_applications WHERE status='placed'"),
         'intern_apps': n('SELECT COUNT(*) n FROM intern_applications'),
         'live': n("SELECT COUNT(*) n FROM opportunities WHERE status='approved'"),
-        'live_jobs': n("SELECT COUNT(*) n FROM opportunities WHERE status='approved' AND type='Job'"),
         'reviewed': n('SELECT COUNT(DISTINCT opportunity_id) n FROM review_events'),
         'checked': n("SELECT COUNT(*) n FROM opportunities WHERE verification='verified'"),
         'removed': n("SELECT COUNT(*) n FROM opportunities WHERE status IN ('rejected','expired')"),
+        'grants_paid': n("SELECT COALESCE(SUM(paid_amount), 0) n FROM access_grants WHERE status='paid'"),
     }
     # Schools: typed freely, so group case- and space-insensitively and show the most common spelling
     schools = {}
     for r in all_("SELECT school FROM users WHERE disabled=0 AND school <> ''"):
-        key = ' '.join(r['school'].lower().split())
-        names = schools.setdefault(key, {})
+        names = schools.setdefault(' '.join(r['school'].lower().split()), {})
         names[r['school']] = names.get(r['school'], 0) + 1
-    top = sorted(((max(v, key=v.get), sum(v.values())) for v in schools.values()), key=lambda x: -x[1])
+    s['top_schools'] = sorted(((max(v, key=v.get), sum(v.values())) for v in schools.values()), key=lambda x: -x[1])[:8]
     s['schools'] = len(schools)
-    s['with_school'] = sum(c for _, c in top)
-    # Last 8 weeks, newest first
-    weeks = []
-    for i in range(8):
-        end, start = today - timedelta(days=7 * i), today - timedelta(days=7 * (i + 1))
-        weeks.append({'start': start + timedelta(days=1), 'end': end,
-                      'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
-                      'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
-    return render_template('admin/stats.html', s=s, adj=stat_adjustments(), top=top[:20], weeks=weeks)
+    return s
 
 
-# the headline numbers on Stats the owner may adjust by hand
-STAT_KEYS = ('won_here', 'won', 'placed', 'members', 'engaged', 'active30', 'schools', 'tracked', 'saved', 'reminded',
-             'live', 'reviewed', 'removed')
+def _nice_top(v):
+    """A round top for a chart axis at or above v whose half is whole too: 2, 4, 6, 10, 20, 40, 60, 100... (37 -> 40)."""
+    step = 1
+    while True:
+        for m in (2, 4, 6, 10):
+            if v <= m * step:
+                return m * step
+        step *= 10
+
+
+# the numbers on Stats (and in the export's summary) the owner may adjust by hand, in the order they're listed
+STAT_LABELS = {
+    'members': 'Members', 'active30': 'Active in the last 30 days', 'engaged': 'Engaged (saved or tracked a listing)',
+    'schools': 'Schools', 'won_here': 'Acceptances found on OpenAjar', 'won': 'Acceptances tracked in total',
+    'placed': 'Students placed as interns', 'tracked': 'Applications tracked', 'saved': 'Listings saved',
+    'reminded': 'Deadline reminders sent', 'live': 'Live listings', 'reviewed': 'Listings reviewed by the team',
+    'removed': 'Listings removed as outdated', 'grants_paid': 'Access Grants paid ($)',
+}
 
 
 def stat_adjustments():
@@ -317,6 +355,82 @@ def backup():
     resp = send_file(tmp.name, as_attachment=True, download_name=f"openajar-{data.now_iso()[:10]}.db", mimetype='application/octet-stream')
     resp.call_on_close(lambda: os.remove(tmp.name))
     return resp
+
+
+@bp.get('/export')
+@admin_required
+def export():
+    """Everything people can read in a spreadsheet: a zip with one CSV per area, readable headers, emails and titles
+    instead of internal ids, and plain dates. Password hashes and sign-in tokens are left out."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:
+        for name, sql in EXPORTS.items():
+            cur = get_db().execute(sql)
+            out = io.StringIO()
+            w = csv.writer(out)
+            w.writerow([c[0] for c in cur.description])
+            w.writerows([_cell(v) for v in row] for row in cur)
+            z.writestr(f'{name}.csv', '﻿' + out.getvalue())  # the BOM tells Excel it's UTF-8
+        s, adj = _stat_numbers(), stat_adjustments()
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow(['Number', 'Database count', 'Added by hand', 'Shown on Stats'])
+        w.writerows([label, s[k], adj.get(k, 0), s[k] + adj.get(k, 0)] for k, label in STAT_LABELS.items())
+        z.writestr('summary.csv', '﻿' + out.getvalue())
+    audit(current_user()['id'], 'data_exported', 'all data (CSV)')
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name=f"openajar-data-{data.now_iso()[:10]}.zip", mimetype='application/zip')
+
+
+def _cell(v):
+    """A database value as people read it: dates without the T and seconds, lists one after another."""
+    if isinstance(v, str) and ISO_TIME.match(v):
+        return v[:10] + ' ' + v[11:16]
+    if isinstance(v, str) and v.startswith('['):
+        try:
+            items = json.loads(v)
+        except ValueError:
+            return v
+        return '; '.join(('✓ ' if i.get('done') else '') + i.get('text', '') if isinstance(i, dict) else str(i) for i in items)
+    return '' if v is None else v
+
+
+ISO_TIME = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}')
+YES = lambda col: f"CASE WHEN {col} THEN 'Yes' ELSE 'No' END"
+EXPORTS = {  # file name -> query with readable column names
+    'members': f'''SELECT name "Name", email "Email", role "Role", school "School", grade "Grade", location "Location",
+        interests "Interests", {YES('email_verified')} "Email confirmed", {YES('email_reminders')} "Reminder emails",
+        {YES('disabled')} "Disabled", created_at "Joined" FROM users ORDER BY created_at''',
+    'listings': '''SELECT title "Title", org "Organization", type "Type", status "Status", verification "Checked", cost "Cost",
+        cost_note "Cost note", format "Format", location "Location", state "State", commitment "Commitment", grades "Grades",
+        interests "Interests", deadline_date "Deadline", deadline_note "Deadline note", url "Link", summary "Summary",
+        eligibility "Eligibility", requirements "Requirements", source "Source", published_at "Published", expires_at "Expires",
+        updated_at "Last updated" FROM opportunities ORDER BY title''',
+    'tracker': f'''SELECT u.email "Student", o.title "Listing", t.stage "Stage", t.deadline "Own deadline", t.checklist "Checklist",
+        t.notes "Notes", CASE t.found_here WHEN 1 THEN 'Yes' WHEN 0 THEN 'No' END "Found on OpenAjar", t.added_at "Added"
+        FROM tracked t JOIN users u ON u.id=t.user_id JOIN opportunities o ON o.id=t.opportunity_id ORDER BY t.added_at''',
+    'saved': '''SELECT u.email "Student", o.title "Listing", s.created_at "Saved" FROM saved s JOIN users u ON u.id=s.user_id
+        JOIN opportunities o ON o.id=s.opportunity_id ORDER BY s.created_at''',
+    'intern-applications': '''SELECT full_name "Name", email "Email", grade "Grade", school "School", location "Location",
+        interests "Interests", skills "Skills", availability "Availability", statement "Why they want to intern", link "Link",
+        status "Status", admin_note "Private note", created_at "Applied" FROM intern_applications ORDER BY created_at''',
+    'partner-inquiries': '''SELECT business "Business", contact_name "Contact", email "Email", phone "Phone", location "Location",
+        message "Message", status "Status", admin_note "Private note", created_at "Sent" FROM partner_inquiries ORDER BY created_at''',
+    'messages': '''SELECT name "Name", email "Email", topic "Topic", message "Message", status "Status", admin_note "Private note",
+        created_at "Sent" FROM contact_messages ORDER BY created_at''',
+    'quotes': '''SELECT name "Name", role_label "Role", quote "Quote", status "Status", updated_at "Updated" FROM testimonials
+        ORDER BY updated_at''',
+    'access-grants': '''SELECT name "Student", email "Email", parent_email "Parent or guardian", program "Program", org "Organization",
+        url "Link", covers "Fee for", total_cost "Total cost ($)", amount "Asked for ($)", due_date "Due", accepted "Accepted",
+        asked_program "Asked the program for aid", reason "Why", status "Status", approved_amount "Approved ($)",
+        approved_at "Approved", paid_amount "Paid ($)", paid_on "Paid on", paid_method "Paid by", paid_ref "Reference",
+        admin_note "Private note", created_at "Sent" FROM access_grants ORDER BY created_at''',
+    'activity': '''SELECT at "When", actor "Who", action "Action", title "About", message "Note" FROM (
+        SELECT e.created_at at, COALESCE(u.email, 'System') actor, e.action, o.title, e.message FROM review_events e
+        JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
+        UNION ALL SELECT a.created_at, COALESCE(u.email, 'System'), a.action, a.target, '' FROM audit_log a
+        LEFT JOIN users u ON u.id=a.actor_id) ORDER BY at DESC''',
+}
 
 
 @bp.get('/activity')

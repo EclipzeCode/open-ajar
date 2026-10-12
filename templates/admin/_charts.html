@@ -1,0 +1,95 @@
+{# Small SVG charts for the admin overview, drawn on the server (the CSP allows no chart libraries). Colors and type come
+   from style.css (.chart ...). Hover any mark for its exact value (<title>). nice() rounds an axis top up. #}
+
+{# Rounded top on a column, square at the baseline #}
+{% macro _col(x, y, w, base) %}{% set r = [4, base - y]|min %}M{{ x }},{{ base }}V{{ y + r }}Q{{ x }},{{ y }} {{ x + r }},{{ y }}H{{ x + w - r }}Q{{ x + w }},{{ y }} {{ x + w }},{{ y + r }}V{{ base }}Z{% endmacro %}
+
+{# Shared frame: three gridlines with round tick values #}
+{% macro _grid(top, L, R, T, B) %}
+  {% for i in range(3) %}{% set y = B - (B - T) * i / 2 %}
+    <line class="chart__grid" x1="{{ L }}" x2="{{ R }}" y1="{{ y }}" y2="{{ y }}"/>
+    <text class="chart__tick" x="{{ L - 8 }}" y="{{ y + 4 }}" text-anchor="end">{{ '{:,}'.format((top * i / 2)|round|int) }}</text>
+  {% endfor %}
+{% endmacro %}
+
+{# One value per week as columns. Labels every third week; the latest value is written on its column. #}
+{% macro columns(rows, key, what) %}
+  {% set W, H, L, R, T, B = 560, 200, 40, 552, 14, 172 %}
+  {% set top = nice([rows|map(attribute=key)|max, 1]|max) %}
+  {% set slot = (R - L) / rows|length %}{% set bw = [24, slot * 0.6]|min %}
+  <svg class="chart" viewBox="0 0 {{ W }} {{ H }}" role="img" aria-label="{{ what }}, last {{ rows|length }} weeks">
+    {{ _grid(top, L, R, T, B) }}
+    {% for r in rows %}{% set x = L + slot * loop.index0 + (slot - bw) / 2 %}{% set y = B - (B - T) * r[key] / top %}
+      <g class="chart__hit"><title>Week of {{ r.label }}: {{ r[key] }} {{ what|lower }}</title>
+        <rect class="chart__target" x="{{ L + slot * loop.index0 }}" y="{{ T }}" width="{{ slot }}" height="{{ B - T }}"/>
+        {% if r[key] %}<path class="chart__bar{% if loop.last %} chart__bar--now{% endif %}" d="{{ _col(x, y, bw, B) }}"/>{% endif %}
+        {% if loop.last %}<text class="chart__value" x="{{ x + bw / 2 }}" y="{{ y - 6 }}" text-anchor="middle">{{ r[key] }}</text>{% endif %}
+      </g>
+      {% if loop.index0 % 3 == 2 or loop.last %}<text class="chart__tick" x="{{ x + bw / 2 }}" y="{{ H - 6 }}" text-anchor="middle">{{ r.label }}</text>{% endif %}
+    {% endfor %}
+  </svg>
+{% endmacro %}
+
+{# One value per week as a line with a light wash under it; the latest value is labelled at its end dot. #}
+{% macro line(rows, key, what) %}
+  {% set W, H, L, R, T, B = 560, 200, 40, 540, 14, 172 %}
+  {% set top = nice([rows|map(attribute=key)|max, 1]|max) %}
+  {% set step = (R - L) / (rows|length - 1) %}
+  {% set pts = [] %}{% for r in rows %}{% do pts.append(((L + step * loop.index0)|round(1), (B - (B - T) * r[key] / top)|round(1))) %}{% endfor %}
+  <svg class="chart" viewBox="0 0 {{ W }} {{ H }}" role="img" aria-label="{{ what }}, last {{ rows|length }} weeks">
+    {{ _grid(top, L, R, T, B) }}
+    <path class="chart__area" d="M{{ L }},{{ B }}{% for x, y in pts %} L{{ x }},{{ y }}{% endfor %} L{{ R }},{{ B }}Z"/>
+    <polyline class="chart__line" points="{% for x, y in pts %}{{ x }},{{ y }} {% endfor %}"/>
+    {% for r in rows %}{% set x, y = pts[loop.index0] %}
+      <g class="chart__hit"><title>Week of {{ r.label }}: {{ r[key] }} {{ what|lower }}</title>
+        <rect class="chart__target" x="{{ x - step / 2 }}" y="{{ T }}" width="{{ step }}" height="{{ B - T }}"/>
+        <circle class="chart__dot{% if not loop.last %} chart__dot--quiet{% endif %}" cx="{{ x }}" cy="{{ y }}" r="4"/>
+      </g>
+      {% if loop.index0 % 3 == 2 or loop.last %}<text class="chart__tick" x="{{ x }}" y="{{ H - 6 }}" text-anchor="middle">{{ r.label }}</text>{% endif %}
+    {% endfor %}
+    {% set x, y = pts[-1] %}<text class="chart__value" x="{{ x }}" y="{{ y - 10 }}" text-anchor="end">{{ rows[-1][key] }}</text>
+  </svg>
+{% endmacro %}
+
+{# Horizontal bars for a handful of named counts, biggest first or in their natural order; the value sits at each tip. #}
+{% macro bars(items, what, empty='Nothing yet.') %}
+  {% if items and items|map(attribute=1)|max %}
+  {% set top = items|map(attribute=1)|max %}
+  {% set W, L, R, row = 560, 168, 516, 30 %}
+  <svg class="chart" viewBox="0 0 {{ W }} {{ items|length * row + 4 }}" role="img" aria-label="{{ what }}">
+    {% for label, n in items %}{% set y = 4 + row * loop.index0 %}{% set w = (R - L) * n / top %}
+      <g class="chart__hit"><title>{{ label }}: {{ '{:,}'.format(n) }}</title>
+        <rect class="chart__target" x="0" y="{{ y }}" width="{{ W }}" height="{{ row }}"/>
+        <text class="chart__label" x="{{ L - 12 }}" y="{{ y + 18 }}" text-anchor="end">{{ label|truncate(24, True) }}</text>
+        {% if n %}{% set r = [4, w]|min %}<path class="chart__bar" d="M{{ L }},{{ y + 6 }}H{{ L + w - r }}Q{{ L + w }},{{ y + 6 }} {{ L + w }},{{ y + 6 + r }}V{{ y + 22 - r }}Q{{ L + w }},{{ y + 22 }} {{ L + w - r }},{{ y + 22 }}H{{ L }}Z"/>{% endif %}
+        <text class="chart__value" x="{{ L + w + 8 }}" y="{{ y + 18 }}">{{ '{:,}'.format(n) }}</text>
+      </g>
+    {% endfor %}
+  </svg>
+  {% else %}<p class="chart__empty">{{ empty }}</p>{% endif %}
+{% endmacro %}
+
+{# Part-to-whole for up to three parts: the first is the one that matters (accent), the rest are grays.
+   A 2px gap separates the slices; the total sits in the middle; the legend carries labels and shares. #}
+{% macro donut(parts, center, empty='Nothing yet.') %}
+  {% set total = parts|map(attribute=1)|sum %}
+  {% if total %}
+  {% set r, C = 52, 2 * 3.14159 * 52 %}
+  <div class="donut">
+    <svg class="donut__svg" viewBox="0 0 140 140" role="img" aria-label="{% for label, n in parts %}{{ label }} {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}">
+      <circle class="donut__track" cx="70" cy="70" r="{{ r }}"/>
+      {% set ns = namespace(at=0) %}
+      {% for label, n in parts %}{% if n %}{% set len = C * n / total %}
+        <circle class="donut__slice donut__slice--{{ loop.index }}" cx="70" cy="70" r="{{ r }}" transform="rotate(-90 70 70)"
+          stroke-dasharray="{{ [len - 2, 0.1]|max }} {{ C }}" stroke-dashoffset="{{ -ns.at }}"><title>{{ label }}: {{ n }} of {{ total }}</title></circle>
+        {% set ns.at = ns.at + len %}
+      {% endif %}{% endfor %}
+      <text class="donut__n" x="70" y="72" text-anchor="middle">{{ total }}</text>
+      <text class="donut__label" x="70" y="90" text-anchor="middle">{{ center }}</text>
+    </svg>
+    <ul class="donut__legend">
+      {% for label, n in parts %}<li><span class="donut__key donut__key--{{ loop.index }}"></span>{{ label }}<strong>{{ n }}</strong><span class="muted">{{ (100 * n / total)|round|int }}%</span></li>{% endfor %}
+    </ul>
+  </div>
+  {% else %}<p class="chart__empty">{{ empty }}</p>{% endif %}
+{% endmacro %}
