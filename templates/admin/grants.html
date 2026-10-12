@@ -32,7 +32,8 @@
       {% if g.status == 'paid' %}<p class="note">Paid ${{ g.paid_amount }} on {{ g.paid_on }} by {{ g.paid_method }}{% if g.paid_ref %} ({{ g.paid_ref }}){% endif %}.</p>{% endif %}
       {{ app.history(updates.get(g.id), D.GRANT_STATUSES) }}
 
-      {% if own %}
+      {% if not can_edit %}
+      {% elif own %}
         <p class="muted small">This is your own request, so another admin has to handle it.</p>
       {% else %}
         {% if g.status in ('new', 'needs_info') %}

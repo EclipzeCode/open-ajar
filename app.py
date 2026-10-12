@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import threading
 import time
 from datetime import datetime, timedelta
@@ -152,7 +153,8 @@ def create_app(test_config=None):
 
     @app.context_processor
     def globals_():
-        return {'user': current_user(), 'csrf_token': session.get('csrf', ''), 'D': data, 'production': app.config['PRODUCTION'],
+        u = current_user()
+        return {'user': u, 'can_edit': bool(u) and u['role'] == 'admin', 'csrf_token': session.get('csrf', ''), 'D': data, 'production': app.config['PRODUCTION'],
                 'dev_inbox': not app.config['PRODUCTION'] and not app.config['RESEND_API_KEY'],
                 'contact_email': app.config['CONTACT_EMAIL'], 'canonical': app.config['APP_URL'] + request.path,
                 'app_url': app.config['APP_URL'], 'js_flag': JS_FLAG}
@@ -185,20 +187,41 @@ def init_db(path):
                             ('access_grants', 'approved_at', 'TEXT'), ('opportunities', 'job_category', 'TEXT')):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
-    # Intern applications gained the 'accepted' status. SQLite can't change a CHECK constraint in place, so an older
-    # table is renamed, schema.sql creates the new one, and the rows are copied across.
-    if "'accepted'" not in db.execute("SELECT sql FROM sqlite_master WHERE name='intern_applications'").fetchone()['sql']:
-        db.execute('ALTER TABLE intern_applications RENAME TO intern_applications_old')
-        db.executescript((ROOT / 'schema.sql').read_text())
-        cols = ', '.join(r['name'] for r in db.execute('PRAGMA table_info(intern_applications_old)'))
-        db.execute(f'INSERT INTO intern_applications ({cols}) SELECT {cols} FROM intern_applications_old')
-        db.execute('DROP TABLE intern_applications_old')
+    # Values added to a CHECK constraint after launch (the text that shows the table is up to date)
+    for table, needed in (('intern_applications', "'accepted'"), ('application_updates', "'contact'"), ('users', "'moderator'")):
+        rebuild_table(db, table, needed)
     # Job categories are stored so filtering is fast; recomputing them here picks up edits to data.JOB_CATEGORIES.
     db.executemany('UPDATE opportunities SET job_category=? WHERE id=?',
                    [(data.job_category(r['org'], r['title']) if r['type'] == 'Job' else None, r['id'])
                     for r in db.execute('SELECT id, type, org, title FROM opportunities')])
     db.commit()
     db.close()
+
+
+def rebuild_table(db, table, needed):
+    """Recreates `table` from schema.sql when its definition lacks `needed`, since SQLite can't change a CHECK constraint
+    in place. SQLite's copy-and-swap: with foreign keys off, so dropping the old table doesn't cascade (users!) and other
+    tables' references end up pointing at the new one."""
+    if needed in db.execute('SELECT sql FROM sqlite_master WHERE name=?', (table,)).fetchone()['sql']:
+        return
+    schema = (ROOT / 'schema.sql').read_text()
+    create = re.search(rf'CREATE TABLE IF NOT EXISTS {table} \(.*?\n\);', schema, re.S).group(0)
+    cols = ', '.join(r['name'] for r in db.execute(f'PRAGMA table_info({table})'))
+    broken = {tuple(r) for r in db.execute('PRAGMA foreign_key_check')}  # rows already pointing nowhere don't count
+    db.commit()
+    db.execute('PRAGMA foreign_keys = OFF')
+    db.execute('BEGIN')  # all or nothing
+    db.execute(f'DROP TABLE IF EXISTS {table}_new')  # left by a run that died halfway
+    db.execute(create.replace(f'IF NOT EXISTS {table} (', f'{table}_new (', 1))
+    db.execute(f'INSERT INTO {table}_new ({cols}) SELECT {cols} FROM {table}')
+    db.execute(f'DROP TABLE {table}')
+    db.execute(f'ALTER TABLE {table}_new RENAME TO {table}')
+    if {tuple(r) for r in db.execute('PRAGMA foreign_key_check')} - broken:
+        db.rollback()
+        raise RuntimeError(f'Rebuilding {table} would break references to it; nothing was changed')
+    db.commit()
+    db.execute('PRAGMA foreign_keys = ON')
+    db.executescript(schema)  # its indexes went with the old table
 
 
 _maintenance_started = False

@@ -14,8 +14,8 @@
 
   <div class="form-layout">
     <aside class="form-layout__aside">
+      {% if actions and can_edit %}
       <h2>Decision</h2>
-      {% if actions %}
       <form class="form" method="post">
         {{ m.csrf() }}
         <div class="field">
@@ -46,14 +46,16 @@
     <form class="form" method="post" novalidate>
       {{ m.csrf() }}
       <input type="hidden" name="action" value="edit">
-      <h2>Edit listing</h2>
+      <h2>{{ 'Edit listing' if can_edit else 'Listing' }}</h2>
+      <fieldset class="plain" {% if not can_edit %}disabled{% endif %}>
       {{ m.summary(errors) }}
       {{ m.opp_fields(values, errors, D) }}
       <div class="row2">
         {{ m.select('verification', 'Verification', D.VERIFICATION, values, errors, required=True) }}
         {{ m.input('expires_at', 'Hide after', values, errors, type='date', help='Blank: two days after the deadline, or never if there is none.') }}
       </div>
-      <button class="btn" type="submit">Save changes</button>
+      </fieldset>
+      {% if can_edit %}<button class="btn" type="submit">Save changes</button>{% endif %}
     </form>
   </div>
 </div>

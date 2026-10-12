@@ -238,6 +238,11 @@ def applications(u):
         ups = updates('partner', [r['id'] for r in rows])
         items += [item('partner', r, f"Hosting an intern at {r['business']}", f"Sent {data.nice_date(r['created_at'])}",
                        ups.get(r['id'], [])) for r in rows]
+        rows = all_('SELECT * FROM contact_messages WHERE lower(email)=?', (u['email'],))
+        ups = updates('contact', [r['id'] for r in rows])
+        items += [item('contact', r, r['topic'], f"Sent {data.nice_date(r['created_at'])}",
+                       [{'at': r['created_at'], 'status': None, 'message': r['message'], 'mine': True}, *ups.get(r['id'], [])])
+                  for r in rows]  # their message starts the conversation
     rows = all_('SELECT * FROM access_grants WHERE user_id=?', (u['id'],))
     ups = updates('grant', [r['id'] for r in rows])
     for r in rows:
@@ -273,7 +278,10 @@ def reply(kind, item_id):
     else:
         run('INSERT INTO application_updates (kind, item_id, actor_id, message, by_applicant, created_at) VALUES (?,?,?,?,1,?)',
             (kind, item_id, u['id'], message, data.now_iso()))
-        link = {'intern': '/admin/interns', 'partner': '/admin/partners', 'grant': '/admin/grants'}[kind] + '?' + urlencode({'q': u['email']})
+        link = {'intern': '/admin/interns', 'partner': '/admin/partners', 'grant': '/admin/grants',
+                'contact': '/admin/messages'}[kind] + '?' + urlencode({'q': u['email']})
+        if kind == 'contact':  # a follow-up puts the message back in the team's waiting pile
+            run("UPDATE contact_messages SET status='new' WHERE id=?", (item_id,))
     mail.later('reply notice', mail.applicant_reply, current_app.config, u['name'], u['email'], kind, a['title'], message, link)
     return redirect(url_for('account.account') + f'#app-{kind}-{item_id}')
 
