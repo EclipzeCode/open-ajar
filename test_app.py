@@ -92,6 +92,8 @@ class Flows(unittest.TestCase):
         xml = c.get('/sitemap.xml', base_url='https://www.example.org').get_data(as_text=True)
         self.assertIn('<loc>https://www.example.org/jobs</loc>', xml)
         self.assertEqual(xml.count('<loc>https://www.example.org/o/'), 1)
+        self.assertNotIn('/team', xml)
+        self.assertEqual(self.c.get('/team').headers['Location'], '/about')  # removed page; old links land on About
 
     def test_about_lists_partners_without_placeholder_quotes(self):
         page = self.c.get('/about').get_data(as_text=True)

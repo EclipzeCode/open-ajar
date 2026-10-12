@@ -264,8 +264,8 @@ def about():
 
 
 @bp.get('/team')
-def team():
-    return render_template('team.html')
+def team():  # the team page was removed; old links land on About
+    return redirect(url_for('site.about'), 301)
 
 
 @bp.get('/support')
@@ -294,7 +294,7 @@ def robots():
 def sitemap():
     """The public pages plus every live listing, for search engines."""
     base = current_app.config['APP_URL']
-    pages = [(url_for(e), None) for e in ('site.home', 'site.browse', 'site.jobs', 'site.apply', 'site.about', 'site.team',
+    pages = [(url_for(e), None) for e in ('site.home', 'site.browse', 'site.jobs', 'site.apply', 'site.about',
                                           'site.support', 'site.privacy', 'site.terms')]
     pages += [(url_for('site.detail', opp_id=r['id']), (r['updated_at'] or '')[:10])
               for r in all_(f'SELECT o.id, o.updated_at FROM opportunities o WHERE {PUBLIC} ORDER BY o.published_at DESC', (now_iso(),))]
