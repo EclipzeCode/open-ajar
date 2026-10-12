@@ -26,7 +26,7 @@ Tests: `.venv/bin/python -m unittest`
 | `admin.py` | Review queue, editing, approve/reject/request changes, users, activity, intern applications, community quotes |
 | `core.py` | Database helpers, the signed-in user, rate limits, listing search |
 | `data.py` | Categories (types, interests, states…), form validation, spreadsheet import mapping |
-| `mail.py` | Sending through Resend, the three email templates, daily deadline reminders |
+| `mail.py` | Sending through Resend, the email templates, deadline reminders (a week ahead and the day before, from 8 am Eastern) |
 | `schema.sql` | The database tables |
 | `templates/` | One HTML file per page. Support figures are edited right in `support.html` |
 | `static/` | `style.css`, `app.js` (small extras; every page works without it), images |
@@ -37,7 +37,7 @@ Tests: `.venv/bin/python -m unittest`
 flask --app app create-admin you@example.com          # make (or promote) an admin; there is no default admin
 flask --app app import-csv data/new.csv                # add spreadsheet rows to the review queue
 flask --app app import-csv --approve data/new.csv      # ...or publish them straight away
-flask --app app send-reminders                         # run today's deadline-reminder emails now
+flask --app app send-reminders                         # send any deadline reminders that are due now
 python3 xlsx-to-csv.py ~/Downloads/sheet.xlsx data/new.csv --batch b4   # convert an Excel export first
 ```
 

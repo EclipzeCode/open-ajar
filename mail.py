@@ -129,24 +129,31 @@ def deadline_digest(config, email, name, items):
         f'<ul style="padding-left:18px;margin:0 0 20px">{li}</ul>', text + '\n'))
 
 
+def reminder_key(deadline, days):
+    """What tracked.reminded_for holds once a reminder is sent: the deadline for the first one (REMINDER_DAYS ahead),
+    plus " last" for the one the day before or on the day. So each deadline gets at most these two."""
+    return deadline + (' last' if days <= 1 else '')
+
+
 def run_reminders(db, config, today=None):
-    """Emails each student one digest of upcoming deadlines. Runs at most once a day; each deadline is reminded once."""
+    """Emails each student one digest of deadlines coming up: a first reminder within REMINDER_DAYS, and a last one the
+    day before (or on the day). Safe to run often: tracked.reminded_for records what was sent, so nothing goes twice and
+    an email that failed is tried again on the next run."""
     today = today or data.today()
-    if not config['REMINDERS_ENABLED'] or db.execute("SELECT 1 FROM app_meta WHERE key='reminders' AND value=?", (today.isoformat(),)).fetchone():
+    if not config['REMINDERS_ENABLED']:
         return 0
-    db.execute("INSERT INTO app_meta (key,value) VALUES ('reminders',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (today.isoformat(),))
-    db.commit()
-    rows = db.execute('''SELECT t.user_id, t.opportunity_id, t.deadline own, t.reminded_for, o.title, o.deadline_date, u.email, u.name
+    rows = db.execute(f'''SELECT t.user_id, t.opportunity_id, t.deadline own, t.reminded_for, o.title, o.deadline_date, u.email, u.name
         FROM tracked t JOIN opportunities o ON o.id = t.opportunity_id AND o.status = 'approved' JOIN users u ON u.id = t.user_id
-        WHERE u.disabled = 0 AND u.email_verified = 1 AND u.email_reminders = 1 AND t.stage IN ('Interested','Preparing')''').fetchall()
+        WHERE u.disabled = 0 AND u.email_verified = 1 AND u.email_reminders = 1 AND t.stage IN {data.TO_APPLY}''').fetchall()
     by_user = {}
     for r in rows:
         deadline = (r['own'] or r['deadline_date'] or '')[:10]
         d = parse_date(deadline)
-        if not d or r['reminded_for'] == deadline or not 0 <= (d - today).days <= config['REMINDER_DAYS']:
+        days = (d - today).days if d else -1
+        if not 0 <= days <= config['REMINDER_DAYS'] or r['reminded_for'] in (reminder_key(deadline, days), deadline + ' last'):
             continue
         by_user.setdefault(r['user_id'], (r['email'], r['name'], []))[2].append(
-            {'id': r['opportunity_id'], 'title': r['title'], 'deadline': deadline, 'days': (d - today).days})
+            {'id': r['opportunity_id'], 'title': r['title'], 'deadline': deadline, 'days': days})
     sent = 0
     for user_id, (email, name, items) in by_user.items():
         items.sort(key=lambda it: it['days'])
@@ -156,7 +163,7 @@ def run_reminders(db, config, today=None):
             print(f'[reminders] failed to email {email}: {e}')
             continue
         db.executemany('UPDATE tracked SET reminded_for=? WHERE user_id=? AND opportunity_id=?',
-                       [(it['deadline'], user_id, it['id']) for it in items])
+                       [(reminder_key(it['deadline'], it['days']), user_id, it['id']) for it in items])
         db.commit()
         sent += 1
     return sent

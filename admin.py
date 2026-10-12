@@ -406,7 +406,7 @@ EXPORTS = {  # file name -> query with readable column names
         interests "Interests", deadline_date "Deadline", deadline_note "Deadline note", url "Link", summary "Summary",
         eligibility "Eligibility", requirements "Requirements", source "Source", published_at "Published", expires_at "Expires",
         updated_at "Last updated" FROM opportunities ORDER BY title''',
-    'tracker': f'''SELECT u.email "Student", o.title "Listing", t.stage "Stage", t.deadline "Own deadline", t.checklist "Checklist",
+    'tracker': '''SELECT u.email "Student", o.title "Listing", t.stage "Stage", t.deadline "Own deadline", t.checklist "Checklist",
         t.notes "Notes", CASE t.found_here WHEN 1 THEN 'Yes' WHEN 0 THEN 'No' END "Found on OpenAjar", t.added_at "Added"
         FROM tracked t JOIN users u ON u.id=t.user_id JOIN opportunities o ON o.id=t.opportunity_id ORDER BY t.added_at''',
     'saved': '''SELECT u.email "Student", o.title "Listing", s.created_at "Saved" FROM saved s JOIN users u ON u.id=s.user_id

@@ -67,7 +67,7 @@
       <div class="results__sort">
         <label class="sr-only" for="sort">Sort by</label>
         <select id="sort" name="sort" class="select--pill">
-          <option value="featured">Newest first</option>
+          <option value="featured">{{ 'Best match' if f.q else 'Newest first' }}</option>
           <option value="deadline" {% if f.sort == 'deadline' %}selected{% endif %}>Deadline soonest</option>
           <option value="title" {% if f.sort == 'title' %}selected{% endif %}>A to Z</option>
         </select>

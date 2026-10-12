@@ -970,16 +970,17 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
   .stats-strip strong { font-size: 1.6rem; }
   .stats-strip span { font-size: .78rem; }
   .section__head .link { width: 100%; }
-  /* browse: one swipeable row of filter pills; count + sort on one line, chips below */
-  .fbar { margin: 14px -16px 10px; flex-wrap: nowrap; gap: 8px; }
-  .fbar .results__sort { flex: none; padding-right: 16px; }
-  .fbar__pills { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; padding: 2px 16px 4px; scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
-  .fbar__pills::-webkit-scrollbar { display: none; }
+  /* browse: results start higher (the intro line goes), and every filter pill is in view, wrapping onto a second row
+     with the sort at the end, instead of a sideways scroller that hid most of them */
+  .page-head .subnav ~ .lead { display: none; }
+  .fbar { position: relative; justify-content: flex-start; gap: 8px; margin: 14px 0 10px; }
+  .fbar__pills { display: contents; }
+  /* the sort sits on the results line below, beside the count (its row is at least as tall as the sort) */
+  .fbar .results__sort { position: absolute; right: 0; top: calc(100% + 10px); }
   .fpop { flex: none; }
   .results__head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 12px; }
   .results__left { display: contents; }
-  .results__count { order: 1; }
+  .results__count { order: 1; min-height: 42px; display: flex; align-items: center; } /* as tall as the sort beside it */
   .chips { order: 3; grid-column: 1 / -1; }
   .quote { width: 270px; padding: 22px; }
   .quote blockquote { font-size: .93rem; }
