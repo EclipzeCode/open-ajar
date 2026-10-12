@@ -1,6 +1,8 @@
 // Small progressive enhancements. Every page works without this file.
 
-// Fade sections up as they scroll into view
+// Fade sections up as they scroll into view. base.html already set .js before the first paint; this repeats it in
+// case that gave up waiting for this file on a very slow connection.
+window.appReady = true;
 document.documentElement.classList.add('js');
 const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
   if (!e.isIntersecting) return;

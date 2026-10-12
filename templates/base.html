@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <script>{{ js_flag|safe }}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}OpenAjar</title>
   {% set description %}{% block description %}OpenAjar helps high-school students find internships, programs, scholarships and jobs, then track them all the way to an application.{% endblock %}{% endset %}

@@ -3,10 +3,12 @@
 Run locally:   flask --app app run --debug
 Production:    gunicorn -w 1 --threads 8 'app:create_app()'     (see render.yaml)
 """
+import base64
 import csv
 import getpass
-import json
+import hashlib
 import hmac
+import json
 import os
 import threading
 import time
@@ -24,6 +26,11 @@ import mail
 from core import add_event, connect, current_user, expire_due, insert_opp, load_user, new_id, same_program_rows, update_opp
 
 ROOT = Path(__file__).parent
+# Runs in <head> before the first paint, so animated sections start in their animated layout instead of jumping when
+# app.js arrives. If app.js hasn't loaded 4 s later, it's undone so nothing stays hidden. Allowed by the CSP via its hash.
+JS_FLAG = ("document.documentElement.classList.add('js');"
+           "setTimeout(function(){if(!window.appReady)document.documentElement.classList.remove('js')},4000);")
+JS_FLAG_HASH = base64.b64encode(hashlib.sha256(JS_FLAG.encode()).digest()).decode()
 
 
 def load_dotenv():
@@ -111,7 +118,7 @@ def create_app(test_config=None):
         resp.headers.update({
             'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin',
             'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-            'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+            'Content-Security-Policy': f"default-src 'self'; script-src 'self' 'sha256-{JS_FLAG_HASH}'; style-src 'self' https://fonts.googleapis.com; "
                                        "font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; "
                                        "base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
         })
@@ -141,7 +148,7 @@ def create_app(test_config=None):
         return {'user': current_user(), 'csrf_token': session.get('csrf', ''), 'D': data, 'production': app.config['PRODUCTION'],
                 'dev_inbox': not app.config['PRODUCTION'] and not app.config['RESEND_API_KEY'],
                 'contact_email': app.config['CONTACT_EMAIL'], 'canonical': app.config['APP_URL'] + request.path,
-                'app_url': app.config['APP_URL']}
+                'app_url': app.config['APP_URL'], 'js_flag': JS_FLAG}
 
     def page_url(page):
         args = [(k, v) for k, v in request.args.items(multi=True) if k != 'page'] + [('page', page)]
