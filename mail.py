@@ -4,6 +4,7 @@ import urllib.request
 from datetime import date
 from html import escape
 
+import data
 from data import parse_date
 
 OUTBOX = []  # development only: shown at /dev/inbox when no RESEND_API_KEY is set
@@ -73,6 +74,26 @@ def contact_message(config, msg):
         f"New message from {msg['name']}", [f"Topic: {msg['topic']}", f"Email: {msg['email']}", msg['message']],
         'Open messages', config['APP_URL'] + '/admin/messages', 'Reply to this email to answer them directly.'),
         reply_to=msg['email'])
+
+
+def grant_request(config, g):
+    """Tell the team a student asked for an Access Grant. Replying goes straight to the student."""
+    facts = [f"Program: {g['program']} ({g['org']})", f"Covers: {g['covers']}",
+             f"Asking for ${g['amount']:,} of ${g['total_cost']:,}" + (f", due {g['due_date']}" if g['due_date'] else ''),
+             f"Accepted: {data.GRANT_ACCEPTED[g['accepted']]}", f"Asked the program for aid: {data.GRANT_ASKED[g['asked_program']]}",
+             *(['Team request: needs two other admins to approve, paid only from personal money.'] if g['is_team'] else []),
+             g['reason']]
+    send(config, config['CONTACT_EMAIL'], f"Access Grant request: {g['name']}, ${g['amount']:,}", *_layout(
+        f"{g['name']} asked for an Access Grant", facts, 'Review requests', config['APP_URL'] + '/admin/grants',
+        'Reply to this email to answer the student directly.'), reply_to=g['email'])
+
+
+def grant_update(config, g, heading, paragraphs):
+    """A decision or payment on an Access Grant, to the student and their parent or guardian."""
+    html_text = _layout(heading, [f"Hi {_first(g['name'])},", *paragraphs], 'See your request',
+                        config['APP_URL'] + '/access-grants', 'Questions? Reply to this email.')
+    for to in dict.fromkeys([g['email'], g['parent_email']]):
+        send(config, to, f"Your Access Grant request: {g['program']}", *html_text, reply_to=config['CONTACT_EMAIL'])
 
 
 def _when(days):

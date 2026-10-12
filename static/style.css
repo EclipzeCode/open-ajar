@@ -106,9 +106,9 @@ img { max-width: 100%; height: auto; display: block; }
 .icon-btn:hover { color: var(--danger); background: var(--danger-soft); }
 .icon-btn.text { font-size: .875rem; }
 .pill { display: inline-block; font: 600 .72rem/1 var(--sans); padding: 5px 10px; border-radius: 99px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); vertical-align: middle; }
-.pill--approved, .pill--placed, .pill--partnered, .pill--replied { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.pill--approved, .pill--paid, .pill--placed, .pill--partnered, .pill--replied { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .pill--pending_review, .pill--pending, .pill--new, .pill--saved { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-.pill--changes_requested, .pill--contacted { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.pill--changes_requested, .pill--needs_info, .pill--contacted { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .pill--rejected, .pill--declined { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
 .badge { display: inline-block; font: 600 .78rem/1 var(--sans); padding: 6px 10px; border-radius: 8px; margin-right: 8px; }
 .badge--verified { background: var(--grad); color: #fff; }
@@ -589,6 +589,18 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .stat .stat__n { font-family: var(--display); font-size: 2.3rem; line-height: 1.1; font-weight: 700; letter-spacing: -.04em; color: var(--ink-strong); margin-bottom: 6px; }
 .stat--accent { background: var(--grad); border-color: transparent; }
 .stat--accent p, .stat--accent .stat__n { color: #fff; }
+/* Access Grants: advice beside the student's requests and form */
+.grants { display: grid; grid-template-columns: 280px 1fr; gap: 48px; align-items: start; padding-top: 48px; }
+.grants__aside { position: sticky; top: 96px; }
+.grants__aside p { color: #57534E; }
+.grants__main h2 { margin-bottom: 16px; }
+.grants__mine { margin-bottom: 40px; }
+@media (max-width: 860px) { .grants { grid-template-columns: 1fr; gap: 32px; } .grants__aside { position: static; } }
+.grant__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; margin: 12px 0; }
+.grant__facts dt { font-size: .78rem; color: var(--muted); }
+.grant__facts dd { margin: 0; }
+.grant__form { margin-top: 10px; }
+.facts__help { display: block; margin-top: 4px; font-size: .9rem; font-weight: 600; color: var(--accent); }
 .steps { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); counter-reset: step; }
 .steps li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; counter-increment: step; }
 .steps li::before { content: counter(step, decimal-leading-zero); display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--grad); color: #fff; font-weight: 600; font-size: .8rem; margin-bottom: 12px; }

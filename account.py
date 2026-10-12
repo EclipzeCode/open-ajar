@@ -196,8 +196,9 @@ def account():
     quote = one('SELECT quote, role_label, status FROM testimonials WHERE user_id=?', (u['id'],))
     quote = dict(quote) if quote else None
     counts = one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracking, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved''', {'u': u['id']})
+    grants = all_('SELECT program, org, amount, status, created_at FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (u['id'],))
     return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), submissions=subs, quote=quote,
-                           counts=dict(counts, submitted=len(subs)), errors={})
+                           counts=dict(counts, submitted=len(subs)), grants=grants, errors={})
 
 
 def back(section, msg, ok=False):

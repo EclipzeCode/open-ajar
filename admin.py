@@ -1,11 +1,14 @@
-"""Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries, contact messages and Community Voices."""
+"""Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries, contact messages,
+Community Voices and Access Grants."""
+import json
 from datetime import date, timedelta
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
 import data
-from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, one,
-                  run, update_opp)
+import mail
+from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, grant_room,
+                  one, run, update_opp)
 
 bp = Blueprint('admin', __name__)
 
@@ -240,6 +243,119 @@ def partners():
                 (status,) if status in statuses else ())
     counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM partner_inquiries GROUP BY status')}
     return render_template('admin/partners.html', rows=rows, counts=counts, status=status, statuses=statuses)
+
+
+@bp.route('/grants', methods=['GET', 'POST'])
+@admin_required
+def grants():
+    if request.method == 'POST':
+        g = one('SELECT * FROM access_grants WHERE id=?', (request.form.get('id', ''),))
+        if not g:
+            abort(404)
+        ok, msg = grant_action(dict(g), request.form.get('action', ''), request.form, current_user())
+        flash(msg, 'message' if ok else 'error')
+        return redirect(url_for('admin.grants', status=request.args.get('status', '')) + '#g-' + g['id'])
+    status = request.args.get('status', '')
+    known = status in data.GRANT_STATUSES
+    rows = [dict(r, approvals=json.loads(r['approvals'])) for r in
+            all_('SELECT * FROM access_grants' + (' WHERE status=?' if known else '') + ' ORDER BY created_at DESC LIMIT 300', (status,) if known else ())]
+    for r in rows:
+        r['room'] = grant_room(r['user_id'], r['id']) if r['user_id'] else data.GRANT_CAP
+    counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM access_grants GROUP BY status')}
+    # team requests are paid from personal money and never counted with grants to other students
+    totals = one("""SELECT COALESCE(SUM(CASE WHEN status='paid' AND NOT is_team THEN paid_amount END), 0) paid,
+                           COALESCE(SUM(CASE WHEN status='approved' AND NOT is_team THEN approved_amount END), 0) committed,
+                           COALESCE(SUM(CASE WHEN status='paid' AND is_team THEN paid_amount END), 0) team_paid FROM access_grants""")
+    return render_template('admin/grants.html', rows=rows, counts=counts, status=status, totals=totals)
+
+
+def grant_action(g, action, form, me):
+    """Applies one admin action to an Access Grant. Returns (ok, message for the admin). Nobody can act on their own request;
+    a team request needs two different admins to approve the same amount and is paid only from personal money."""
+    if g['user_id'] == me['id']:
+        return False, 'You can’t act on your own request. Another admin has to.'
+    now, msg = data.now_iso(), data.clean(form.get('message', ''), multiline=True)[:1000]
+    if action == 'note':
+        run('UPDATE access_grants SET admin_note=? WHERE id=?', (data.clean(form.get('admin_note', ''), multiline=True)[:2000], g['id']))
+        return True, 'Note saved.'
+    if action == 'mark_team':
+        if g['is_team'] or g['status'] not in ('new', 'needs_info'):
+            return False, 'Only a new request or one waiting on info can be marked as a team request.'
+        run("UPDATE access_grants SET is_team=1, approvals='[]', updated_at=? WHERE id=?", (now, g['id']))
+        audit(me['id'], 'grant_marked_team', g['id'])
+        return True, 'Marked as a team request. It now needs two approvals.'
+    if action in ('needs_info', 'decline'):
+        if g['status'] not in data.GRANT_OPEN:
+            return False, f"This request is {data.GRANT_STATUSES[g['status']].lower()}."
+        if len(msg) < 5:
+            return False, 'Write a message to the student (5+ characters).'
+        to = 'needs_info' if action == 'needs_info' else 'declined'
+        run("UPDATE access_grants SET status=?, message=?, approvals='[]', updated_at=? WHERE id=?", (to, msg, now, g['id']))
+        audit(me['id'], f'grant_{to}', g['id'])
+        if to == 'needs_info':
+            _tell(g, 'We need a little more information', [msg, 'Reply to this email with what we asked for.'])
+        else:
+            _tell(g, 'About your Access Grant request', [msg])
+        return True, 'Sent to the student.'
+    if action == 'approve':
+        if g['status'] not in ('new', 'needs_info'):
+            return False, 'Only a new request or one waiting on info can be approved.'
+        f = data.Form(form)
+        f.dollars('approved_amount', 'The amount to approve')
+        if f.errors:
+            return False, f.errors['approved_amount']
+        amount = f.out['approved_amount']
+        room = grant_room(g['user_id'], g['id']) if g['user_id'] else data.GRANT_CAP
+        if amount > g['amount']:
+            return False, f"That’s more than the ${g['amount']} they asked for."
+        if amount > room:
+            return False, f'That’s over the ${data.GRANT_CAP} yearly cap for this student (${room} left).'
+        approvals = json.loads(g['approvals']) if amount == g['approved_amount'] else []  # a new amount starts approvals over
+        if me['id'] in approvals:
+            return False, 'You’ve already approved this. It needs a different admin.'
+        approvals.append(me['id'])
+        done = len(approvals) >= (2 if g['is_team'] else 1)
+        run('UPDATE access_grants SET approved_amount=?, approvals=?, status=?, message=?, updated_at=? WHERE id=?',
+            (amount, json.dumps(approvals), 'approved' if done else g['status'], msg or g['message'], now, g['id']))
+        audit(me['id'], f'grant_approved ${amount}' + ('' if done else ' (1 of 2)'), g['id'])
+        if not done:
+            return True, f'Approved ${amount}. A team request needs one more admin to approve the same amount.'
+        _tell(g, 'Your Access Grant is approved', [
+            f"We’ll cover ${amount} toward the {g['covers'].lower()} for {g['program']}.", *([msg] if msg else []),
+            'We pay the program directly, never you. We may ask for your acceptance letter or invoice first, '
+            'and we’ll email you once it’s paid.'])
+        return True, f'Approved ${amount}. The student has been told.'
+    if action == 'paid':
+        if g['status'] != 'approved':
+            return False, 'Only an approved request can be marked paid.'
+        f = data.Form(form)
+        f.dollars('paid_amount', 'The amount paid')
+        f.date('paid_on', required=True)
+        f.text('paid_method', 'How it was paid', min=2, max=80)
+        f.text('paid_ref', 'Reference', max=120, required=False)
+        f.one_of('paid_from', ('donations', 'personal'), 'where the money came from')
+        if f.errors:
+            return False, next(iter(f.errors.values()))
+        p = f.out
+        if p['paid_amount'] > g['approved_amount']:
+            return False, f"That’s more than the ${g['approved_amount']} approved."
+        if g['is_team'] and p['paid_from'] != 'personal':
+            return False, 'Team requests are paid only from the team’s personal money, never donations.'
+        run("""UPDATE access_grants SET status='paid', paid_amount=?, paid_on=?, paid_method=?, paid_ref=?, paid_from=?, paid_by=?,
+               updated_at=? WHERE id=?""", (p['paid_amount'], p['paid_on'], p['paid_method'], p['paid_ref'], p['paid_from'], me['id'], now, g['id']))
+        audit(me['id'], f"grant_paid ${p['paid_amount']} from {p['paid_from']}", g['id'])
+        _tell(g, 'Your Access Grant is paid', [
+            f"We paid ${p['paid_amount']} to {g['org']} for {g['program']} on {p['paid_on']}.",
+            'You don’t need to do anything else. If the program asks, let them know Open Ajar covered this fee.'])
+        return True, 'Payment recorded. The student has been told.'
+    return False, 'Unknown action.'
+
+
+def _tell(g, heading, paragraphs):
+    try:
+        mail.grant_update(current_app.config, g, heading, paragraphs)
+    except Exception as e:  # the decision is saved; the student also sees it on the Access Grants page
+        print(f'[email] access grant update failed: {e}')
 
 
 @bp.route('/interns', methods=['GET', 'POST'])
