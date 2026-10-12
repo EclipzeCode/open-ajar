@@ -365,12 +365,14 @@ if (acctLinks.length) {
   update();
 }
 
-// Mobile menu
-const menuBtn = document.querySelector('.menu-btn');
-menuBtn?.addEventListener('click', () => {
-  const open = document.getElementById('nav').classList.toggle('is-open');
-  menuBtn.setAttribute('aria-expanded', open);
-});
+// Mobile menu. Escape or tapping a link closes it (a link to the page you're on wouldn't otherwise).
+const menuBtn = document.querySelector('.menu-btn'), nav = document.getElementById('nav');
+if (menuBtn && nav) {
+  const setMenu = (open) => { nav.classList.toggle('is-open', open); menuBtn.setAttribute('aria-expanded', open); };
+  menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('is-open')));
+  nav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('is-open')) { setMenu(false); menuBtn.focus(); } });
+}
 
 // Form errors: our own message under each field instead of the browser's pop-up bubbles.
 // The server still checks everything; this just gives quicker, nicer feedback.
