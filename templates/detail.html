@@ -58,5 +58,11 @@
       </aside>
     </div>
   </article>
+  {% if similar %}
+  <section class="section section--tight similar" aria-labelledby="similar-h">
+    <h2 id="similar-h">More like this</h2>
+    <div class="grid">{% for s in similar %}{{ m.card(s, D, saved_ids) }}{% endfor %}</div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

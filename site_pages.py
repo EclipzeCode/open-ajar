@@ -103,9 +103,19 @@ def detail(opp_id):
     opp = get_public(opp_id)
     if not opp:
         return render_template('error.html', code=404, message='That opportunity isn’t available. It may have closed or been removed.'), 404
-    u = current_user()
+    u, saved = current_user(), _saved_ids()
     tracked = u and one('SELECT stage FROM tracked WHERE user_id=? AND opportunity_id=?', (u['id'], opp_id))
-    return render_template('detail.html', o=opp, saved=opp_id in _saved_ids(), tracked=tracked)
+    return render_template('detail.html', o=opp, saved=opp_id in saved, saved_ids=saved, tracked=tracked, similar=_similar(opp))
+
+
+def _similar(opp):
+    """Up to three other live listings like this one: same type and sharing an interest (for jobs, in the same state)."""
+    f = {'sector': 'jobs' if opp['type'] == 'Job' else 'opportunities', 'type': [opp['type']]}
+    if opp['type'] == 'Job':
+        f['state'] = opp['state']
+    elif opp['interests']:
+        f['interest'] = opp['interests']
+    return [o for o in search_public(f, limit=4)[0] if o['id'] != opp['id']][:3]
 
 
 @bp.post('/o/<opp_id>/save')
