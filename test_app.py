@@ -307,6 +307,17 @@ class Flows(unittest.TestCase):
         self.register()
         self.assertEqual(self.c.get('/admin/').status_code, 403)
 
+    def test_a_whole_class_can_sign_up_from_one_school_network_but_one_password_cant_be_guessed(self):
+        for i in range(30):  # one school address; the old shared limit stopped this at 15
+            self.assertEqual(self.register(f's{i}@school.org', self.app.test_client()).status_code, 302)
+        bad = [self.post('/login', {'email': 's0@school.org', 'password': 'wrong guess ' + str(i)}).status_code for i in range(11)]
+        self.assertEqual(bad, [401] * 10 + [429])
+
+    def test_home_has_a_real_search_box(self):
+        page = self.c.get('/').get_data(as_text=True)
+        self.assertRegex(page, r'<form class="typer[^"]*" action="/opportunities" method="get" role="search"')
+        self.assertIn('name="q"', page.split('role="search"')[1].split('</form>')[0])
+
     def test_password_reset_signs_out_everywhere(self):
         self.register()
         other = self.app.test_client()

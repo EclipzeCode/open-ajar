@@ -14,11 +14,13 @@
     <h1 class="reveal">Opportunity shouldn’t depend on <em>who you know.</em></h1>
     <p class="lead reveal d1">OpenAjar is the free, all-in-one place for high-school students to find internships, programs, scholarships and teen jobs, then track them all the way to “applied”.</p>
     {% set words = ['summer research', 'scholarships', 'engineering', 'medicine', 'writing', 'volunteer', 'business', 'robotics', 'cashier', 'law', 'music'] %}
-    <a class="typer reveal d2" href="{{ url_for('site.browse', q=words[0]) }}" data-words="{{ words|join('|') }}" aria-label="Browse opportunities">
+    {# a real search box; app.js types example keywords into its placeholder, and an empty search uses the one showing #}
+    <form class="typer reveal d2" action="{{ url_for('site.browse') }}" method="get" role="search" data-words="{{ words|join('|') }}">
       <svg class="typer__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <span class="typer__text" aria-hidden="true"><span class="typer__prefix">Search</span> <span class="typer__word">{{ words[0] }}</span><span class="typer__caret"></span></span>
-      <span class="typer__go">Explore <span class="arrow" aria-hidden="true">→</span></span>
-    </a>
+      <label class="sr-only" for="hero-q">Search opportunities</label>
+      <input id="hero-q" class="typer__input" name="q" type="search" maxlength="100" autocomplete="off" placeholder="Search {{ words[0] }}">
+      <button class="typer__go" type="submit">Explore <span class="arrow" aria-hidden="true">→</span></button>
+    </form>
     {% if total and states > 1 %}
     <div class="stats-strip reveal d3">
       <div><strong data-count="{{ total }}">{{ '{:,}'.format(total) }}</strong><span>opportunities</span></div>

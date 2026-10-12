@@ -585,10 +585,8 @@ def grant_action(g, action, form, me):
 
 
 def _tell(g, heading, paragraphs):
-    try:
-        mail.grant_update(current_app.config, g, heading, paragraphs)
-    except Exception as e:  # the decision is saved; the student also sees it on the Access Grants page
-        print(f'[email] access grant update failed: {e}')
+    # the decision is saved; the student also sees it on the Access Grants page
+    mail.later('access grant update', mail.grant_update, current_app.config, g, heading, paragraphs)
 
 
 @bp.route('/interns', methods=['GET', 'POST'])

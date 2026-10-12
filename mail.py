@@ -1,5 +1,6 @@
 """Email: sending (Resend, or an in-memory outbox in development), the three templates, and deadline reminders."""
 import json
+import threading
 import urllib.request
 from html import escape
 
@@ -7,6 +8,22 @@ import data
 from data import parse_date
 
 OUTBOX = []  # development only: shown at /dev/inbox when no RESEND_API_KEY is set
+
+
+def later(what, fn, config, *args):
+    """Runs fn(config, *args) on a background thread, so the page doesn't wait on Resend (up to 10 s). A failure is
+    logged as `[email] <what> failed`; everything sent this way is already saved or can be asked for again.
+    Without an API key (development, tests) it runs right away, since the outbox is instant."""
+    def go():
+        try:
+            fn(config, *args)
+        except Exception as e:
+            print(f'[email] {what} failed: {e}', flush=True)
+    # ponytail: a daemon thread, so an email mid-send when the server restarts is lost; use a queue table if that matters
+    if config['RESEND_API_KEY']:
+        threading.Thread(target=go, daemon=True).start()
+    else:
+        go()
 
 
 def send(config, to, subject, html, text, reply_to=None):

@@ -256,10 +256,7 @@ def partner():
     inq = {**f.out, 'id': new_id(), 'created_at': data.now_iso()}
     run('INSERT INTO partner_inquiries (id, business, contact_name, email, phone, location, message, created_at) VALUES (?,?,?,?,?,?,?,?)',
         tuple(inq[k] for k in ('id', 'business', 'contact_name', 'email', 'phone', 'location', 'message', 'created_at')))
-    try:
-        mail.partner_inquiry(current_app.config, inq)
-    except Exception as e:  # it's saved; the team still sees it in admin
-        print(f'[email] partner inquiry notice failed: {e}')
+    mail.later('partner inquiry notice', mail.partner_inquiry, current_app.config, inq)  # saved already; admin shows it
     return render_template('partner_sent.html')
 
 
@@ -281,10 +278,7 @@ def contact():
     msg = {**f.out, 'id': new_id(), 'created_at': data.now_iso()}
     run('INSERT INTO contact_messages (id, name, email, topic, message, created_at) VALUES (?,?,?,?,?,?)',
         tuple(msg[k] for k in ('id', 'name', 'email', 'topic', 'message', 'created_at')))
-    try:
-        mail.contact_message(current_app.config, msg)
-    except Exception as e:  # it's saved; the team still sees it in admin
-        print(f'[email] contact message notice failed: {e}')
+    mail.later('contact message notice', mail.contact_message, current_app.config, msg)  # saved already; admin shows it
     return render_template('contact_sent.html')
 
 
@@ -337,10 +331,7 @@ def grants():
     cols = ('id', 'user_id', 'name', 'email', 'parent_email', 'opportunity_id', 'program', 'org', 'url', 'covers', 'total_cost', 'amount',
             'due_date', 'accepted', 'asked_program', 'reason', 'created_at', 'updated_at')
     run(f"INSERT INTO access_grants ({', '.join(cols)}) VALUES ({','.join('?' * len(cols))})", tuple(g[k] for k in cols))
-    try:
-        mail.grant_request(current_app.config, g)
-    except Exception as e:  # it's saved; the team still sees it in admin
-        print(f'[email] access grant notice failed: {e}')
+    mail.later('access grant notice', mail.grant_request, current_app.config, g)  # saved already; admin shows it
     flash('Request sent. We’ll email you and your parent or guardian when there’s a decision.')
     return redirect(url_for('site.grants'))
 

@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from flask import abort, current_app, flash, g, redirect, request, session, url_for
 
 import data
-from data import now_iso, same_program, state_from_location
+from data import job_category, now_iso, same_program, state_from_location
 
 # ---------------------------------------------------------------- database
 
@@ -225,7 +225,7 @@ def _filters(f, skip=None):
             where.append(f"{col} IN ({','.join('?' * len(f[key]))})")
             params += f[key]
     if f.get('category') and skip != 'category':
-        where.append(f"{JOB_CATEGORY_SQL} IN ({','.join('?' * len(f['category']))})")
+        where.append(f"o.job_category IN ({','.join('?' * len(f['category']))})")
         params += f['category']
     if f.get('interest') and skip != 'interest':
         where.append(f"EXISTS (SELECT 1 FROM json_each(o.interests) i WHERE i.value IN ({','.join('?' * len(f['interest']))}))")
@@ -255,27 +255,11 @@ def search_public(f, limit=20, offset=0):
         order = "(lower(o.title) LIKE ? ESCAPE '\\') DESC, " + order
         order_params.append(_like(tokens[0]))
     total = one(f'SELECT COUNT(*) n FROM opportunities o WHERE {w}', params)['n']
-    rows = all_(f"SELECT o.*, CASE WHEN o.type = 'Job' THEN {JOB_CATEGORY_SQL} END job_category FROM opportunities o "
-                f'WHERE {w} ORDER BY {order} LIMIT ? OFFSET ?', params + order_params + [limit, offset])
+    rows = all_(f'SELECT o.* FROM opportunities o WHERE {w} ORDER BY {order} LIMIT ? OFFSET ?', params + order_params + [limit, offset])
     return [opp_dict(r) for r in rows], total
 
 
 SECTOR_SQL = {'jobs': "o.type = 'Job'", 'opportunities': "o.type <> 'Job'"}
-
-def _job_category_sql():
-    """CASE expression giving each listing's job category from data.JOB_CATEGORIES: employer name first, then title."""
-    def text(col):  # lowercased, apostrophes dropped so "McDonald's" matches "mcdonald"
-        return f"lower(replace(replace({col}, '''', ''), '’', ''))"
-    whens = [f"WHEN {' OR '.join(f'instr({text(col)}, {_quote(k)}) > 0' for k in kws)} THEN {_quote(cat)}"
-             for col in ('o.org', 'o.title') for cat, kws in data.JOB_CATEGORIES.items()]
-    return f"(CASE {' '.join(whens)} ELSE {_quote(data.JOB_CATEGORY_FALLBACK)} END)"
-
-
-def _quote(s):  # for the constant keywords above only; never user input
-    return "'" + s.replace("'", "''") + "'"
-
-
-JOB_CATEGORY_SQL = _job_category_sql()
 
 
 def facets(f=None):
@@ -283,15 +267,15 @@ def facets(f=None):
     the other pills) but not its own, so they say how many results you'd get by picking that option."""
     f = f or {}
 
-    def count(key, col, is_list=False, expr=None):
+    def count(key, col, is_list=False):
         w, p, _ = _filters(f, skip=key)
         src = f'opportunities o, json_each(o.{col}) j' if is_list else 'opportunities o'
-        v = expr or ('j.value' if is_list else 'o.' + col)
+        v = 'j.value' if is_list else 'o.' + col
         return {r['v']: r['n'] for r in all_(f"SELECT {v} v, COUNT(*) n FROM {src} WHERE {w} GROUP BY v", p)}
     return {'type': count('type', 'type'), 'cost': count('cost', 'cost'), 'format': count('format', 'format'),
             'commitment': count('commitment', 'commitment'), 'interest': count('interest', 'interests', True),
             'grade': count('grade', 'grades', True), 'state': {k: v for k, v in count('state', 'state').items() if k},
-            'category': count('category', None, expr=JOB_CATEGORY_SQL) if f.get('sector') == 'jobs' else {}}
+            'category': count('category', 'job_category') if f.get('sector') == 'jobs' else {}}
 
 
 def expire_due(db):
@@ -323,6 +307,8 @@ def opp_values(data):
     vals = {k: (json.dumps(v) if k in JSON_FIELDS else v) for k, v in data.items() if k in OPP_COLUMNS}
     if 'location' in data:
         vals['state'] = state_from_location(data['location'])
+    if 'type' in data:  # validated listings carry type, org and title together
+        vals['job_category'] = job_category(data['org'], data['title']) if data['type'] == 'Job' else None
     return vals
 
 

@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
   format           TEXT NOT NULL,
   location         TEXT NOT NULL DEFAULT '',
   state            TEXT,
+  job_category     TEXT,                                 -- jobs only: data.job_category, kept up to date by app.init_db
   commitment       TEXT NOT NULL,
   commitment_note  TEXT NOT NULL DEFAULT '',
   deadline_date    TEXT,
