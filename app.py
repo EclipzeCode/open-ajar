@@ -287,8 +287,7 @@ def apply_correction_file(fixes):
             problems.append(f"{fx['external_id']} ({row['title']}): {errors}")
             continue
         if fx.get('set', {}).get('deadline_date') and not row['expires_at']:
-            from datetime import date, timedelta
-            clean['expires_at'] = (date.fromisoformat(clean['deadline_date']) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+            clean['expires_at'] = data.expiry_for(clean['deadline_date'])
         update_opp(db, row['id'], clean)
         if fx.get('verified'):
             db.execute("UPDATE opportunities SET verification='verified' WHERE id=?", (row['id'],))
@@ -327,6 +326,8 @@ def import_rows(rows, approve=False, batch=''):
             problems.append(f"{r.get('id')} duplicate of “{dup['title']}”")
             continue
         status = 'approved' if approve else 'pending_review'
+        if approve and clean['deadline_date'] and not clean.get('expires_at'):  # same as approving it by hand
+            clean['expires_at'] = data.expiry_for(clean['deadline_date'])
         opp_id = insert_opp(db, clean, status=status, source='import:' + (r.get('group') or 'sheet'), external_id=ext,
                             verification='source' if approve else 'unreviewed', published_at=data.now_iso() if approve else None)
         add_event(opp_id, None, 'imported', status, note)

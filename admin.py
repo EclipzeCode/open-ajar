@@ -35,7 +35,7 @@ def decide(opp, action, message=''):
     if action == 'approve':
         expires = opp['expires_at']
         if not expires and opp['deadline_date']:  # a dated listing hides itself shortly after its deadline
-            expires = (date.fromisoformat(opp['deadline_date']) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+            expires = data.expiry_for(opp['deadline_date'])
         if expires and expires <= data.now_iso():
             return 'This listing’s expiry date has already passed. Edit the expiry or deadline before approving.'
         extra.update(expires_at=expires, published_at=opp['published_at'] or data.now_iso())

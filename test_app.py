@@ -280,6 +280,22 @@ class Flows(unittest.TestCase):
         self.assertNotIn('Other Comp', page)
         self.assertIn('2 results', self.c.get('/opportunities').get_data(as_text=True))
 
+    def test_closed_listings_stop_showing(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Closed Comp', 'deadline_date': '2026-01-05'},
+                         {**base, 'id': '2', 'title': 'Old Comp', 'deadline_date': '2026-01-06'}], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        self.assertTrue(db.execute("SELECT expires_at FROM opportunities WHERE title='Closed Comp'").fetchone()['expires_at'])
+        db.execute("UPDATE opportunities SET expires_at=NULL WHERE title='Old Comp'")  # live from before expiries were set on import
+        db.commit()
+        from core import expire_due
+        expire_due(db)
+        page = self.c.get('/opportunities').get_data(as_text=True)
+        self.assertNotIn('Closed Comp', page)
+        self.assertNotIn('Old Comp', page)
+
     def test_jobs_get_a_category_and_can_be_filtered_by_it(self):
         base = {'summary': 'A part-time job for high-school students.', 'eligibility': 'At least 16', 'grades': '11;12',
                 'type': 'Job', 'cost': 'Award', 'format': 'In person', 'location': 'Austin, TX', 'commitment': 'Flexible'}

@@ -271,6 +271,11 @@ def password_problem(pw, email=''):
 
 # ---------------------------------------------------------------- display helpers (used by templates)
 
+def expiry_for(deadline):
+    """When a listing with this YYYY-MM-DD deadline hides itself: two days later, so it has passed in every US time zone."""
+    return (date.fromisoformat(deadline) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+
+
 def deadline_info(deadline, note=''):
     """(text, soon) for a YYYY-MM-DD deadline."""
     d = parse_date((deadline or '')[:10])

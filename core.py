@@ -257,6 +257,9 @@ def facets(f=None):
 
 
 def expire_due(db):
+    # a live listing with a deadline but no expiry (imported straight to live before that was set) gets the usual one
+    for r in db.execute("SELECT id, deadline_date FROM opportunities WHERE status='approved' AND expires_at IS NULL AND deadline_date IS NOT NULL").fetchall():
+        db.execute('UPDATE opportunities SET expires_at=? WHERE id=?', (data.expiry_for(r['deadline_date']), r['id']))
     db.execute("UPDATE opportunities SET status='expired', updated_at=? WHERE status='approved' AND expires_at IS NOT NULL AND expires_at <= ?",
                (now_iso(), now_iso()))
     db.commit()
