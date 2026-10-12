@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
-{# Tells search engines the site's name, so searching "Open Ajar" can show it as the site name. Data, not a script. #}
+{# Tells search engines the site's name, so searching "OpenAjar" can show it as the site name. Data, not a script. #}
 {% block head %}
   <script type="application/ld+json">{{ {'@context': 'https://schema.org', '@graph': [
-    {'@type': 'WebSite', 'name': 'Open Ajar', 'alternateName': 'OpenAjar', 'url': app_url + '/'},
-    {'@type': 'Organization', 'name': 'Open Ajar', 'alternateName': 'OpenAjar', 'url': app_url + '/', 'email': contact_email}]}|tojson }}</script>
+    {'@type': 'WebSite', 'name': 'OpenAjar', 'alternateName': 'OpenAjar', 'url': app_url + '/'},
+    {'@type': 'Organization', 'name': 'OpenAjar', 'alternateName': 'OpenAjar', 'url': app_url + '/', 'email': contact_email}]}|tojson }}</script>
 {% endblock %}
 {% block content %}
 <section class="hero">
@@ -12,7 +12,7 @@
   <span class="aurora aurora--1"></span><span class="aurora aurora--2"></span><span class="aurora aurora--3"></span>
   <div class="wrap">
     <h1 class="reveal">Opportunity shouldn’t depend on <em>who you know.</em></h1>
-    <p class="lead reveal d1">Open Ajar is the free, all-in-one place for high-school students to find internships, programs, scholarships and teen jobs, then track them all the way to “applied”.</p>
+    <p class="lead reveal d1">OpenAjar is the free, all-in-one place for high-school students to find internships, programs, scholarships and teen jobs, then track them all the way to “applied”.</p>
     {% set words = ['summer research', 'scholarships', 'engineering', 'medicine', 'writing', 'volunteer', 'business', 'robotics', 'cashier', 'law', 'music'] %}
     <a class="typer reveal d2" href="{{ url_for('site.browse', q=words[0]) }}" data-words="{{ words|join('|') }}" aria-label="Browse opportunities">
       <svg class="typer__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -68,7 +68,7 @@
   </svg>
   <div class="wrap">
     <h2 class="reveal">Open the door a little wider.</h2>
-    <p class="lead reveal">Opportunities live in counselor emails, company career pages, nonprofit newsletters and word of mouth. If you’re well connected, some reach you. Open Ajar puts them all in one place.</p>
+    <p class="lead reveal">Opportunities live in counselor emails, company career pages, nonprofit newsletters and word of mouth. If you’re well connected, some reach you. OpenAjar puts them all in one place.</p>
   </div>
   {# The features, one row each: text on alternating sides, a green icon on the other. app.js slides each in from its
      side as it scrolls into view (and leaves it there); the ribbon weaves behind them. Without JS they're just shown. #}
@@ -143,16 +143,16 @@
   Approved quotes students send from their account page are added after these automatically.
 #}
 {% set testimonials = [
-  {'name': 'Vanessa Gunawan', 'photo': 'vanessa-gunawan.jpg', 'role': 'UPenn Wharton', 'quote': 'Open Ajar makes it much easier for students to discover opportunities that would otherwise be scattered across dozens of websites. I especially like that it lowers the barrier for students who may not already have access to strong academic or professional networks.'},
-  {'name': 'Heewon Park', 'photo': 'heewon-park.jpg', 'role': 'HS Student', 'quote': 'Before using Open Ajar, I honestly didn’t know where to start looking for internships and programs. Having opportunities collected in one place makes the process feel much less overwhelming and gives me a better idea of what is actually available to high school students.'},
-  {'name': 'Arnav Dedhia', 'photo': 'arnav-dedhia.jpg', 'role': 'UIUC CS', 'quote': 'There are countless valuable programs online, but discovering them often depends on knowing exactly what to search for. Open Ajar helps bridge that information gap by organizing opportunities in a way that makes exploration much more efficient for students.'},
-  {'name': 'Samay Malde', 'photo': 'samay-malde.jpg', 'role': 'UPenn Economics + Biology', 'quote': 'Students interested in different fields often have to jump between many unrelated websites to find meaningful opportunities. Open Ajar creates a much simpler starting point by exposing students to programs across disciplines that they might not have encountered otherwise.'},
-  {'name': 'Ciara DeCarlo', 'photo': 'ciara-decarlo.jpg', 'role': 'Rutgers', 'quote': 'I wish there had been a resource like Open Ajar when I was first looking for opportunities in high school. A centralized platform can make a huge difference for students who are motivated but simply don’t know where to find internships, competitions, or academic programs.'},
-  {'name': 'Chayan Malkari', 'photo': 'chayan-malkari.jpg', 'role': 'HS Student', 'quote': 'Open Ajar makes searching for opportunities feel less dependent on who you know. Being able to browse different internships, research programs, and competitions in one place gives students more freedom to explore what they’re interested in and take initiative themselves.'},
+  {'name': 'Vanessa Gunawan', 'photo': 'vanessa-gunawan.jpg', 'role': 'UPenn Wharton', 'quote': 'OpenAjar makes it much easier for students to discover opportunities that would otherwise be scattered across dozens of websites. I especially like that it lowers the barrier for students who may not already have access to strong academic or professional networks.'},
+  {'name': 'Heewon Park', 'photo': 'heewon-park.jpg', 'role': 'HS Student', 'quote': 'Before using OpenAjar, I honestly didn’t know where to start looking for internships and programs. Having opportunities collected in one place makes the process feel much less overwhelming and gives me a better idea of what is actually available to high school students.'},
+  {'name': 'Arnav Dedhia', 'photo': 'arnav-dedhia.jpg', 'role': 'UIUC CS', 'quote': 'There are countless valuable programs online, but discovering them often depends on knowing exactly what to search for. OpenAjar helps bridge that information gap by organizing opportunities in a way that makes exploration much more efficient for students.'},
+  {'name': 'Samay Malde', 'photo': 'samay-malde.jpg', 'role': 'UPenn Economics + Biology', 'quote': 'Students interested in different fields often have to jump between many unrelated websites to find meaningful opportunities. OpenAjar creates a much simpler starting point by exposing students to programs across disciplines that they might not have encountered otherwise.'},
+  {'name': 'Ciara DeCarlo', 'photo': 'ciara-decarlo.jpg', 'role': 'Rutgers', 'quote': 'I wish there had been a resource like OpenAjar when I was first looking for opportunities in high school. A centralized platform can make a huge difference for students who are motivated but simply don’t know where to find internships, competitions, or academic programs.'},
+  {'name': 'Chayan Malkari', 'photo': 'chayan-malkari.jpg', 'role': 'HS Student', 'quote': 'OpenAjar makes searching for opportunities feel less dependent on who you know. Being able to browse different internships, research programs, and competitions in one place gives students more freedom to explore what they’re interested in and take initiative themselves.'},
 ] %}
 {# Hidden for now (no photos yet). To bring them back, move these two lines into the list above:
-  {'name': 'Nate John', 'role': 'HS Student', 'quote': 'Open Ajar has helped me realize how many opportunities exist outside of what gets shared at school. Instead of relying only on counselors or word of mouth, I can explore programs on my own and find things that actually match my interests.'},
-  {'name': 'Sam Lui', 'role': 'HS Student', 'quote': 'A lot of opportunities seem hidden unless someone sends them to you or you already know where to look. Open Ajar makes that information much more accessible and helps students find programs beyond the ones everyone at their school already knows about.'},
+  {'name': 'Nate John', 'role': 'HS Student', 'quote': 'OpenAjar has helped me realize how many opportunities exist outside of what gets shared at school. Instead of relying only on counselors or word of mouth, I can explore programs on my own and find things that actually match my interests.'},
+  {'name': 'Sam Lui', 'role': 'HS Student', 'quote': 'A lot of opportunities seem hidden unless someone sends them to you or you already know where to look. OpenAjar makes that information much more accessible and helps students find programs beyond the ones everyone at their school already knows about.'},
 #}
 {% set shown = [] %}
 {% for t in testimonials if not (t.placeholder and production) %}{% do shown.append(t) %}{% endfor %}
@@ -174,7 +174,7 @@
 <section class="section center testimonials" aria-labelledby="voices-h">
   <div class="wrap">
     <h2 id="voices-h">Community voices</h2>
-    <p class="lead">What high schoolers and college students say about Open Ajar.</p>
+    <p class="lead">What high schoolers and college students say about OpenAjar.</p>
   </div>
   {# the cards are listed twice so the strip can loop forever; the copy is hidden from screen readers #}
   <div class="marquee">
@@ -195,9 +195,9 @@
     <h2>Questions &amp; answers</h2>
     <p class="lead">Still wondering? Email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
     <div class="faq">
-      <details><summary>What is Open Ajar?</summary><p>A student-founded site where high-school students find internships, research and summer programs, scholarships, competitions and teen jobs in one place, then track them through to applying.</p></details>
-      <details><summary>Is it free?</summary><p>Yes. Open Ajar is free for students, always. We never charge to browse, save or track anything.</p></details>
-      <details><summary>Do I apply through Open Ajar?</summary><p>No. Every listing links to the organization’s own application. We help you find it and stay organized; you apply directly with them.</p></details>
+      <details><summary>What is OpenAjar?</summary><p>A student-founded site where high-school students find internships, research and summer programs, scholarships, competitions and teen jobs in one place, then track them through to applying.</p></details>
+      <details><summary>Is it free?</summary><p>Yes. OpenAjar is free for students, always. We never charge to browse, save or track anything.</p></details>
+      <details><summary>Do I apply through OpenAjar?</summary><p>No. Every listing links to the organization’s own application. We help you find it and stay organized; you apply directly with them.</p></details>
       <details><summary>How do you check listings?</summary><p>Nothing goes live automatically. A reviewer checks each listing against its official page first, and each one is labeled with how well it’s been verified. Always confirm details on the official page before you apply.</p></details>
       <details><summary>Can I share an opportunity I know about?</summary><p>Please do. Create a free account, confirm your email, and use Submit. A reviewer will approve it or let you know what to fix.</p></details>
       <details><summary>Is my information private?</summary><p>We only collect what the site needs, never sell it and don’t run ads. You can delete your account any time. See the <a href="{{ url_for('site.privacy') }}">privacy policy</a>.</p></details>

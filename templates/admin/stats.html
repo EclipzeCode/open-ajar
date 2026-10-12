@@ -11,7 +11,7 @@
 
   <h2 class="stats__h">Outcomes</h2>
   <div class="stats">
-    {{ stat(s.won_here, 'acceptances found on Open Ajar', s.won_students ~ ' different students', accent=True) }}
+    {{ stat(s.won_here, 'acceptances found on OpenAjar', s.won_students ~ ' different students', accent=True) }}
     {{ stat(s.won, 'acceptances tracked in total', s.won_elsewhere ~ ' found elsewhere, ' ~ (s.won - s.won_here - s.won_elsewhere) ~ ' not answered yet') }}
     {{ stat(s.placed, 'students placed as interns', s.intern_apps ~ ' intern applications') }}
   </div>

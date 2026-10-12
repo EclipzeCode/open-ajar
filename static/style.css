@@ -1,4 +1,4 @@
-/* Open Ajar. One stylesheet: tokens, base, layout, components, pages.
+/* OpenAjar. One stylesheet: tokens, base, layout, components, pages.
    Look: Inter only, warm stone text, flat evergreen accent, white cards with hairline borders, floating pill header. */
 :root {
   --bg: #FFFFFF; --surface: #FFFFFF; --soft: #FAFAF9; --ink: #44403C; --ink-strong: #1C1917; --muted: #78716C; --line: #E7E5E4; --line-strong: #D6D3D1;

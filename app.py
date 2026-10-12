@@ -1,4 +1,4 @@
-"""Open Ajar: opportunity discovery and tracking for high-school students. Flask + SQLite.
+"""OpenAjar: opportunity discovery and tracking for high-school students. Flask + SQLite.
 
 Run locally:   flask --app app run --debug
 Production:    gunicorn -w 1 --threads 8 'app:create_app()'     (see render.yaml)
@@ -47,7 +47,7 @@ def create_app(test_config=None):
         DB_PATH=env('DB_PATH') or str(ROOT / 'var' / 'openajar.db'),
         APP_URL=(env('APP_URL') or 'http://127.0.0.1:5050').rstrip('/'),
         RESEND_API_KEY=env('RESEND_API_KEY', ''),
-        EMAIL_FROM=env('EMAIL_FROM') or 'Open Ajar <onboarding@resend.dev>',
+        EMAIL_FROM=env('EMAIL_FROM') or 'OpenAjar <onboarding@resend.dev>',
         REMINDER_DAYS=min(30, max(1, int(env('REMINDER_DAYS') or 7))),
         REMINDERS_ENABLED=env('REMINDERS_ENABLED', '1') == '1',
         CONTACT_EMAIL='openajar27116@gmail.com',
@@ -154,7 +154,7 @@ def create_app(test_config=None):
 
     register_cli(app)
     if not app.config.get('TESTING'):
-        print(f"Open Ajar ready (production={app.config['PRODUCTION']}, db={app.config['DB_PATH']}, "
+        print(f"OpenAjar ready (production={app.config['PRODUCTION']}, db={app.config['DB_PATH']}, "
               f"email={'resend' if app.config['RESEND_API_KEY'] else 'dev inbox'})", flush=True)
     return app
 

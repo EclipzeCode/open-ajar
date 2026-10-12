@@ -326,7 +326,7 @@ def grant_action(g, action, form, me):
         audit(me['id'], f"grant_paid ${p['paid_amount']}", g['id'])
         _tell(g, 'Your Access Grant is paid', [
             f"We paid ${p['paid_amount']} to {g['org']} for {g['program']} on {p['paid_on']}.",
-            'You don’t need to do anything else. If the program asks, let them know Open Ajar covered this fee.'])
+            'You don’t need to do anything else. If the program asks, let them know OpenAjar covered this fee.'])
         return True, 'Payment recorded. The student has been told.'
     return False, 'Unknown action.'
 

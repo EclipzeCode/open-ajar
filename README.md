@@ -1,4 +1,4 @@
-# Open Ajar
+# OpenAjar
 
 Opportunity discovery and tracking for high-school students. **Flask + SQLite + plain HTML/CSS/JS.** No build step.
 

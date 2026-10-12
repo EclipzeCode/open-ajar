@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Converts the Open Ajar opportunities workbook (.xlsx) to the CSV the importer reads. Standard library only.
+Converts the OpenAjar opportunities workbook (.xlsx) to the CSV the importer reads. Standard library only.
 
   python3 xlsx-to-csv.py ~/Downloads/open_ajar_opportunities.xlsx data/opportunities.csv
   python3 xlsx-to-csv.py ~/Downloads/new_export.xlsx data/opportunities-b2.csv --batch b2

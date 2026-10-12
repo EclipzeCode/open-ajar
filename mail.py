@@ -30,12 +30,12 @@ def _layout(heading, paragraphs, button, link, footer, extra_html='', extra_text
     ps = ''.join(f'<p style="font-size:16px;line-height:1.55;margin:0 0 16px">{escape(p)}</p>' for p in paragraphs)
     html = f'''<!doctype html><html lang="en"><body style="margin:0;background:#FAF7F2;color:#1C1B18;font-family:Helvetica,Arial,sans-serif">
 <div style="max-width:520px;margin:0 auto;padding:32px 24px">
-<p style="font-size:20px;font-weight:700;margin:0 0 24px">Open Ajar</p>
+<p style="font-size:20px;font-weight:700;margin:0 0 24px">OpenAjar</p>
 <h1 style="font-size:26px;line-height:1.2;margin:0 0 16px">{escape(heading)}</h1>{ps}{extra_html}
 <p style="margin:24px 0"><a href="{escape(link)}" style="background:#1F5C4A;color:#fff;text-decoration:none;padding:13px 20px;border-radius:8px;font-weight:600;display:inline-block">{escape(button)}</a></p>
 <p style="font-size:14px;color:#6B675E;margin:0 0 8px">Or paste this link into your browser:<br><span style="word-break:break-all">{escape(link)}</span></p>
 <p style="font-size:14px;color:#6B675E;margin:24px 0 0">{escape(footer)}</p></div></body></html>'''
-    text = f"{heading}\n\n" + '\n\n'.join(paragraphs) + f"\n{extra_text}\n{button}: {link}\n\n{footer}\n\nOpen Ajar"
+    text = f"{heading}\n\n" + '\n\n'.join(paragraphs) + f"\n{extra_text}\n{button}: {link}\n\n{footer}\n\nOpenAjar"
     return html, text
 
 
@@ -44,17 +44,17 @@ def _first(name):
 
 
 def verify_email(config, user, link):
-    send(config, user['email'], 'Confirm your email for Open Ajar', *_layout(
+    send(config, user['email'], 'Confirm your email for OpenAjar', *_layout(
         f"Welcome, {_first(user['name'])}.",
-        ['Confirm your email address to finish setting up your Open Ajar account. You’ll need this before you can submit an opportunity.',
+        ['Confirm your email address to finish setting up your OpenAjar account. You’ll need this before you can submit an opportunity.',
          'This link works once and expires in 24 hours.'],
-        'Confirm my email', link, 'If you didn’t create an Open Ajar account, you can ignore this email.'))
+        'Confirm my email', link, 'If you didn’t create an OpenAjar account, you can ignore this email.'))
 
 
 def reset_password(config, user, link):
-    send(config, user['email'], 'Reset your Open Ajar password', *_layout(
+    send(config, user['email'], 'Reset your OpenAjar password', *_layout(
         'Reset your password',
-        [f"Hi {_first(user['name'])}, we got a request to reset the password for your Open Ajar account.",
+        [f"Hi {_first(user['name'])}, we got a request to reset the password for your OpenAjar account.",
          'This link works once and expires in 1 hour. After you choose a new password, you’ll be signed out everywhere.'],
         'Choose a new password', link, 'If you didn’t ask for this, ignore this email. Your password won’t change.'))
 
@@ -107,7 +107,7 @@ def deadline_digest(config, email, name, items):
     text = '\n'.join(f"- {it['title']} ({_when(it['days'])}, {it['deadline']})" for it in items)
     send(config, email, subject, *_layout(
         f"{_first(name)}, {'a deadline is' if one else f'{len(items)} deadlines are'} coming up.",
-        ['These are opportunities you’re tracking on Open Ajar. Confirm the exact deadline on the official page before you rely on it.'],
+        ['These are opportunities you’re tracking on OpenAjar. Confirm the exact deadline on the official page before you rely on it.'],
         'Open your tracker', config['APP_URL'] + '/tracker',
         'You get these because you’re tracking these opportunities. Turn reminders off any time on your account page.',
         f'<ul style="padding-left:18px;margin:0 0 20px">{li}</ul>', text + '\n'))

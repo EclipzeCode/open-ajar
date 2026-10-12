@@ -1,4 +1,4 @@
-# Render Blueprint for Open Ajar. In Render: New > Blueprint, pick this repo.
+# Render Blueprint for OpenAjar. In Render: New > Blueprint, pick this repo.
 services:
   - type: web
     name: open-ajar            # becomes https://<name>.onrender.com if the name is free
@@ -22,7 +22,7 @@ services:
         sync: false
       - key: RESEND_API_KEY
         sync: false
-      - key: EMAIL_FROM        # e.g. Open Ajar <hello@yourdomain.org>, once the domain is verified in Resend
+      - key: EMAIL_FROM        # e.g. OpenAjar <hello@yourdomain.org>, once the domain is verified in Resend
         sync: false
     disk:
       name: openajar-data

@@ -1,4 +1,4 @@
--- Open Ajar schema (SQLite). Lists (grades, interests, requirements, checklist) are stored as JSON text.
+-- OpenAjar schema (SQLite). Lists (grades, interests, requirements, checklist) are stored as JSON text.
 
 CREATE TABLE IF NOT EXISTS users (
   id               TEXT PRIMARY KEY,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS tracked (
   deadline       TEXT NOT NULL DEFAULT '',
   checklist      TEXT NOT NULL DEFAULT '[]',
   reminded_for   TEXT,                -- the deadline we last emailed about, so each deadline is reminded once
-  found_here     INTEGER,             -- once Accepted: did they find it on Open Ajar? 1 yes, 0 no, NULL not asked yet
+  found_here     INTEGER,             -- once Accepted: did they find it on OpenAjar? 1 yes, 0 no, NULL not asked yet
   added_at       TEXT NOT NULL,
   PRIMARY KEY (user_id, opportunity_id)
 );
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS user_days (
   PRIMARY KEY (user_id, day)
 );
 
--- Access Grants: a student asks Open Ajar to cover a program fee; admins review under Admin > Access Grants.
+-- Access Grants: a student asks OpenAjar to cover a program fee; admins review under Admin > Access Grants.
 -- Money never goes to the student: an admin pays the program directly, then records the payment here.
 -- Every request follows the same rules, whoever asks; nobody can approve or pay their own.
 CREATE TABLE IF NOT EXISTS access_grants (

@@ -46,7 +46,7 @@ GRANT_STATUSES = {'new': 'Submitted', 'needs_info': 'Needs info', 'approved': 'A
                   'declined': 'Declined', 'withdrawn': 'Withdrawn'}
 GRANT_OPEN = ('new', 'needs_info', 'approved')  # a student can have one of these at a time
 STAGES = ['Interested', 'Preparing', 'Applied', 'Interview', 'Accepted', 'Completed']
-WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on Open Ajar
+WON_STAGES = ('Accepted', 'Completed')  # when the tracker asks whether they found it on OpenAjar
 VERIFICATION = {'unreviewed': 'Unreviewed', 'source': 'Source-linked', 'verified': 'Verified'}
 RELATIONSHIPS = {'organization_rep': 'I represent the organization', 'counselor_teacher': 'I’m a counselor or teacher',
                  'student_or_parent': 'I’m a student or parent', 'other': 'Something else'}

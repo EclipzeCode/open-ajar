@@ -260,7 +260,7 @@ def contact():
 
 @bp.route('/access-grants', methods=['GET', 'POST'])
 def grants():
-    """Students ask Open Ajar to cover a program fee. Anyone can read the page; the form needs a confirmed account,
+    """Students ask OpenAjar to cover a program fee. Anyone can read the page; the form needs a confirmed account,
     no other open request, and room left under the yearly cap. Saved first, then the team is emailed."""
     u = current_user()
     mine = [dict(r) for r in all_('SELECT * FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (u['id'],))] if u else []

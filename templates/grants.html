@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
 {% block title %}Access Grants{% endblock %}
-{% block description %}Open Ajar Access Grants help high-school students cover a program fee, up to ${{ D.GRANT_CAP }} a year, paid straight to the program.{% endblock %}
+{% block description %}OpenAjar Access Grants help high-school students cover a program fee, up to ${{ D.GRANT_CAP }} a year, paid straight to the program.{% endblock %}
 {% block content %}
 <div class="wrap">
   <header class="page-head">
@@ -72,7 +72,7 @@
             {{ m.select('asked_program', 'Have you asked the program for aid?', D.GRANT_ASKED, values, errors, required=True) }}
           </div>
           {{ m.textarea('reason', 'Why this program, and why you’re asking', values, errors, required=True, max=2000, rows=5,
-                        help='What you hope to get out of it, and what makes the fee hard right now. Only the Open Ajar team reads this.') }}
+                        help='What you hope to get out of it, and what makes the fee hard right now. Only the OpenAjar team reads this.') }}
           {{ m.input('parent_email', 'Parent or guardian’s email', values, errors, type='email', required=True,
                      help='We copy them on our decision. If you’re 18 or older, you can use your own.') }}
           <div class="field{% if errors.get('consent') %} has-error{% endif %}">
@@ -85,7 +85,7 @@
       {% elif not user %}
         <div class="panel">
           <h2>Sign in to ask</h2>
-          <p>You need a free Open Ajar account to ask for an Access Grant, so we can tell you what we decide.</p>
+          <p>You need a free OpenAjar account to ask for an Access Grant, so we can tell you what we decide.</p>
           <div class="actions"><a class="btn" href="{{ url_for('account.login', next=request.full_path) }}">Sign in</a><a class="link" href="{{ url_for('account.register') }}">Create an account →</a></div>
         </div>
       {% elif not user.email_verified %}

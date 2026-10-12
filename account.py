@@ -78,7 +78,7 @@ def register():
     user = one('SELECT * FROM users WHERE id=?', (uid,))
     sign_in(user)
     send_verification(user)
-    flash('Welcome to Open Ajar. We sent you an email to confirm your address.')
+    flash('Welcome to OpenAjar. We sent you an email to confirm your address.')
     return redirect(safe_next(url_for('site.browse')))
 
 

@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}Open Ajar</title>
-  {% set description %}{% block description %}Open Ajar helps high-school students find internships, programs, scholarships and jobs, then track them all the way to an application.{% endblock %}{% endset %}
+  <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}OpenAjar</title>
+  {% set description %}{% block description %}OpenAjar helps high-school students find internships, programs, scholarships and jobs, then track them all the way to an application.{% endblock %}{% endset %}
   <meta name="description" content="{{ description|trim }}">
   <link rel="canonical" href="{{ canonical }}">
-  <meta property="og:site_name" content="Open Ajar">
+  <meta property="og:site_name" content="OpenAjar">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="{{ self.title() }}{% if self.title() %} · {% endif %}Open Ajar">
+  <meta property="og:title" content="{{ self.title() }}{% if self.title() %} · {% endif %}OpenAjar">
   <meta property="og:description" content="{{ description|trim }}">
   <meta property="og:url" content="{{ canonical }}">
   {% block head %}{% endblock %}
@@ -24,7 +24,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <div class="wrap topbar__inner">
-    <a class="brand" href="{{ url_for('site.home') }}"><span class="brand__door" aria-hidden="true"></span>Open Ajar</a>
+    <a class="brand" href="{{ url_for('site.home') }}"><span class="brand__door" aria-hidden="true"></span>OpenAjar</a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav id="nav" class="nav" aria-label="Main">
       {# Keep this short. Jobs and Submit live on the Opportunities page, the tracker on Profile, Support on About;
@@ -67,7 +67,7 @@
       <a href="{{ url_for('site.submit') }}">Submit</a>
       {% if dev_inbox %}<a href="{{ url_for('site.dev_inbox') }}">Dev inbox</a>{% endif %}
     </nav>
-    <p class="muted small">Student-founded. Built so finding your next opportunity doesn’t depend on who you know.<br>© 2026 Open Ajar</p>
+    <p class="muted small">Student-founded. Built so finding your next opportunity doesn’t depend on who you know.<br>© 2026 OpenAjar</p>
   </div>
 </footer>
 </body>
