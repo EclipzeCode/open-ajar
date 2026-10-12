@@ -28,7 +28,7 @@ OpenAjar is a free site where high-school students find internships, programs, s
 9. **Professional polish:** flat 8px buttons (no glow or lift), underline tabs, plain-text section labels instead of outlined pills.
 10. **Job categories and card art (PR #8, #9, #16):** six broad job categories (Food & drink, Retail, Grocery, Entertainment, Recreation & outdoors, Community & public service) assigned from keywords in the employer name, then the title; /jobs has a Category filter. Every listing card shows four large icons in the top-right corner: by category for jobs (`static/img/jobs/`), by listing type for everything else (`static/img/types/`).
 11. **Browse layout (PR #10, #13):** the sort dropdown sits in the filter row; a short last row of cards stays in its columns instead of centering.
-12. **Custom domain:** `openajar.org`, bought through Shopify (DNS is managed in Shopify → Settings → Domains → openajar.org → DNS settings). Records: `@` A `216.24.57.1`, `www` CNAME `open-ajar.onrender.com`, plus Resend's `resend._domainkey` TXT and `send`/`rsend` CNAMEs. Shopify's `_dmarc` and `_provider` records were left as they are. Render's `APP_URL` is `https://www.openajar.org`; `EMAIL_FROM` is `OpenAjar <hello@openajar.org>`.
+12. **Custom domain:** `openajar.org`, bought through Shopify (DNS is managed in Shopify → Settings → Domains → openajar.org → DNS settings). Records: `@` A `216.24.57.1`, `www` CNAME `open-ajar.onrender.com`, plus Resend's `resend._domainkey` TXT and `send`/`rsend` CNAMEs. Shopify's `_dmarc` and `_provider` records were left as they are. Render's `APP_URL` is `https://www.openajar.org`. `EMAIL_FROM` was only added on Oct 12, 2026 (see Current state).
 13. **Search engines (PR #11):** non-canonical hosts 301 to `APP_URL` (except `/healthz` and form posts), canonical + Open Graph tags on every page, WebSite/Organization structured data naming the site "OpenAjar", `/robots.txt` and `/sitemap.xml` (public pages plus every live listing).
 14. **Partner with us (PR #12) and Contact (PR #16):** the Partner with us button opens `/partner`, a short form for businesses, saved to `partner_inquiries` and listed under Admin → Partner inquiries. The footer's Contact link opens `/contact` (name, email, topic, message), saved to `contact_messages` and listed under Admin → Messages. Both email the team with reply-to set to the sender, after saving.
 15. **Testimonials (PR #12, #14):** photos for Vanessa Gunawan, Heewon Park, Arnav Dedhia, Samay Malde, Ciara DeCarlo and Chayan Malkari (96px JPEGs, about 4 KB each). Mark Rydberg and Bobby DeCarlo were removed; Nate John and Sam Lui are hidden for now (their quotes are in a comment in `home.html`). The FAQ slide was rebuilt with the Web Animations API so it works in every browser.
@@ -49,7 +49,7 @@ OpenAjar is a free site where high-school students find internships, programs, s
 ## Current state (Oct 2026)
 
 - Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#34 are merged into `main`; nothing is open.
-- **Email confirmed working (Oct 2026):** a password-reset email from `hello@openajar.org` arrived on the live site. Resend's DNS records (DKIM, `send`/`rsend`, SPF, MX, DMARC) all resolve. If emails ever stop arriving, check Resend → Emails and search Render → Logs for `[email]` (a 403 means the domain isn't verified or `EMAIL_FROM` is wrong).
+- **Email:** Resend's DNS records (DKIM, `send`/`rsend`, SPF, MX, DMARC) all resolve. Until Oct 12, 2026 Render had no `EMAIL_FROM`, so the site sent from Resend's test address `onboarding@resend.dev`, which only delivers to the Resend account owner: the earlier "it works" test only reached the owner, and other students likely got no emails before then. `EMAIL_FROM` is now `OpenAjar <hello@openajar.org>`. **Still to confirm:** a reset email reaching an address that isn't the Resend account owner's. Test at `/forgot` with a second address. If emails ever stop arriving, check Resend → Emails and search Render → Logs for `[email]` (a 403 means the domain isn't verified or `EMAIL_FROM` is wrong).
 - **Not done yet:** Google Search Console (see to-dos).
 - A local test account exists only in the local database; its login is in `var/LOCAL_TEST_LOGIN.txt` (gitignored).
 
@@ -130,7 +130,7 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 - [x] Testimonial photos. Nate John and Sam Lui are hidden until they have photos.
 - [x] Custom domain and HTTPS (`www.openajar.org`).
 - [ ] Check that Render disk snapshots are on, and download a backup from Admin → Stats now and then (keep it private: it has everyone's data).
-- [ ] Set Render's `EMAIL_FROM` to `OpenAjar <hello@openajar.org>` so the sender name matches the new spelling.
+- [ ] Confirm email reaches a non-owner address now that `EMAIL_FROM` is set (see Current state).
 - [ ] Decide which account Access Grants are paid from before the first real grant.
 - [ ] Google Search Console: add `openajar.org` as a Domain property, add Google's TXT record in Shopify DNS, then submit `https://www.openajar.org/sitemap.xml`. Then import into Bing Webmaster Tools.
 - [ ] Link `www.openajar.org` from the team's social profiles and school pages (helps it rank for "OpenAjar").
