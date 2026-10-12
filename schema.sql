@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS access_grants (
   status          TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','needs_info','approved','paid','declined','withdrawn')),
   approved_amount INTEGER,
   approved_by     TEXT,
+  approved_at     TEXT,                         -- the yearly cap counts a grant in the year it was approved
   message         TEXT NOT NULL DEFAULT '',     -- latest message to the student
   admin_note      TEXT NOT NULL DEFAULT '',
   paid_amount     INTEGER,

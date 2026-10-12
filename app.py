@@ -166,7 +166,8 @@ def init_db(path):
     db.execute('PRAGMA journal_mode = WAL')
     db.executescript((ROOT / 'schema.sql').read_text())
     # Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database.
-    for table, col, ddl in (('users', 'school', "TEXT NOT NULL DEFAULT ''"), ('tracked', 'found_here', 'INTEGER')):
+    for table, col, ddl in (('users', 'school', "TEXT NOT NULL DEFAULT ''"), ('tracked', 'found_here', 'INTEGER'),
+                            ('access_grants', 'approved_at', 'TEXT')):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
     db.commit()

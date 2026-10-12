@@ -319,8 +319,8 @@ def grant_action(g, action, form, me):
             return False, f"That’s more than the ${g['amount']} they asked for."
         if amount > room:
             return False, f'That’s over the ${data.GRANT_CAP} yearly cap for this student (${room} left).'
-        run("UPDATE access_grants SET approved_amount=?, approved_by=?, status='approved', message=?, updated_at=? WHERE id=?",
-            (amount, me['id'], msg or g['message'], now, g['id']))
+        run("UPDATE access_grants SET approved_amount=?, approved_by=?, approved_at=?, status='approved', message=?, updated_at=? WHERE id=?",
+            (amount, me['id'], now, msg or g['message'], now, g['id']))
         audit(me['id'], f'grant_approved ${amount}', g['id'])
         _tell(g, 'Your Access Grant is approved', [
             f"We’ll cover ${amount} toward the {g['covers'].lower()} for {g['program']}.", *([msg] if msg else []),
