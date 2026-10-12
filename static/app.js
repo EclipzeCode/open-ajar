@@ -294,6 +294,54 @@ if (marquee) {
   }));
 }
 
+// Home: interest tabs swap the three "open right now" cards in place (each tab is still a normal link)
+const explore = document.querySelector('[data-explore]');
+if (explore) {
+  const grid = document.querySelector('.explore__grid');
+  const all = document.querySelector('[data-explore-all]');
+  const glider = explore.querySelector('.explore__glider');
+  const tabs = [...explore.querySelectorAll('a')];
+  const cache = new Map();
+  const place = (a) => {
+    glider.style.width = `${a.offsetWidth}px`;
+    glider.style.transform = `translateX(${a.offsetLeft}px)`;
+  };
+  const load = async (url) => {
+    if (!cache.has(url)) {
+      cache.set(url, fetch(url).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return { cards: [...doc.querySelectorAll('.grid .card')].slice(0, 3), count: doc.querySelector('.results__count')?.textContent.trim() };
+      }).catch((e) => { cache.delete(url); throw e; }));
+    }
+    return cache.get(url);
+  };
+  tabs.forEach((a) => {
+    a.addEventListener('pointerenter', () => load(a.href).catch(() => {})); // warm the cache before the click
+    a.addEventListener('click', async (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || a.getAttribute('aria-current') === 'true') return;
+      e.preventDefault();
+      tabs.forEach((t) => t.setAttribute('aria-current', t === a ? 'true' : 'false'));
+      place(a);
+      explore.scrollTo({ left: a.offsetLeft - (explore.clientWidth - a.offsetWidth) / 2, behavior: calm ? 'auto' : 'smooth' }); // keep the chosen tab in view on phones
+      grid.style.minHeight = `${grid.offsetHeight}px`; // no jump while the cards change
+      grid.classList.add('is-leaving');
+      try {
+        const [{ cards, count }] = await Promise.all([load(a.href), new Promise((r) => setTimeout(r, calm ? 0 : 180))]);
+        if (!cards.length) { location.href = a.href; return; }
+        grid.replaceChildren(...cards.map((c) => document.importNode(c, true)));
+        all.href = a.href;
+        all.textContent = `See all ${(count || '').replace(/ results?$/, '')} →`.replace('See all  →', 'See all →');
+      } catch { location.href = a.href; return; }
+      grid.classList.remove('is-leaving');
+      grid.classList.add('is-swapped');
+      grid.style.minHeight = '';
+    });
+  });
+  place(tabs[0]);
+  addEventListener('resize', () => place(explore.querySelector('[aria-current="true"]')));
+  requestAnimationFrame(() => explore.classList.add('is-ready')); // the glider only animates after its first placement
+}
+
 // FAQ: answers slide open and closed. <details> normally snaps, and CSS can't animate it in every browser,
 // so the click is taken over: open, then grow from the closed height (or shrink, then close).
 document.querySelectorAll('.faq details').forEach((d) => {
