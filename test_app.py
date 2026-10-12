@@ -65,10 +65,10 @@ class Flows(unittest.TestCase):
         self.assertIn(b'href="/opportunities"', page)
         self.assertIn(b'href="/jobs"', page)
         nav = lambda client: re.findall(r'>([^<>]+)</a>', client.get('/about').get_data(as_text=True).split('id="nav"')[1].split('</nav>')[0])
-        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Sign in'])
-        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Admin', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Sign in'])
+        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Admin', 'Profile'])
         self.register()
-        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Profile'])
 
     def test_static_files_are_versioned_and_cached(self):
         css = re.search(r'href="(/static/style\.css\?v=\d+)"', self.c.get('/').get_data(as_text=True)).group(1)

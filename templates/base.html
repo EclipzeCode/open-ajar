@@ -32,7 +32,7 @@
          the footer lists the rest. Each item stays highlighted on the pages it covers. #}
       {% set ep = request.endpoint or '' %}
       <a href="{{ url_for('site.browse') }}" {% if ep in ('site.browse', 'site.jobs', 'site.detail', 'site.submit') %}aria-current="page"{% endif %}>Opportunities</a>
-      <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Apply</a>
+      <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Intern with us</a>
       <a href="{{ url_for('site.grants') }}" {% if ep == 'site.grants' %}aria-current="page"{% endif %}>Access Grants</a>
       <a href="{{ url_for('site.about') }}" {% if ep in ('site.about', 'site.support') %}aria-current="page"{% endif %}>About</a>
       {% if user %}
