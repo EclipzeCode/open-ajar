@@ -98,33 +98,41 @@ if (story && !calm) {
   update();
 }
 
-// Home: open the door as its section scrolls by (sets --p from 0 to 1), and tilt the scene a touch toward the pointer.
-// It only ever opens further. Once fully open, the section's extra scroll length is removed (and the page shifted by the
-// same amount so nothing moves on screen), so scrolling back up passes straight over it.
-const doorway = document.querySelector('.doorway');
-if (doorway && !calm) {
-  let queued = false, opened = 0;
+// Home: a pinned section that plays once as it scrolls by. Sets --p from 0 to 1 and only ever moves forward. Once at 1,
+// the section's extra scroll length is removed (and the page shifted by the same amount so nothing moves on screen),
+// so scrolling back up passes straight over it. Used by the door and the Access Grants receipt.
+function playOnScroll(el, onProgress, onDone) {
+  let queued = false, played = 0;
   const update = () => {
     queued = false;
-    const r = doorway.getBoundingClientRect();
-    const p = opened = Math.max(opened, Math.min(1, Math.max(0, -r.top / (r.height - innerHeight))));
-    doorway.style.setProperty('--p', p.toFixed(3));
-    doorway.classList.toggle('is-open', p > .55); // the links behind the door only respond once you can see them
-    if (p === 1 && !doorway.classList.contains('is-done')) {
-      // keep whatever is below the door where it is on screen. The browser's own scroll anchoring would also try to,
+    if (el.classList.contains('is-done')) return;
+    const r = el.getBoundingClientRect();
+    const p = played = Math.max(played, Math.min(1, Math.max(0, -r.top / (r.height - innerHeight))));
+    el.style.setProperty('--p', p.toFixed(3));
+    if (onProgress) onProgress(p);
+    if (p === 1) {
+      // keep whatever is below where it is on screen. The browser's own scroll anchoring would also try to,
       // unpredictably, so it's switched off for this one adjustment and the page is shifted by exactly the change.
-      const root = document.documentElement, next = doorway.nextElementSibling, before = next.getBoundingClientRect().top;
+      const root = document.documentElement, next = el.nextElementSibling, before = next.getBoundingClientRect().top;
       root.style.overflowAnchor = 'none';
-      doorway.classList.add('is-done');
+      el.classList.add('is-done');
       scrollBy({ top: next.getBoundingClientRect().top - before, behavior: 'instant' });
       requestAnimationFrame(() => { root.style.overflowAnchor = ''; });
-      document.dispatchEvent(new Event('door:done')); // the ribbon measures from the door
+      if (onDone) onDone();
     }
   };
   const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', onScroll);
   update();
+}
+
+// Home: open the door as its section scrolls by, and tilt the scene a touch toward the pointer.
+const doorway = document.querySelector('.doorway');
+if (doorway && !calm) {
+  playOnScroll(doorway,
+    (p) => doorway.classList.toggle('is-open', p > .55), // the links behind the door only respond once you can see them
+    () => document.dispatchEvent(new Event('door:done'))); // the ribbon measures from the door
   if (matchMedia('(pointer: fine)').matches) {
     const scene = doorway.querySelector('.doorway__scene');
     doorway.addEventListener('pointermove', (e) => {
@@ -134,6 +142,17 @@ if (doorway && !calm) {
     });
     doorway.addEventListener('pointerleave', () => { doorway.style.setProperty('--mx', 0); doorway.style.setProperty('--my', 0); });
   }
+}
+
+// Home: the Access Grants receipt prints as its section scrolls by; once the grant line is in, "You pay" counts the
+// fee down to $0 and the stamp lands (CSS reads --p for the rest). Without JS it shows finished.
+const grantway = document.querySelector('.grantway');
+if (grantway && !calm) {
+  const total = grantway.querySelector('[data-grant-total]'), fee = Number(total.dataset.grantTotal);
+  playOnScroll(grantway, (p) => {
+    const k = Math.min(1, Math.max(0, (p - .5) / .3));
+    total.textContent = '$' + Math.round(fee * (1 - k * (2 - k)));  // eases out as it reaches zero
+  });
 }
 
 // Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down

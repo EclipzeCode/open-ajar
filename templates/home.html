@@ -135,6 +135,52 @@
 </section>
 {% endif %}
 
+{# Access Grants. A scroll-driven receipt like the door: app.js sets --p from 0 to 1 as the section scrolls past. A sample
+   fee prints, the grant line covers it, "You pay" counts down to $0 and the stamp lands. Without JS it shows finished. #}
+{% set fee = D.GRANT_CAP %}
+<section class="grantway" aria-labelledby="grantway-h">
+  <div class="grantway__sticky wrap">
+    <div class="grantway__copy">
+      <p class="eyebrow">Access Grants</p>
+      <div class="grantway__lines">
+        <h2 class="grantway__line grantway__line--before" aria-hidden="true">The program costs <em>${{ fee }}.</em></h2>
+        <h2 class="grantway__line grantway__line--after" id="grantway-h">You pay <em>$0.</em></h2>
+      </div>
+      <p class="lead grantway__text">We cover program fees for students, paid straight to the program.</p>
+    </div>
+    <div class="grantway__scene" aria-hidden="true">
+      <span class="grantway__slot"></span>
+      <div class="grantway__paper">
+        <div class="receipt">
+          <p class="receipt__head"><span>OpenAjar</span><span>Example</span></p>
+          <p class="receipt__title">Summer research program</p>
+          <div class="receipt__row"><span>Program fee</span><span>${{ fee }}.00</span></div>
+          <div class="receipt__row receipt__row--grant"><span>Access Grant</span><span>−${{ fee }}.00</span></div>
+          <div class="receipt__total"><span>You pay</span><strong data-grant-total="{{ fee }}">$0</strong></div>
+          <span class="receipt__stamp">Paid to the program</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="grantfacts">
+  <div class="wrap">
+    <div class="grantfacts__stats">
+      <div class="reveal"><strong>$<span data-count="{{ fee }}">{{ fee }}</span></strong><span>per student, every year</span></div>
+      <div class="reveal d1"><strong><span data-count="100">100</span>%</strong><span>paid straight to the program</span></div>
+      <div class="reveal d2"><strong>$0</strong><span>to apply, always</span></div>
+    </div>
+    <ol class="grantfacts__steps reveal">
+      <li><span>01</span>Tell us the program</li>
+      <li><span>02</span>We review it</li>
+      <li><span>03</span>We pay the fee</li>
+    </ol>
+    <div class="grantfacts__cta reveal d1">
+      <a class="btn btn--light" href="{{ url_for('site.grants') }}">Ask for an Access Grant →</a>
+    </div>
+  </div>
+</section>
+
 
 {#
   TESTIMONIALS: edit this list. Each one needs a quote, name and role; photo is optional
