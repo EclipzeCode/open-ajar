@@ -128,9 +128,9 @@ img { max-width: 100%; height: auto; display: block; }
 .panel--center { text-align: center; margin-top: 56px; }
 .panel--danger { border-color: #FECACA; }
 .band { background: var(--accent); color: #fff; padding: 88px 0; }
-.band__inner { display: grid; gap: 40px; grid-template-columns: 1fr 1fr; }
+.band__inner { display: grid; gap: 40px; grid-auto-flow: column; grid-auto-columns: 1fr; }
 .band h2 { color: #fff; }
-@media (max-width: 760px) { .band__inner { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .band__inner { grid-auto-flow: row; } }
 .card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
 .card:hover { border-color: #B9D3C6; transform: translateY(-2px); }
 .card__top { display: flex; justify-content: space-between; align-items: center; }

@@ -104,6 +104,14 @@
       <p>Run a small business or restaurant and could use an extra pair of hands? We’ll introduce you to a student who wants to learn.</p>
       <a class="btn btn--ghost-light" href="{{ url_for('site.partner') }}">Partner with us</a>
     </div>
+    {% set discord = '' %}{# Discord invite link; the column stays hidden while this is empty #}
+    {% if discord %}
+    <div>
+      <h2>Join the community.</h2>
+      <p>Meet other students chasing opportunities, swap tips and hear about new listings first on our Discord.</p>
+      <a class="btn btn--ghost-light" href="{{ discord }}" target="_blank" rel="noopener">Join our Discord ↗</a>
+    </div>
+    {% endif %}
   </div>
 </section>
 
