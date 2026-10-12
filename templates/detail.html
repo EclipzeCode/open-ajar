@@ -32,7 +32,7 @@
       <aside class="aside">
         <dl class="facts">
           <div><dt>Grade</dt><dd>{{ grade_label(o.grades) }}</dd></div>
-          <div><dt>Cost</dt><dd>{{ D.COSTS[o.cost] }}{% if o.cost_note %}. {{ o.cost_note }}{% endif %}
+          <div><dt>Cost</dt><dd>{{ D.COSTS[o.cost] }}{% if o.cost_note and o.cost_note|lower != D.COSTS[o.cost]|lower %}. {{ o.cost_note }}{% endif %}
             {% if o.cost in ('Fee', 'Varies') %}<a class="facts__help" href="{{ url_for('site.grants', opp=o.id) }}">Need help with the fee? →</a>{% endif %}</dd></div>
           <div><dt>Format</dt><dd>{{ o.format }}{% if o.location %} · {{ o.location }}{% endif %}</dd></div>
           <div><dt>Commitment</dt><dd>{{ o.commitment }}{% if o.commitment_note %} · {{ o.commitment_note }}{% endif %}</dd></div>
