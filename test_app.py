@@ -236,6 +236,23 @@ class Flows(unittest.TestCase):
         self.assertIn('attachment', r.headers['Content-Disposition'])
         r.close()
 
+    def test_admin_lists_page_and_search_instead_of_stopping_at_a_limit(self):
+        db = connect(self.app.config['DB_PATH'])
+        db.executemany("INSERT INTO partner_inquiries (id, business, contact_name, email, message, created_at) VALUES (?,?,?,?,?,?)",
+                       [(f'p{i}', f'Shop {i}', 'Owner', f'o{i}@example.org', 'We could use a hand.', f'2026-01-01T00:00:{i % 60:02d}')
+                        for i in range(130)] + [('rosa', 'Rosa’s Bakery', 'Rosa', 'rosa@example.org', 'Counter help.', '2026-02-01')])
+        db.commit()
+        admin = self.make_admin()
+        page = admin.get('/admin/partners').get_data(as_text=True)
+        self.assertIn('131 in all · page 1 of 2', page)
+        self.assertIn('Shop', admin.get('/admin/partners?page=2').get_data(as_text=True))
+        found = admin.get('/admin/partners?q=rosa').get_data(as_text=True)
+        self.assertIn('Rosa’s Bakery', found)
+        self.assertIn('1 in all', found)
+        r = self.post('/admin/partners?q=rosa', {'id': 'rosa', 'status': 'contacted', 'admin_note': 'Called her.'}, admin)
+        self.assertEqual(r.headers['Location'], '/admin/partners?q=rosa')  # back to the same search
+        self.assertEqual(db.execute("SELECT status FROM partner_inquiries WHERE id='rosa'").fetchone()['status'], 'contacted')
+
     def test_students_cant_reach_admin(self):
         self.register()
         self.assertEqual(self.c.get('/admin/').status_code, 403)

@@ -9,12 +9,13 @@
     <a href="{{ url_for('admin.messages') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
     {% for s in statuses %}<a href="{{ url_for('admin.messages', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ s|capitalize }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
   </nav>
+  {% with placeholder='Search name, email or message' %}{% include 'admin/_find.html' %}{% endwith %}
   {% for p in rows %}
     <article class="panel">
       <h2>{{ p.topic }} <span class="pill pill--{{ p.status }}">{{ p.status|capitalize }}</span></h2>
       <p class="muted small">{{ p.name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a> · sent {{ p.created_at|day }}</p>
       <p>{{ p.message }}</p>
-      <form class="inline-form" method="post" action="{{ url_for('admin.messages', status=status) }}">
+      <form class="inline-form" method="post" action="{{ request.full_path }}">
         {{ m.csrf() }}<input type="hidden" name="id" value="{{ p.id }}">
         <label class="sr-only" for="st-{{ p.id }}">Status</label>
         <select id="st-{{ p.id }}" name="status">{% for s in statuses %}<option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s|capitalize }}</option>{% endfor %}</select>
@@ -26,5 +27,6 @@
   {% else %}
     <p class="empty">No messages{% if status %} marked {{ status }}{% endif %} yet.</p>
   {% endfor %}
+  {% include 'admin/_pager.html' %}
 </div>
 {% endblock %}

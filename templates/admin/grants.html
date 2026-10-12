@@ -11,6 +11,7 @@
     <a href="{{ url_for('admin.grants') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
     {% for s, label in D.GRANT_STATUSES.items() %}<a href="{{ url_for('admin.grants', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ label }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
   </nav>
+  {% with placeholder='Search name, email or program' %}{% include 'admin/_find.html' %}{% endwith %}
   {% for g in rows %}
     {% set own = g.user_id == user.id %}
     <article class="panel grant" id="g-{{ g.id }}">
@@ -33,7 +34,7 @@
         <p class="muted small">This is your own request, so another admin has to handle it.</p>
       {% else %}
         {% if g.status in ('new', 'needs_info') %}
-          <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+          <form class="inline-form grant__form" method="post" action="{{ request.full_path }}">
             {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
             <label for="amt-{{ g.id }}">Approve $</label>
             <input id="amt-{{ g.id }}" name="approved_amount" value="{{ g.approved_amount or [g.amount, g.room]|min }}" inputmode="numeric" maxlength="7">
@@ -43,7 +44,7 @@
           </form>
         {% endif %}
         {% if g.status in D.GRANT_OPEN %}
-          <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+          <form class="inline-form grant__form" method="post" action="{{ request.full_path }}">
             {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
             <label class="sr-only" for="msg-{{ g.id }}">Message to the student</label>
             <input id="msg-{{ g.id }}" name="message" placeholder="Message to the student (required)" maxlength="1000">
@@ -52,7 +53,7 @@
           </form>
         {% endif %}
         {% if g.status == 'approved' %}
-          <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+          <form class="inline-form grant__form" method="post" action="{{ request.full_path }}">
             {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
             <label for="pa-{{ g.id }}">Paid $</label>
             <input id="pa-{{ g.id }}" name="paid_amount" value="{{ g.approved_amount }}" inputmode="numeric" maxlength="7">
@@ -62,7 +63,7 @@
             <button class="btn btn--sm" type="submit" name="action" value="paid">Record payment</button>
           </form>
         {% endif %}
-        <form class="inline-form grant__form" method="post" action="{{ url_for('admin.grants', status=status) }}">
+        <form class="inline-form grant__form" method="post" action="{{ request.full_path }}">
           {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
           <label class="sr-only" for="note-{{ g.id }}">Private note</label>
           <input id="note-{{ g.id }}" name="admin_note" value="{{ g.admin_note }}" placeholder="Private note" maxlength="2000">
@@ -73,5 +74,6 @@
   {% else %}
     <p class="empty">No requests{% if status %} marked {{ D.GRANT_STATUSES[status]|lower }}{% endif %} yet.</p>
   {% endfor %}
+  {% include 'admin/_pager.html' %}
 </div>
 {% endblock %}

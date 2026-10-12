@@ -13,6 +13,23 @@ from core import (add_event, admin_required, all_, audit, current_user, events_f
                   one, run, update_opp)
 
 bp = Blueprint('admin', __name__)
+PER_PAGE = 100
+
+
+def paged(sql, args=()):
+    """One page (?page=N) of an admin list plus its total, so no list quietly stops at a limit."""
+    total = one(f'SELECT COUNT(*) n FROM ({sql})', args)['n']
+    pages = max(1, -(-total // PER_PAGE))
+    page = min(pages, max(1, request.args.get('page', 1, type=int)))
+    return all_(f'{sql} LIMIT ? OFFSET ?', (*args, PER_PAGE, (page - 1) * PER_PAGE)), {'page': page, 'pages': pages, 'total': total}
+
+
+def searched(cols):
+    """(SQL condition, args) matching ?q= in any of cols, or (None, []) without a search."""
+    q = request.args.get('q', '')[:100].strip().lower()
+    if not q:
+        return None, []
+    return '(' + ' OR '.join(f'lower({c}) LIKE ?' for c in cols) + ')', [f'%{q}%'] * len(cols)
 
 # action -> (statuses it can start from, resulting status, needs a message for the submitter)
 TRANSITIONS = {
@@ -58,7 +75,6 @@ def queue():
     status = request.args.get('status', 'pending_review')
     status = status if status in data.STATUSES or status == 'all' else 'pending_review'
     source = request.args.get('source', '')
-    q = request.args.get('q', '')[:100].lower()
     where, args = [], []
     if status != 'all':
         where.append('status=?')
@@ -66,15 +82,16 @@ def queue():
     if source:
         where.append('source=?')
         args.append(source)
-    if q:
-        where.append('(lower(title) LIKE ? OR lower(org) LIKE ?)')
-        args += [f'%{q}%'] * 2
-    sql = 'SELECT * FROM opportunities' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY updated_at DESC LIMIT 300'
+    cond, cargs = searched(('title', 'org'))
+    if cond:
+        where.append(cond)
+        args += cargs
+    items, pg = paged('SELECT * FROM opportunities' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY updated_at DESC', args)
     counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM opportunities GROUP BY status')}
     sources = all_('SELECT source, COUNT(*) n FROM opportunities' + (' WHERE status=?' if status != 'all' else '') + ' GROUP BY source',
                    (status,) if status != 'all' else ())
-    return render_template('admin/queue.html', items=all_(sql, args), counts=counts, status=status, source=source,
-                           sources=sources, q=q)
+    return render_template('admin/queue.html', items=items, pg=pg, counts=counts, status=status, source=source,
+                           sources=sources, q=request.args.get('q', ''))
 
 
 @bp.post('/bulk-approve')
@@ -146,7 +163,9 @@ def users():
             audit(me['id'], f"user_updated role={role} disabled={disabled}", target['email'])
             flash(f"Updated {target['email']}.")
         return redirect(url_for('admin.users'))
-    return render_template('admin/users.html', users=all_('SELECT * FROM users ORDER BY created_at DESC LIMIT 500'))
+    cond, args = searched(('name', 'email', 'school'))
+    users, pg = paged('SELECT * FROM users' + (f' WHERE {cond}' if cond else '') + ' ORDER BY created_at DESC', args)
+    return render_template('admin/users.html', users=users, pg=pg, q=request.args.get('q', ''), status='')
 
 
 @bp.get('/stats')
@@ -230,37 +249,14 @@ def activity():
 @bp.route('/messages', methods=['GET', 'POST'])
 @admin_required
 def messages():
-    statuses = ['new', 'replied', 'closed']
-    if request.method == 'POST':
-        status = request.form.get('status')
-        if status in statuses:
-            run('UPDATE contact_messages SET status=?, admin_note=? WHERE id=?',
-                (status, data.clean(request.form.get('admin_note', ''), multiline=True)[:2000], request.form.get('id')))
-            flash('Saved.')
-        return redirect(url_for('admin.messages', status=request.args.get('status', '')))
-    status = request.args.get('status', '')
-    rows = all_('SELECT * FROM contact_messages' + (' WHERE status=?' if status in statuses else '') + ' ORDER BY created_at DESC LIMIT 300',
-                (status,) if status in statuses else ())
-    counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM contact_messages GROUP BY status')}
-    return render_template('admin/messages.html', rows=rows, counts=counts, status=status, statuses=statuses)
+    return _inbox('contact_messages', ['new', 'replied', 'closed'], 'admin/messages.html', ('name', 'email', 'topic', 'message'))
 
 
 @bp.route('/partners', methods=['GET', 'POST'])
 @admin_required
 def partners():
-    statuses = ['new', 'contacted', 'partnered', 'declined']
-    if request.method == 'POST':
-        status = request.form.get('status')
-        if status in statuses:
-            run('UPDATE partner_inquiries SET status=?, admin_note=? WHERE id=?',
-                (status, data.clean(request.form.get('admin_note', ''), multiline=True)[:2000], request.form.get('id')))
-            flash('Saved.')
-        return redirect(url_for('admin.partners', status=request.args.get('status', '')))
-    status = request.args.get('status', '')
-    rows = all_('SELECT * FROM partner_inquiries' + (' WHERE status=?' if status in statuses else '') + ' ORDER BY created_at DESC LIMIT 300',
-                (status,) if status in statuses else ())
-    counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM partner_inquiries GROUP BY status')}
-    return render_template('admin/partners.html', rows=rows, counts=counts, status=status, statuses=statuses)
+    return _inbox('partner_inquiries', ['new', 'contacted', 'partnered', 'declined'], 'admin/partners.html',
+                  ('business', 'contact_name', 'email', 'location'))
 
 
 @bp.route('/grants', methods=['GET', 'POST'])
@@ -272,17 +268,21 @@ def grants():
             abort(404)
         ok, msg = grant_action(dict(g), request.form.get('action', ''), request.form, current_user())
         flash(msg, 'message' if ok else 'error')
-        return redirect(url_for('admin.grants', status=request.args.get('status', '')) + '#g-' + g['id'])
+        return redirect(request.full_path + '#g-' + g['id'])
     status = request.args.get('status', '')
-    known = status in data.GRANT_STATUSES
-    rows = [dict(r) for r in
-            all_('SELECT * FROM access_grants' + (' WHERE status=?' if known else '') + ' ORDER BY created_at DESC LIMIT 300', (status,) if known else ())]
+    where, args = (['status=?'], [status]) if status in data.GRANT_STATUSES else ([], [])
+    cond, cargs = searched(('name', 'email', 'program', 'org'))
+    if cond:
+        where.append(cond)
+        args += cargs
+    rows, pg = paged('SELECT * FROM access_grants' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
+    rows = [dict(r) for r in rows]
     for r in rows:
         r['room'] = grant_room(r['user_id'], r['id']) if r['user_id'] else data.GRANT_CAP
     counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM access_grants GROUP BY status')}
     totals = one("""SELECT COALESCE(SUM(CASE WHEN status='paid' THEN paid_amount END), 0) paid,
                            COALESCE(SUM(CASE WHEN status='approved' THEN approved_amount END), 0) committed FROM access_grants""")
-    return render_template('admin/grants.html', rows=rows, counts=counts, status=status, totals=totals)
+    return render_template('admin/grants.html', rows=rows, pg=pg, counts=counts, status=status, totals=totals, q=request.args.get('q', ''))
 
 
 def grant_action(g, action, form, me):
@@ -360,19 +360,31 @@ def _tell(g, heading, paragraphs):
 @bp.route('/interns', methods=['GET', 'POST'])
 @admin_required
 def interns():
-    statuses = ['new', 'contacted', 'placed', 'declined']
+    return _inbox('intern_applications', ['new', 'contacted', 'placed', 'declined'], 'admin/interns.html',
+                  ('full_name', 'email', 'school', 'location'))
+
+
+def _inbox(table, statuses, template, cols):
+    """The simple admin inboxes: set a row's status and private note; list them newest first by status and search."""
     if request.method == 'POST':
         status = request.form.get('status')
         if status in statuses:
-            run('UPDATE intern_applications SET status=?, admin_note=? WHERE id=?',
+            run(f'UPDATE {table} SET status=?, admin_note=? WHERE id=?',
                 (status, data.clean(request.form.get('admin_note', ''), multiline=True)[:2000], request.form.get('id')))
             flash('Saved.')
-        return redirect(url_for('admin.interns', status=request.args.get('status', '')))
+        return redirect(request.full_path)  # back to the same tab, search and page
     status = request.args.get('status', '')
-    rows = all_('SELECT * FROM intern_applications' + (' WHERE status=?' if status in statuses else '') + ' ORDER BY created_at DESC LIMIT 300',
-                (status,) if status in statuses else ())
-    counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM intern_applications GROUP BY status')}
-    return render_template('admin/interns.html', apps=rows, counts=counts, status=status, statuses=statuses)
+    where, args = [], []
+    if status in statuses:
+        where.append('status=?')
+        args.append(status)
+    cond, cargs = searched(cols)
+    if cond:
+        where.append(cond)
+        args += cargs
+    rows, pg = paged(f'SELECT * FROM {table}' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
+    counts = {r['status']: r['n'] for r in all_(f'SELECT status, COUNT(*) n FROM {table} GROUP BY status')}
+    return render_template(template, rows=rows, pg=pg, counts=counts, status=status, statuses=statuses, q=request.args.get('q', ''))
 
 
 @bp.route('/voices', methods=['GET', 'POST'])

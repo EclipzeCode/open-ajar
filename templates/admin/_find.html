@@ -1,0 +1,7 @@
+{# Search box for an admin list; keeps the status tab you're on. #}
+<form class="filterbar" method="get">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <label class="sr-only" for="find">Search</label><input id="find" name="q" value="{{ q }}" placeholder="{{ placeholder }}">
+  <button class="btn btn--sm" type="submit">Search</button>
+  {% if q %}<a class="link small" href="{{ url_for(request.endpoint, status=status or None) }}">Clear</a>{% endif %}
+</form>
