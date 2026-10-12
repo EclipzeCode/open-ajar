@@ -67,6 +67,31 @@ STATUSES = {'pending_review': 'Pending review', 'changes_requested': 'Changes re
             'rejected': 'Rejected', 'expired': 'Expired'}
 ROLES = ['student', 'organization', 'counselor', 'admin']
 
+INTERN_STATUSES = {'new': 'Received', 'contacted': 'In review', 'accepted': 'Accepted', 'placed': 'Placed with a business',
+                   'declined': 'Not selected'}
+PARTNER_STATUSES = {'new': 'Received', 'contacted': 'In conversation', 'partnered': 'Partnered', 'declined': 'Not a fit right now'}
+
+# Everything someone can apply for, as they see it on their profile: a name (label; noun in emails), its statuses, and the usual path through
+# them (drawn as progress steps). A status off the path is either waiting on the applicant (shown at a step, see
+# WAITING) or an ending (declined, withdrawn…), which shows without steps.
+APPLICATION_KINDS = {
+    'intern': {'label': 'Internship application', 'noun': 'internship application', 'statuses': INTERN_STATUSES, 'path': ['new', 'contacted', 'accepted', 'placed']},
+    'partner': {'label': 'Partner inquiry', 'noun': 'partner inquiry', 'statuses': PARTNER_STATUSES, 'path': ['new', 'contacted', 'partnered']},
+    'grant': {'label': 'Access Grant', 'noun': 'Access Grant request', 'statuses': GRANT_STATUSES, 'path': ['new', 'approved', 'paid']},
+    'listing': {'label': 'Listing you submitted', 'noun': 'listing submission', 'statuses': STATUSES, 'path': ['pending_review', 'approved']},
+}
+WAITING = {'needs_info': 'new', 'changes_requested': 'pending_review'}  # waiting on the applicant, at this step
+
+
+def progress(kind, status):
+    """[(label, 'done' | 'current' | 'todo')] along the kind's path, or [] once it has left the path (declined…)."""
+    k = APPLICATION_KINDS[kind]
+    at = WAITING.get(status, status)
+    if at not in k['path']:
+        return []
+    i = k['path'].index(at)
+    return [(k['statuses'][s], 'done' if j < i else 'current' if j == i else 'todo') for j, s in enumerate(k['path'])]
+
 STATES = {
     'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California', 'CO': 'Colorado',
     'CT': 'Connecticut', 'DE': 'Delaware', 'DC': 'Washington, D.C.', 'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii',
@@ -293,6 +318,12 @@ except ZoneInfoNotFoundError:  # a machine without time zone data
 def today():
     """Today for students: US Eastern time, so "Due today" and reminders turn over at midnight there, not in UTC."""
     return datetime.now(STUDENT_TZ).date()
+
+
+def nice_date(iso):
+    """'2026-10-03…' -> 'Oct 3, 2026' (blank if it isn't a date)."""
+    d = parse_date((iso or '')[:10])
+    return d.strftime('%b %-d, %Y') if d else ''
 
 
 def expiry_for(deadline):

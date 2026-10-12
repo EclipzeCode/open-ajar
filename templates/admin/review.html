@@ -20,11 +20,12 @@
         {{ m.csrf() }}
         <div class="field">
           <label for="message">Note to the submitter</label>
-          <p class="field__help">Required to reject or ask for changes. They’ll see it on their account page.</p>
+          <p class="field__help">Required to reject or ask for changes.{% if o.source == 'submission' %} They see it on their profile and get it by email, with the decision.{% endif %}</p>
           <textarea id="message" name="message" rows="3" maxlength="1000"></textarea>
         </div>
         <div class="actions">
           {% for a in actions %}<button class="btn btn--sm{% if a != 'approve' %} btn--ghost{% endif %}" type="submit" name="action" value="{{ a }}">{{ labels[a] }}</button>{% endfor %}
+          {% if o.source == 'submission' %}<button class="btn btn--sm btn--ghost" type="submit" name="action" value="message">Send note only</button>{% endif %}
         </div>
       </form>
       {% endif %}

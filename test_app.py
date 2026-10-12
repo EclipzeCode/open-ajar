@@ -195,6 +195,73 @@ class Flows(unittest.TestCase):
         self.assertIn(b'$150</strong> paid to programs for', self.c.get('/').data)  # the public total, once one is paid
         self.assertEqual(self.post('/access-grants', GRANT).status_code, 422)  # only $100 of the yearly cap is left
 
+    def test_interns_follow_their_application_and_admins_accept_and_message_them(self):
+        app_form = {'full_name': 'Sam Rivera', 'email': 'sam@example.org', 'statement': 'I want to learn how a small business runs.'}
+        self.post('/apply', app_form)  # sent before having an account
+        self.register()
+        self.assertNotIn('Intern with OpenAjar', self.c.get('/account').get_data(as_text=True))  # email not confirmed yet
+        db = connect(self.app.config['DB_PATH'])
+        db.execute('UPDATE users SET email_verified=1')
+        db.commit()
+        self.assertIn('See it on your profile', self.post('/apply', app_form).get_data(as_text=True))
+        aid = db.execute('SELECT id FROM intern_applications ORDER BY created_at LIMIT 1').fetchone()['id']
+        admin = self.make_admin()
+
+        mail.OUTBOX.clear()
+        self.post('/admin/interns', {'id': aid, 'status': 'new', 'admin_note': 'Strong fit', 'quick': 'accepted',
+                                     'message': 'Welcome aboard! We’ll set up a call this week.', 'notify': '1'}, admin)
+        row = db.execute('SELECT status, admin_note FROM intern_applications WHERE id=?', (aid,)).fetchone()
+        self.assertEqual((row['status'], row['admin_note']), ('accepted', 'Strong fit'))
+        self.assertEqual(mail.OUTBOX[0]['to'], 'sam@example.org')
+        self.assertIn('is now: Accepted', mail.OUTBOX[0]['text'])
+        self.assertIn('Welcome aboard!', mail.OUTBOX[0]['text'])
+        profile = self.c.get('/account').get_data(as_text=True)
+        self.assertIn('Welcome aboard!', profile)
+        self.assertIn('class="progress__step is-current" aria-current="step"><span>Accepted', profile)
+        self.assertNotIn('Strong fit', profile)  # the private note stays private
+
+        mail.OUTBOX.clear()
+        self.post('/admin/interns', {'id': aid, 'status': 'placed'}, admin)  # "email them" unticked, no message
+        self.assertEqual(mail.OUTBOX, [])
+        self.assertIn('Placed with a business', self.c.get('/account').get_data(as_text=True))  # still shows on the profile
+        page = admin.get('/admin/interns').get_data(as_text=True)
+        self.assertIn('Welcome aboard!', page)  # admins see what was sent
+        self.assertEqual(self.c.get('/admin/interns').status_code, 403)
+
+    def test_partners_grants_and_listing_submitters_get_updates_too(self):
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute('UPDATE users SET email_verified=1')
+        db.commit()
+        admin = self.make_admin()
+        # a business owner with an account
+        self.post('/partner', {'business': 'Rosa’s Bakery', 'contact_name': 'Sam Rivera', 'email': 'sam@example.org',
+                               'message': 'We could use help at the counter on weekends.'})
+        pid = db.execute('SELECT id FROM partner_inquiries').fetchone()['id']
+        mail.OUTBOX.clear()
+        self.post('/admin/partners', {'id': pid, 'quick': 'partnered', 'notify': '1'}, admin)
+        self.assertIn('is now: Partnered', mail.OUTBOX[0]['text'])
+        # an Access Grant: a message without changing the status reaches the student and parent
+        self.post('/access-grants', GRANT)
+        gid = db.execute('SELECT id FROM access_grants').fetchone()['id']
+        mail.OUTBOX.clear()
+        self.post('/admin/grants', {'id': gid, 'action': 'message', 'message': 'We’re checking with the program.'}, admin)
+        self.assertEqual({m['to'] for m in mail.OUTBOX}, {'sam@example.org', 'parent@example.org'})
+        self.assertEqual(self.grant(gid)['status'], 'new')
+        # a listing: a note on its own, then a decision, both emailed
+        self.post('/submit', LISTING)
+        oid = db.execute('SELECT id FROM opportunities').fetchone()['id']
+        mail.OUTBOX.clear()
+        self.post(f'/admin/o/{oid}', {'action': 'message', 'message': 'Looking into the dates now.'}, admin)
+        self.post(f'/admin/o/{oid}', {'action': 'request_changes', 'message': 'Please add the deadline.'}, admin)
+        self.assertEqual([m['to'] for m in mail.OUTBOX], ['sam@example.org', 'sam@example.org'])
+        self.assertIn('is now: Changes requested', mail.OUTBOX[0]['text'])  # newest first
+        profile = self.c.get('/account').get_data(as_text=True)
+        for text in ('Hosting an intern at Rosa’s Bakery', 'We’re checking with the program.', 'Looking into the dates now.',
+                     'Please add the deadline.', 'Revise and resend'):
+            self.assertIn(text, profile)
+        self.assertIn('Updated an applicant', admin.get('/admin/activity').get_data(as_text=True))
+
     def test_nobody_handles_their_own_access_grant(self):
         asker, other = self.make_admin(), self.make_admin('b@example.org', 'admin2')
         self.post('/access-grants', GRANT, client=asker)  # admins ask the same way as any student
@@ -270,7 +337,7 @@ class Flows(unittest.TestCase):
         self.assertIn('Rosa’s Bakery', found)
         self.assertIn('1 in all', found)
         r = self.post('/admin/partners?q=rosa', {'id': 'rosa', 'status': 'contacted', 'admin_note': 'Called her.'}, admin)
-        self.assertEqual(r.headers['Location'], '/admin/partners?q=rosa')  # back to the same search
+        self.assertEqual(r.headers['Location'], '/admin/partners?q=rosa#a-rosa')  # back to the same search and row
         self.assertEqual(db.execute("SELECT status FROM partner_inquiries WHERE id='rosa'").fetchone()['status'], 'contacted')
 
     def test_only_the_owner_adjusts_stats_and_other_admins_cant_touch_the_owner(self):

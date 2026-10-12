@@ -70,7 +70,18 @@ def decide(opp, action, message=''):
     update_opp(db, opp['id'], {}, **extra)
     db.commit()
     add_event(opp['id'], current_user()['id'], action, to, message)
+    if action in ('approve', 'request_changes', 'reject'):
+        tell_submitter(opp, data.STATUSES[to], message)
     return None
+
+
+def tell_submitter(opp, status=None, message=''):
+    """Emails the person who submitted a listing about a decision or a message (imported listings have nobody to tell)."""
+    who = one('SELECT name, email FROM users WHERE id=?', (opp['submitted_by'],)) if opp['submitted_by'] else None
+    to = who['email'] if who else opp['contact_email']
+    if opp['source'] == 'submission' and to:
+        mail.later('listing update', mail.application_update, current_app.config, to, who['name'] if who else '', 'listing',
+                   opp['title'], status, message)
 
 
 @bp.get('/')
@@ -135,6 +146,15 @@ def review(opp_id):
                 return redirect(url_for('admin.review', opp_id=opp_id))
             values = {**request.form.to_dict(), 'grades': [int(g) for g in request.form.getlist('grades') if g.isdigit()],
                       'interests': request.form.getlist('interests')}
+        elif request.form.get('action') == 'message':  # an update for the submitter, without changing the status
+            message = data.clean(request.form.get('message', ''), multiline=True)[:1000]
+            if len(message) < 5:
+                flash('Write the update first (5+ characters).', 'error')
+            else:
+                add_event(opp_id, current_user()['id'], 'message', opp['status'], message)
+                tell_submitter(opp, message=message)
+                flash('Update sent to the submitter.')
+            return redirect(url_for('admin.review', opp_id=opp_id))
         else:
             err = decide(opp, request.form.get('action', ''), request.form.get('message', ''))
             flash(err, 'error') if err else flash('Done.')
@@ -425,6 +445,10 @@ EXPORTS = {  # file name -> query with readable column names
         asked_program "Asked the program for aid", reason "Why", status "Status", approved_amount "Approved ($)",
         approved_at "Approved", paid_amount "Paid ($)", paid_on "Paid on", paid_method "Paid by", paid_ref "Reference",
         admin_note "Private note", created_at "Sent" FROM access_grants ORDER BY created_at''',
+    'application-updates': '''SELECT a.created_at "When", a.kind "Kind",
+        COALESCE((SELECT email FROM intern_applications WHERE id=a.item_id), (SELECT email FROM partner_inquiries WHERE id=a.item_id),
+                 (SELECT email FROM access_grants WHERE id=a.item_id)) "Applicant", COALESCE(u.email, 'System') "From",
+        a.status "New status", a.message "Message" FROM application_updates a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.created_at''',
     'activity': '''SELECT at "When", actor "Who", action "Action", title "About", message "Note" FROM (
         SELECT e.created_at at, COALESCE(u.email, 'System') actor, e.action, o.title, e.message FROM review_events e
         JOIN opportunities o ON o.id=e.opportunity_id LEFT JOIN users u ON u.id=e.actor_id
@@ -476,7 +500,8 @@ ACTION_NAMES = {
     'grant_approved': 'Approved an Access Grant', 'grant_needs_info': 'Asked about an Access Grant',
     'grant_declined': 'Declined an Access Grant', 'grant_paid': 'Recorded an Access Grant payment',
     'grant_withdrawn': 'Withdrew an Access Grant request', 'stat_adjusted': 'Adjusted a stat by hand',
-    'database_backup_downloaded': 'Downloaded a database backup',
+    'database_backup_downloaded': 'Downloaded a database backup', 'application_update': 'Updated an applicant',
+    'message': 'Sent a listing submitter an update',
 }
 
 
@@ -489,8 +514,8 @@ def messages():
 @bp.route('/partners', methods=['GET', 'POST'])
 @admin_required
 def partners():
-    return _inbox('partner_inquiries', ['new', 'contacted', 'partnered', 'declined'], 'admin/partners.html',
-                  ('business', 'contact_name', 'email', 'location'))
+    return _inbox('partner_inquiries', list(data.PARTNER_STATUSES), 'admin/partners.html',
+                  ('business', 'contact_name', 'email', 'location'), kind='partner')
 
 
 @bp.route('/grants', methods=['GET', 'POST'])
@@ -516,7 +541,8 @@ def grants():
     counts = {r['status']: r['n'] for r in all_('SELECT status, COUNT(*) n FROM access_grants GROUP BY status')}
     totals = one("""SELECT COALESCE(SUM(CASE WHEN status='paid' THEN paid_amount END), 0) paid,
                            COALESCE(SUM(CASE WHEN status='approved' THEN approved_amount END), 0) committed FROM access_grants""")
-    return render_template('admin/grants.html', rows=rows, pg=pg, counts=counts, status=status, totals=totals, q=request.args.get('q', ''))
+    return render_template('admin/grants.html', rows=rows, pg=pg, counts=counts, status=status, totals=totals, q=request.args.get('q', ''),
+                           updates=updates_for('grant', [r['id'] for r in rows]))
 
 
 def grant_action(g, action, form, me):
@@ -527,6 +553,13 @@ def grant_action(g, action, form, me):
     if action == 'note':
         run('UPDATE access_grants SET admin_note=? WHERE id=?', (data.clean(form.get('admin_note', ''), multiline=True)[:2000], g['id']))
         return True, 'Note saved.'
+    if action == 'message':
+        if len(msg) < 5:
+            return False, 'Write the update first (5+ characters).'
+        run('UPDATE access_grants SET message=?, updated_at=? WHERE id=?', (msg, now, g['id']))
+        record_update('grant', g['id'], None, msg)
+        _tell(g, 'An update on your Access Grant request', [msg])
+        return True, 'Update sent to the student.'
     if action in ('needs_info', 'decline'):
         if g['status'] not in data.GRANT_OPEN:
             return False, f"This request is {data.GRANT_STATUSES[g['status']].lower()}."
@@ -535,6 +568,7 @@ def grant_action(g, action, form, me):
         to = 'needs_info' if action == 'needs_info' else 'declined'
         run('UPDATE access_grants SET status=?, message=?, updated_at=? WHERE id=?', (to, msg, now, g['id']))
         audit(me['id'], f'grant_{to}', g['id'])
+        record_update('grant', g['id'], to, msg)
         if to == 'needs_info':
             _tell(g, 'We need a little more information', [msg, 'Reply to this email with what we asked for.'])
         else:
@@ -556,6 +590,7 @@ def grant_action(g, action, form, me):
         run("UPDATE access_grants SET approved_amount=?, approved_by=?, approved_at=?, status='approved', message=?, updated_at=? WHERE id=?",
             (amount, me['id'], now, msg or g['message'], now, g['id']))
         audit(me['id'], f'grant_approved ${amount}', g['id'])
+        record_update('grant', g['id'], 'approved', msg or f'Approved for ${amount}.')
         _tell(g, 'Your Access Grant is approved', [
             f"We’ll cover ${amount} toward the {g['covers'].lower()} for {g['program']}.", *([msg] if msg else []),
             'We pay the program directly, never you. We may ask for your acceptance letter or invoice first, '
@@ -577,6 +612,7 @@ def grant_action(g, action, form, me):
         run("""UPDATE access_grants SET status='paid', paid_amount=?, paid_on=?, paid_method=?, paid_ref=?, paid_by=?,
                updated_at=? WHERE id=?""", (p['paid_amount'], p['paid_on'], p['paid_method'], p['paid_ref'], me['id'], now, g['id']))
         audit(me['id'], f"grant_paid ${p['paid_amount']}", g['id'])
+        record_update('grant', g['id'], 'paid', f"We paid ${p['paid_amount']} to {g['org']} on {data.nice_date(p['paid_on'])}.")
         _tell(g, 'Your Access Grant is paid', [
             f"We paid ${p['paid_amount']} to {g['org']} for {g['program']} on {p['paid_on']}.",
             'You don’t need to do anything else. If the program asks, let them know OpenAjar covered this fee.'])
@@ -592,19 +628,52 @@ def _tell(g, heading, paragraphs):
 @bp.route('/interns', methods=['GET', 'POST'])
 @admin_required
 def interns():
-    return _inbox('intern_applications', ['new', 'contacted', 'placed', 'declined'], 'admin/interns.html',
-                  ('full_name', 'email', 'school', 'location'))
+    return _inbox('intern_applications', list(data.INTERN_STATUSES), 'admin/interns.html',
+                  ('full_name', 'email', 'school', 'location'), kind='intern')
 
 
-def _inbox(table, statuses, template, cols):
-    """The simple admin inboxes: set a row's status and private note; list them newest first by status and search."""
+def record_update(kind, item_id, status=None, message=''):
+    """Saves what the team told an applicant (shown on their profile) and logs it in Activity."""
+    run('INSERT INTO application_updates (kind, item_id, actor_id, status, message, created_at) VALUES (?,?,?,?,?,?)',
+        (kind, item_id, current_user()['id'], status, message, data.now_iso()))
+    audit(current_user()['id'], f"application_update {kind}" + (f' {status}' if status else '') + (' with a message' if message else ''), item_id)
+
+
+def updates_for(kind, ids):
+    """item id -> its updates, newest first, with who sent each."""
+    if not ids:
+        return {}
+    out = {}
+    for r in all_(f'''SELECT a.*, COALESCE(u.name, 'System') actor FROM application_updates a LEFT JOIN users u ON u.id = a.actor_id
+                      WHERE a.kind=? AND a.item_id IN ({','.join('?' * len(ids))}) ORDER BY a.id DESC''', (kind, *ids)):
+        out.setdefault(r['item_id'], []).append(r)
+    return out
+
+
+def _inbox(table, statuses, template, cols, kind=None):
+    """The admin inboxes: list rows newest first by status and search; save a row's status and private note. For an
+    application (kind), a status change or a message is also saved as an update and emailed to the applicant."""
     if request.method == 'POST':
-        status = request.form.get('status')
-        if status in statuses:
+        row = one(f'SELECT * FROM {table} WHERE id=?', (request.form.get('id', ''),))
+        status = request.form.get('quick') or request.form.get('status')  # quick: a one-click button such as Accept
+        if row and status in statuses:
+            message = data.clean(request.form.get('message', ''), multiline=True)[:1000] if kind else ''
             run(f'UPDATE {table} SET status=?, admin_note=? WHERE id=?',
-                (status, data.clean(request.form.get('admin_note', ''), multiline=True)[:2000], request.form.get('id')))
-            flash('Saved.')
-        return redirect(request.full_path)  # back to the same tab, search and page
+                (status, data.clean(request.form.get('admin_note', row['admin_note']), multiline=True)[:2000], row['id']))
+            changed = status != row['status']
+            if kind and (changed or message):
+                label = data.APPLICATION_KINDS[kind]['statuses'][status] if changed else None
+                record_update(kind, row['id'], status if changed else None, message)
+                if message or request.form.get('notify'):
+                    name, title = ((row['full_name'], 'OpenAjar internships') if kind == 'intern'
+                                   else (row['contact_name'], f"hosting an intern at {row['business']}"))
+                    mail.later(f'{kind} update', mail.application_update, current_app.config, row['email'], name, kind, title, label, message)
+                    flash(f"Saved and emailed {row['email']}.")
+                else:
+                    flash('Saved. They weren’t emailed.')
+            else:
+                flash('Saved.')
+        return redirect(request.full_path + (f"#a-{row['id']}" if row else ''))  # back to the same tab, search, page and row
     status = request.args.get('status', '')
     where, args = [], []
     if status in statuses:
@@ -616,7 +685,9 @@ def _inbox(table, statuses, template, cols):
         args += cargs
     rows, pg = paged(f'SELECT * FROM {table}' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
     counts = {r['status']: r['n'] for r in all_(f'SELECT status, COUNT(*) n FROM {table} GROUP BY status')}
-    return render_template(template, rows=rows, pg=pg, counts=counts, status=status, statuses=statuses, q=request.args.get('q', ''))
+    return render_template(template, rows=rows, pg=pg, counts=counts, status=status, statuses=statuses, q=request.args.get('q', ''),
+                           updates=updates_for(kind, [r['id'] for r in rows]) if kind else {},
+                           labels=data.APPLICATION_KINDS[kind]['statuses'] if kind else {s: s.capitalize() for s in statuses})
 
 
 @bp.route('/voices', methods=['GET', 'POST'])

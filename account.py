@@ -195,15 +195,61 @@ def reset():
 @login_required
 def account():
     u = current_user()
-    subs = [opp_dict(r) for r in all_('SELECT * FROM opportunities WHERE submitted_by=? ORDER BY updated_at DESC', (u['id'],))]
-    for s in subs:
-        s['events'] = [e for e in events_for(s['id']) if e['message'] and e['action'] != 'imported']
     quote = one('SELECT quote, role_label, status FROM testimonials WHERE user_id=?', (u['id'],))
     quote = dict(quote) if quote else None
     counts = one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracking, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved''', {'u': u['id']})
-    grants = all_('SELECT program, org, amount, status, created_at FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (u['id'],))
-    return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), submissions=subs, quote=quote,
-                           counts=dict(counts, submitted=len(subs)), grants=grants, errors={})
+    apps = applications(u)
+    return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), quote=quote, applications=apps,
+                           counts=dict(counts, applications=len(apps)), errors={})
+
+
+# review actions on a listing that the submitter sees as updates (not edits, imports or their own submitting)
+LISTING_UPDATES = ('approve', 'request_changes', 'reject', 'expire', 'reopen', 'message')
+
+
+def applications(u):
+    """Everything this person has applied for or sent in, most recent activity first, each with its status, progress
+    steps and the team's updates. Internship applications and partner inquiries are sent without an account, so they're
+    matched by email, and only once this account has confirmed it owns that email."""
+    def item(kind, row, title, meta, updates, link=None, action=None):
+        k = data.APPLICATION_KINDS[kind]
+        return {'kind': kind, 'id': row['id'], 'label': k['label'], 'title': title, 'meta': meta, 'link': link, 'action': action,
+                'status': row['status'], 'status_label': k['statuses'][row['status']], 'steps': data.progress(kind, row['status']),
+                'updates': updates, 'at': max([row['created_at'], *(x['at'] for x in updates)])}
+
+    def updates(kind, ids):
+        out = {}
+        if ids:
+            labels = data.APPLICATION_KINDS[kind]['statuses']
+            for r in all_(f"SELECT * FROM application_updates WHERE kind=? AND item_id IN ({','.join('?' * len(ids))}) ORDER BY id DESC",
+                          (kind, *ids)):
+                out.setdefault(r['item_id'], []).append({'at': r['created_at'], 'status': labels.get(r['status']), 'message': r['message']})
+        return out
+
+    items = []
+    if u['email_verified']:
+        rows = all_('SELECT * FROM intern_applications WHERE lower(email)=?', (u['email'],))
+        ups = updates('intern', [r['id'] for r in rows])
+        items += [item('intern', r, 'Intern with OpenAjar', f"Sent {data.nice_date(r['created_at'])}", ups.get(r['id'], []))
+                  for r in rows]
+        rows = all_('SELECT * FROM partner_inquiries WHERE lower(email)=?', (u['email'],))
+        ups = updates('partner', [r['id'] for r in rows])
+        items += [item('partner', r, f"Hosting an intern at {r['business']}", f"Sent {data.nice_date(r['created_at'])}",
+                       ups.get(r['id'], [])) for r in rows]
+    rows = all_('SELECT * FROM access_grants WHERE user_id=?', (u['id'],))
+    ups = updates('grant', [r['id'] for r in rows])
+    for r in rows:
+        # requests answered before updates were kept still show their last message
+        old = [{'at': r['updated_at'], 'status': None, 'message': r['message']}] if r['message'] and r['id'] not in ups else []
+        items.append(item('grant', r, r['program'], f"{r['org']} · ${r['amount']} asked · sent {data.nice_date(r['created_at'])}",
+                          ups.get(r['id'], old), url_for('site.grants')))
+    for r in all_('SELECT * FROM opportunities WHERE submitted_by=?', (u['id'],)):
+        ups = [{'at': e['created_at'], 'status': None if e['action'] == 'message' else data.STATUSES[e['to_status']], 'message': e['message']}
+               for e in reversed(events_for(r['id'])) if e['action'] in LISTING_UPDATES]
+        items.append(item('listing', r, r['title'], f"{r['org']} · sent {data.nice_date(r['created_at'])}", ups,
+                          url_for('site.detail', opp_id=r['id']) if r['status'] == 'approved' else None,
+                          ('Revise and resend', url_for('site.submit', opp_id=r['id'])) if r['status'] == 'changes_requested' else None))
+    return sorted(items, key=lambda x: x['at'], reverse=True)
 
 
 def back(section, msg, ok=False):

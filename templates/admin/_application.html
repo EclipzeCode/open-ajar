@@ -1,0 +1,46 @@
+{# Shared parts of the admin pages for applications (interns, partners, grants). #}
+{% import '_macros.html' as m with context %}
+
+{# What the team has told this applicant, newest first (admin.updates_for). #}
+{% macro history(ups, labels) %}
+{% if ups %}
+<h3 class="review-app__h">Updates sent</h3>
+<ol class="app__updates">
+  {% for up in ups %}
+  <li>
+    <p class="app__when">{{ up.created_at|nice_date }} · {{ up.actor }}{% if up.status %} · <strong>{{ labels[up.status] }}</strong>{% endif %}</p>
+    {% if up.message %}<p class="app__msg">{{ up.message }}</p>{% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}
+{% endmacro %}
+
+{# Change the status, write to the applicant, keep a private note (admin._inbox). quick = (status, button label):
+   a one-click button for the usual next step, shown until the application gets there. #}
+{% macro update_form(row, name, email, labels, quick=None) %}
+{% set first = (name or 'them').split()[0] %}
+<form class="review-app__form form" method="post" action="{{ request.full_path }}">
+  {{ m.csrf() }}<input type="hidden" name="id" value="{{ row.id }}">
+  <h3 class="review-app__h">Update {{ first }}</h3>
+  {% if quick and row.status in labels and (labels|list).index(row.status) < (labels|list).index(quick[0]) %}
+    <button class="btn btn--block" type="submit" name="quick" value="{{ quick[0] }}">{{ quick[1] }}</button>
+    <p class="field__help review-app__or">or choose any status:</p>
+  {% endif %}
+  <div class="field">
+    <label for="st-{{ row.id }}">Status</label>
+    <select id="st-{{ row.id }}" name="status">{% for s, label in labels.items() %}<option value="{{ s }}" {% if row.status == s %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  </div>
+  <div class="field">
+    <label for="msg-{{ row.id }}">Message to {{ first }} <span class="muted">(optional)</span></label>
+    <p class="field__help">Emailed to {{ email }} and shown on their profile.</p>
+    <textarea id="msg-{{ row.id }}" name="message" rows="3" maxlength="1000" placeholder="e.g. Thanks! When are you free for a quick call this week?"></textarea>
+  </div>
+  <label class="check"><input type="checkbox" name="notify" value="1" checked><span>Email them when the status changes</span></label>
+  <div class="field">
+    <label for="note-{{ row.id }}">Private note <span class="muted">(only admins see this)</span></label>
+    <input id="note-{{ row.id }}" name="admin_note" value="{{ row.admin_note }}" maxlength="2000">
+  </div>
+  <button class="btn btn--ghost btn--block" type="submit">Save</button>
+</form>
+{% endmacro %}

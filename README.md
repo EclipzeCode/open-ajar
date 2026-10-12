@@ -22,8 +22,8 @@ Tests: `.venv/bin/python -m unittest`
 | --- | --- |
 | `app.py` | Creates the app: settings, security headers, CSRF check, the 10-minute maintenance timer, and the `flask` commands |
 | `site_pages.py` | Public pages: home, browse, listing detail, save/track, submit, intern application, About/Team/Support/legal |
-| `account.py` | Sign up/in/out, email confirmation, password reset, account page, tracker |
-| `admin.py` | Review queue, editing, approve/reject/request changes, users, activity, intern applications, community quotes |
+| `account.py` | Sign up/in/out, email confirmation, password reset, account page (with every application's status and updates), tracker |
+| `admin.py` | Review queue, editing, approve/reject/request changes, users, activity, intern applications and partner inquiries (status and updates to applicants), community quotes |
 | `core.py` | Database helpers, the signed-in user, rate limits, listing search |
 | `data.py` | Categories (types, interests, states…), form validation, spreadsheet import mapping |
 | `mail.py` | Sending through Resend, the email templates, deadline reminders (a week ahead and the day before, from 8 am Eastern) |

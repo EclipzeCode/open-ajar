@@ -31,7 +31,7 @@
     <h3>Intern applications <span class="muted">({{ apps|length }})</span></h3>
     {% for a in apps %}
       <div class="user-detail__item">
-        <p><strong>Applied {{ a.created_at|day }}</strong> <span class="pill pill--{{ a.status }}">{{ a.status|capitalize }}</span></p>
+        <p><strong>Applied {{ a.created_at|day }}</strong> <span class="pill pill--{{ a.status }}">{{ D.INTERN_STATUSES[a.status] }}</span> <a class="small" href="{{ url_for('admin.interns', q=a.email) }}#a-{{ a.id }}">Update →</a></p>
         <p class="small muted">{% if a.grade %}Grade {{ a.grade }} · {% endif %}{{ a.school or 'No school given' }}{% if a.location %} · {{ a.location }}{% endif %}{% if a.availability %} · {{ a.availability }}{% endif %}</p>
         <p class="small">{{ a.statement }}</p>
         {% if a.admin_note %}<p class="note small"><strong>Note:</strong> {{ a.admin_note }}</p>{% endif %}
