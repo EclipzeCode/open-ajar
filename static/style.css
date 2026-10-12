@@ -554,9 +554,17 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .partner__img { width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
 .partner__img--wide { aspect-ratio: auto; }
 .partner__img--blank { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 600 3.2rem/1 var(--display); letter-spacing: .02em; }
-.partner h3 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -.02em; margin: 0; }
-.partner__quote { margin: 14px 0 0; font-size: 1.1rem; line-height: 1.5; color: var(--ink); max-width: 60ch; }
-.partner__quote footer { margin-top: 8px; font-size: .9rem; color: var(--muted); }
+.partner h3 { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
+.partner__quote { margin: 18px 0 0; font-size: 1.3rem; line-height: 1.5; color: var(--ink); max-width: 60ch; }
+.partner__quote footer { margin-top: 8px; font-size: 1rem; color: var(--muted); }
+.partner__info { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 20px 0 0; font-size: 1.05rem; color: var(--muted); }
+.partner__info a { color: var(--accent); font-weight: 600; }
+/* the text slides in from the photo's side, just after the row fades up */
+@media (prefers-reduced-motion: no-preference) {
+  .js .partner__body.reveal { transform: translateX(-32px); }
+  .js .partner:nth-of-type(even) .partner__body.reveal { transform: translateX(32px); }
+  .js .partner .partner__body.reveal.is-in { transform: none; }
+}
 @media (max-width: 760px) { .partner, .partner:nth-of-type(even) { grid-template-columns: 1fr; gap: 16px; } .partner:nth-of-type(even) .partner__img { order: 0; } .partner__img { max-width: 400px; } }
 .levels { list-style: none; padding: 0; }
 .levels li { margin-bottom: 12px; }

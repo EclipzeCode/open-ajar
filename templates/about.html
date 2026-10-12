@@ -10,15 +10,16 @@
     PARTNERS: edit this list. When a partner sends a testimonial, fill in its quote (and optionally who said it and
     their role). Add a photo by dropping it in static/img/partners/ and setting 'img' to its filename; until then
     the partner's initials show in its place.
+    'url' and 'address' show at the bottom; 'link' changes the link text (default "Visit website").
     Set 'wide': True for a wide photo that shouldn't be cropped to the portrait frame. Never put placeholder text here: it goes live.
   #}
   {% set partners = [
-    {'name': 'Moon Tea', 'quote': 'I really enjoyed working with the Openajar team. They were thoughtful, easy to communicate with, and you could tell they genuinely cared about helping students. It felt less like a sponsorship and more like supporting a group of young people building something they really believed in.', 'by': '', 'role': '', 'img': 'moon-tea.jpg'},
-    {'name': 'One Dollar Zone of Cedar Knolls', 'img': 'one-dollar-zone.webp'},
+    {'name': 'Moon Tea', 'quote': 'I really enjoyed working with the Openajar team. They were thoughtful, easy to communicate with, and you could tell they genuinely cared about helping students. It felt less like a sponsorship and more like supporting a group of young people building something they really believed in.', 'by': '', 'role': '', 'img': 'moon-tea.jpg', 'url': 'https://moonteanj.com/', 'address': '55 Mountain Boulevard, Warren, NJ 07059'},
+    {'name': 'Creator Colosseum', 'quote': '', 'by': '', 'role': '', 'img': 'creator-colosseum.png', 'wide': True, 'url': 'https://creatorcolosseum.tiiny.site/'},
+    {'name': 'Partner Portal', 'quote': '', 'by': '', 'role': '', 'img': 'partner-portal.webp', 'wide': True, 'url': 'https://partnerportal-j6x1.onrender.com/'},
+    {'name': 'Ryujin', 'img': 'ryujin.png', 'wide': True, 'url': 'https://www.ryujinnj.com/', 'address': '1339 Prince Rodgers Avenue, Bridgewater, NJ 08807'},
+    {'name': 'One Dollar Zone of Cedar Knolls', 'img': 'one-dollar-zone.webp', 'url': 'https://www.yelp.com/biz/one-dollar-zone-of-cedar-knolls-cedar-knolls', 'link': 'View on Yelp', 'address': '235 Ridgedale Ave, Cedar Knolls, NJ 07927'},
     {'name': 'Coders Over Borders', 'quote': '', 'by': '', 'role': '', 'img': 'coders-over-borders.webp', 'wide': True},
-    {'name': 'Creator Colosseum', 'quote': '', 'by': '', 'role': '', 'img': 'creator-colosseum.png', 'wide': True},
-    {'name': 'Partner Portal', 'quote': '', 'by': '', 'role': '', 'img': 'partner-portal.webp', 'wide': True},
-    {'name': 'Ryujin', 'img': 'ryujin.png', 'wide': True},
   ] %}
   <section class="partners">
     <header class="partners__head">
@@ -32,10 +33,16 @@
         {% else %}
           <div class="partner__img partner__img--blank" aria-hidden="true">{{ p.name.split()[:2]|map('first')|join|upper }}</div>
         {% endif %}
-        <div class="partner__body">
+        <div class="partner__body reveal d2">
           <h3>{{ p.name }}</h3>
           {% if p.quote %}
             <blockquote class="partner__quote">“{{ p.quote }}”{% if p.by %}<footer>{{ p.by }}{% if p.role %}, {{ p.role }}{% endif %}</footer>{% endif %}</blockquote>
+          {% endif %}
+          {% if p.url or p.address %}
+            <p class="partner__info">
+              {% if p.address %}<span>{{ p.address }}</span>{% endif %}
+              {% if p.url %}<a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.link or 'Visit website' }} ↗</a>{% endif %}
+            </p>
           {% endif %}
         </div>
       </section>
