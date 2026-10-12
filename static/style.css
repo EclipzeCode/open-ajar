@@ -109,7 +109,7 @@ img { max-width: 100%; height: auto; display: block; }
 .icon-btn:hover { color: var(--danger); background: var(--danger-soft); }
 .icon-btn.text { font-size: .875rem; }
 .pill { display: inline-block; font: 600 .72rem/1 var(--sans); padding: 5px 10px; border-radius: 99px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); vertical-align: middle; }
-.pill--approved, .pill--paid, .pill--placed, .pill--partnered, .pill--replied { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.pill--approved, .pill--paid, .pill--placed, .pill--partnered, .pill--replied, .pill--accepted { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .pill--pending_review, .pill--pending, .pill--new, .pill--saved { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 .pill--changes_requested, .pill--needs_info, .pill--contacted { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .pill--rejected, .pill--declined { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
@@ -768,6 +768,67 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .subs__main a { color: var(--ink-strong); }
 .subs__main .note { margin: 8px 0 0; }
 .subs__side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: none; }
+
+/* Applications on the profile: one card each, with progress steps and the team's updates as a timeline */
+.apps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.app { border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; scroll-margin-top: 100px; }
+.app__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.app__who { min-width: 0; }
+.app__kind { margin: 0 0 4px; font: 600 .72rem var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.app__title { margin: 0; font-size: 1.05rem; }
+.app__title a { color: var(--ink-strong); }
+.app__who .muted { margin: 2px 0 0; }
+.app__actions { margin-top: 14px; }
+.app__start { margin: 16px 0 0; }
+.progress { display: flex; list-style: none; margin: 16px 0 0; padding: 0; }
+.progress__step { position: relative; flex: 1; min-width: 0; padding: 22px 8px 0 0; font-size: .78rem; line-height: 1.3; color: var(--muted); }
+.progress__step::before { content: ''; position: absolute; z-index: 1; top: 3px; left: 0; width: 14px; height: 14px; box-sizing: border-box;
+  border-radius: 50%; background: #fff; border: 2px solid var(--line-strong); }
+.progress__step::after { content: ''; position: absolute; top: 9px; left: 14px; right: 0; height: 2px; background: var(--line); }
+.progress__step:last-child::after { display: none; }
+.progress__step.is-done { color: var(--ink); }
+.progress__step.is-done::before { background: var(--accent); border-color: var(--accent); }
+.progress__step.is-done::after { background: var(--accent); }
+.progress__step.is-current { color: var(--ink-strong); font-weight: 600; }
+.progress__step.is-current::before { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.app__updates { list-style: none; display: grid; gap: 12px; margin: 18px 0 0; padding: 0 0 0 16px; border-left: 2px solid var(--line); }
+.app__updates li { position: relative; }
+.app__updates li::before { content: ''; position: absolute; top: 5px; left: -22px; width: 10px; height: 10px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--accent); }
+.app__when { margin: 0; font-size: .82rem; color: var(--muted); }
+.app__when strong { color: var(--ink-strong); font-weight: 600; }
+.app__msg { margin: 6px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--soft); font-size: .92rem; white-space: pre-line; }
+
+/* The conversation on an application card: the team's messages on the left, yours on the right, a one-line reply box */
+.thread { list-style: none; display: grid; gap: 10px; margin: 16px 0 0; padding: 0; }
+.thread__item { max-width: 85%; }
+.thread__item.is-mine { justify-self: end; text-align: right; }
+.thread__meta { margin: 0 0 4px; font-size: .78rem; color: var(--muted); }
+.thread__meta strong { color: var(--ink-strong); font-weight: 600; }
+.thread__msg { display: inline-block; margin: 0; padding: 9px 12px; border-radius: 12px; background: var(--soft); font-size: .92rem;
+  text-align: left; white-space: pre-line; overflow-wrap: anywhere; }
+.is-mine .thread__msg { background: var(--accent-soft); color: var(--ink-strong); }
+.thread__reply { display: flex; align-items: flex-end; gap: 8px; margin-top: 14px; }
+.thread__reply textarea { flex: 1; min-height: 40px; max-height: 160px; padding: 9px 12px; field-sizing: content; }
+.thread__reply .btn { height: 40px; }
+.app__updates li.is-reply .app__msg { background: var(--accent-soft); }
+
+/* Admin: an application on the left, the form to update the applicant on the right */
+.review-app { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; scroll-margin-top: 100px; }
+.review-app__head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.review-app__head h2 { margin: 0; font-size: 1.4rem; }
+.review-app__h { margin: 18px 0 6px; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.review-app__statement { margin: 0; white-space: pre-line; }
+.review-app__facts { display: grid; gap: 6px; margin: 14px 0 0; font-size: .92rem; }
+.review-app__facts div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; }
+.review-app__facts dt { color: var(--muted); }
+.review-app__facts dd { margin: 0; overflow-wrap: anywhere; }
+.review-app__form { align-self: start; display: grid; gap: 14px; padding: 18px; border-radius: 14px; background: var(--soft); }
+.review-app__form .review-app__h { margin: 0; font-size: 1rem; letter-spacing: 0; text-transform: none; color: var(--ink-strong); }
+.review-app__form .field { margin: 0; }
+.review-app__or { margin: -6px 0 -8px; }
+@media (max-width: 900px) { .review-app { grid-template-columns: 1fr; gap: 18px; } }
+@media (max-width: 640px) { .app { padding: 16px; } .app__head { flex-direction: column-reverse; gap: 8px; } }
 .field .label { display: block; font-weight: 600; font-size: .9rem; color: var(--ink-strong); margin-bottom: 6px; }
 /* on/off switch built on a checkbox */
 .switch, .field .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: .93rem; font-weight: 400; min-height: 46px; margin: 0; }
@@ -815,7 +876,21 @@ html:not(.js) .explore a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(-
 .filterbar__label { align-self: center; font-size: .85rem; color: var(--muted); }
 .filterbar--users input[type=date], .filterbar--users .dp { flex: 0 1 170px; }
 .link-btn { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
-.user-verify { margin-top: 4px; }
+/* Admin users: email verification badges, the Verify manually button and the Disabled switch */
+.user-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 8px; }
+.vbadge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font: 600 .72rem/1.3 var(--sans); }
+.vbadge svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.vbadge--yes { background: var(--ok-soft); color: var(--ok); }
+.vbadge--no { background: var(--warn-soft); color: var(--warn); }
+.vbadge--off { background: var(--danger-soft); color: var(--danger); }
+.btn--icon { gap: 6px; }
+.btn--icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.user-badges .btn--sm { padding: 3px 10px; font-size: .78rem; }
+.table .switch { min-height: 0; font-size: .875rem; gap: 8px; }
+.table .switch__track { width: 34px; height: 20px; }
+.table .switch__track::after { width: 14px; height: 14px; }
+.table .switch input:checked + .switch__track::after { transform: translateX(14px); }
+.switch--danger input:checked + .switch__track { background: var(--danger); }
 .user-link { color: var(--ink-strong); }
 /* Tracker: a header with three numbers, one row of stage filters, then a card per application */
 .tracker-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 32px; flex-wrap: wrap; margin-bottom: 20px; }

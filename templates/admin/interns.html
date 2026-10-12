@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
+{% import 'admin/_application.html' as app with context %}
 {% block title %}Intern applications{% endblock %}
 {% block content %}
 <div class="wrap">
@@ -7,29 +8,28 @@
   {% include 'admin/_nav.html' %}
   <nav class="stages" aria-label="Status">
     <a href="{{ url_for('admin.interns') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
-    {% for s in statuses %}<a href="{{ url_for('admin.interns', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ s|capitalize }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
+    {% for s in statuses %}<a href="{{ url_for('admin.interns', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ labels[s] }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
   </nav>
   {% with placeholder='Search name, email, school or area' %}{% include 'admin/_find.html' %}{% endwith %}
   {% for a in rows %}
-    <article class="panel">
-      <h2>{{ a.full_name }} <span class="pill pill--{{ a.status }}">{{ a.status|capitalize }}</span></h2>
-      <p class="muted small"><a href="mailto:{{ a.email }}">{{ a.email }}</a>{% if a.grade %} · Grade {{ a.grade }}{% endif %}{% if a.school %} · {{ a.school }}{% endif %}{% if a.location %} · {{ a.location }}{% endif %} · applied {{ a.created_at|day }}</p>
-      {% set ints = a.interests|fromjson %}{% if ints %}<p class="small"><strong>Interests:</strong> {{ ints|join(', ') }}</p>{% endif %}
-      {% if a.availability %}<p class="small"><strong>Availability:</strong> {{ a.availability }}</p>{% endif %}
-      {% if a.skills %}<p class="small"><strong>Skills:</strong> {{ a.skills }}</p>{% endif %}
-      <p><strong>Why:</strong> {{ a.statement }}</p>
-      {% if a.link %}<p class="small"><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.link }} ↗</a></p>{% endif %}
-      <form class="inline-form" method="post" action="{{ request.full_path }}">
-        {{ m.csrf() }}<input type="hidden" name="id" value="{{ a.id }}">
-        <label class="sr-only" for="st-{{ a.id }}">Status</label>
-        <select id="st-{{ a.id }}" name="status">{% for s in statuses %}<option value="{{ s }}" {% if a.status == s %}selected{% endif %}>{{ s|capitalize }}</option>{% endfor %}</select>
-        <label class="sr-only" for="note-{{ a.id }}">Private note</label>
-        <input id="note-{{ a.id }}" name="admin_note" value="{{ a.admin_note }}" placeholder="Private note" maxlength="2000">
-        <button class="btn btn--sm btn--ghost" type="submit">Save</button>
-      </form>
+    <article class="panel review-app" id="a-{{ a.id }}">
+      <div class="review-app__main">
+        <div class="review-app__head"><h2>{{ a.full_name }}</h2><span class="pill pill--{{ a.status }}">{{ labels[a.status] }}</span></div>
+        <p class="muted small"><a href="mailto:{{ a.email }}">{{ a.email }}</a>{% if a.grade %} · Grade {{ a.grade }}{% endif %}{% if a.school %} · {{ a.school }}{% endif %}{% if a.location %} · {{ a.location }}{% endif %} · applied {{ a.created_at|nice_date }}</p>
+        <dl class="review-app__facts">
+          {% set ints = a.interests|fromjson %}{% if ints %}<div><dt>Interests</dt><dd>{{ ints|join(', ') }}</dd></div>{% endif %}
+          {% if a.availability %}<div><dt>Availability</dt><dd>{{ a.availability }}</dd></div>{% endif %}
+          {% if a.skills %}<div><dt>Skills</dt><dd>{{ a.skills }}</dd></div>{% endif %}
+          {% if a.link %}<div><dt>Link</dt><dd><a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.link }} ↗</a></dd></div>{% endif %}
+        </dl>
+        <h3 class="review-app__h">Why they want to intern</h3>
+        <p class="review-app__statement">{{ a.statement }}</p>
+        {{ app.history(updates.get(a.id), labels) }}
+      </div>
+      {{ app.update_form(a, a.full_name, a.email, labels, ('accepted', 'Accept ' ~ a.full_name.split()[0])) }}
     </article>
   {% else %}
-    <p class="empty">No applications{% if status %} marked {{ status }}{% endif %} yet.</p>
+    <p class="empty">No applications{% if status %} marked {{ labels[status]|lower }}{% endif %} yet.</p>
   {% endfor %}
   {% include 'admin/_pager.html' %}
 </div>

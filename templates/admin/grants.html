@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
+{% import 'admin/_application.html' as app with context %}
 {% block title %}Access Grants{% endblock %}
 {% block content %}
 <div class="wrap">
@@ -26,9 +27,10 @@
         <div><dt>Asked the program for aid</dt><dd>{{ D.GRANT_ASKED[g.asked_program] }}</dd></div>
       </dl>
       <p>{{ g.reason }}</p>
-      {% if g.message %}<p class="note"><strong>Last message to the student:</strong> {{ g.message }}</p>{% endif %}
+      {% if g.message and not updates.get(g.id) %}<p class="note"><strong>Last message to the student:</strong> {{ g.message }}</p>{% endif %}
       {% if g.status == 'approved' %}<p class="note">Approved for ${{ g.approved_amount }}. Pay the program, then record it below.</p>{% endif %}
       {% if g.status == 'paid' %}<p class="note">Paid ${{ g.paid_amount }} on {{ g.paid_on }} by {{ g.paid_method }}{% if g.paid_ref %} ({{ g.paid_ref }}){% endif %}.</p>{% endif %}
+      {{ app.history(updates.get(g.id), D.GRANT_STATUSES) }}
 
       {% if own %}
         <p class="muted small">This is your own request, so another admin has to handle it.</p>
@@ -63,6 +65,12 @@
             <button class="btn btn--sm" type="submit" name="action" value="paid">Record payment</button>
           </form>
         {% endif %}
+        <form class="inline-form grant__form" method="post" action="{{ request.full_path }}">
+          {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
+          <label class="sr-only" for="up-{{ g.id }}">Update for the student</label>
+          <input id="up-{{ g.id }}" name="message" placeholder="Send an update without changing the status" maxlength="1000">
+          <button class="btn btn--sm btn--ghost" type="submit" name="action" value="message">Send update</button>
+        </form>
         <form class="inline-form grant__form" method="post" action="{{ request.full_path }}">
           {{ m.csrf() }}<input type="hidden" name="id" value="{{ g.id }}">
           <label class="sr-only" for="note-{{ g.id }}">Private note</label>

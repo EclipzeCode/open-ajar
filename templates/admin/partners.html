@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% import '_macros.html' as m with context %}
+{% import 'admin/_application.html' as app with context %}
 {% block title %}Partner inquiries{% endblock %}
 {% block content %}
 <div class="wrap">
@@ -7,25 +8,22 @@
   {% include 'admin/_nav.html' %}
   <nav class="stages" aria-label="Status">
     <a href="{{ url_for('admin.partners') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>
-    {% for s in statuses %}<a href="{{ url_for('admin.partners', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ s|capitalize }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
+    {% for s in statuses %}<a href="{{ url_for('admin.partners', status=s) }}" {% if status == s %}aria-current="page"{% endif %}>{{ labels[s] }} <span>{{ counts.get(s, 0) }}</span></a>{% endfor %}
   </nav>
   {% with placeholder='Search business, name, email or area' %}{% include 'admin/_find.html' %}{% endwith %}
   {% for p in rows %}
-    <article class="panel">
-      <h2>{{ p.business }} <span class="pill pill--{{ p.status }}">{{ p.status|capitalize }}</span></h2>
-      <p class="muted small">{{ p.contact_name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a>{% if p.phone %} · {{ p.phone }}{% endif %}{% if p.location %} · {{ p.location }}{% endif %} · sent {{ p.created_at|day }}</p>
-      <p>{{ p.message }}</p>
-      <form class="inline-form" method="post" action="{{ request.full_path }}">
-        {{ m.csrf() }}<input type="hidden" name="id" value="{{ p.id }}">
-        <label class="sr-only" for="st-{{ p.id }}">Status</label>
-        <select id="st-{{ p.id }}" name="status">{% for s in statuses %}<option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s|capitalize }}</option>{% endfor %}</select>
-        <label class="sr-only" for="note-{{ p.id }}">Private note</label>
-        <input id="note-{{ p.id }}" name="admin_note" value="{{ p.admin_note }}" placeholder="Private note" maxlength="2000">
-        <button class="btn btn--sm btn--ghost" type="submit">Save</button>
-      </form>
+    <article class="panel review-app" id="a-{{ p.id }}">
+      <div class="review-app__main">
+        <div class="review-app__head"><h2>{{ p.business }}</h2><span class="pill pill--{{ p.status }}">{{ labels[p.status] }}</span></div>
+        <p class="muted small">{{ p.contact_name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a>{% if p.phone %} · {{ p.phone }}{% endif %}{% if p.location %} · {{ p.location }}{% endif %} · sent {{ p.created_at|nice_date }}</p>
+        <h3 class="review-app__h">What an intern could help with</h3>
+        <p class="review-app__statement">{{ p.message }}</p>
+        {{ app.history(updates.get(p.id), labels) }}
+      </div>
+      {{ app.update_form(p, p.contact_name, p.email, labels, ('partnered', 'Mark as partnered')) }}
     </article>
   {% else %}
-    <p class="empty">No inquiries{% if status %} marked {{ status }}{% endif %} yet.</p>
+    <p class="empty">No inquiries{% if status %} marked {{ labels[status]|lower }}{% endif %} yet.</p>
   {% endfor %}
   {% include 'admin/_pager.html' %}
 </div>

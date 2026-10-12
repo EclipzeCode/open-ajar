@@ -166,6 +166,7 @@ def create_app(test_config=None):
     app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url, is_owner=is_owner)
     app.jinja_env.filters['fromjson'] = json.loads
     app.jinja_env.filters['day'] = lambda iso: (iso or '')[:10]
+    app.jinja_env.filters['nice_date'] = data.nice_date
 
     register_cli(app)
     if not app.config.get('TESTING'):
@@ -184,6 +185,14 @@ def init_db(path):
                             ('access_grants', 'approved_at', 'TEXT'), ('opportunities', 'job_category', 'TEXT')):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
+    # Intern applications gained the 'accepted' status. SQLite can't change a CHECK constraint in place, so an older
+    # table is renamed, schema.sql creates the new one, and the rows are copied across.
+    if "'accepted'" not in db.execute("SELECT sql FROM sqlite_master WHERE name='intern_applications'").fetchone()['sql']:
+        db.execute('ALTER TABLE intern_applications RENAME TO intern_applications_old')
+        db.executescript((ROOT / 'schema.sql').read_text())
+        cols = ', '.join(r['name'] for r in db.execute('PRAGMA table_info(intern_applications_old)'))
+        db.execute(f'INSERT INTO intern_applications ({cols}) SELECT {cols} FROM intern_applications_old')
+        db.execute('DROP TABLE intern_applications_old')
     # Job categories are stored so filtering is fast; recomputing them here picks up edits to data.JOB_CATEGORIES.
     db.executemany('UPDATE opportunities SET job_category=? WHERE id=?',
                    [(data.job_category(r['org'], r['title']) if r['type'] == 'Job' else None, r['id'])

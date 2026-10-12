@@ -29,12 +29,17 @@
         <tr>
           <td><a class="user-link" href="{{ url_for('admin.user_detail', uid=u.id) }}" data-user-modal><strong>{{ u.name }}</strong></a>
             {% if is_owner(u) %}<span class="pill pill--approved">Owner</span>{% endif %}
-            {% if u.disabled %}<span class="pill pill--declined">Disabled</span>{% endif %}
-            <br><span class="muted small">{{ u.email }}{% if not u.email_verified %} · unconfirmed{% endif %}</span>
-            {% if not u.email_verified and not locked %}
-              <form class="inline-form user-verify" method="post">{{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
-                <button class="link-btn small" type="submit" name="action" value="verify" data-confirm="Mark {{ u.email }} as confirmed without the email link?">Mark email confirmed</button></form>
-            {% endif %}</td>
+            <br><span class="muted small">{{ u.email }}</span>
+            <div class="user-badges">
+              {% if u.email_verified %}<span class="vbadge vbadge--yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Verified</span>
+              {% else %}<span class="vbadge vbadge--no">Unverified</span>{% endif %}
+              {% if u.disabled %}<span class="vbadge vbadge--off">Disabled</span>{% endif %}
+              {% if not u.email_verified and not locked %}
+                <form method="post">{{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
+                  <button class="btn btn--sm btn--ghost btn--icon" type="submit" name="action" value="verify"
+                    data-confirm="Verify {{ u.email }} manually? Only do this if you know the address is theirs."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.2-2.9 7.9-7 9.5-4.1-1.6-7-5.3-7-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></svg>Verify manually</button></form>
+              {% endif %}
+            </div></td>
           <td class="small">{{ u.created_at|day }}</td>
           <td>
             {% if locked %}
@@ -44,7 +49,7 @@
               {{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
               <label class="sr-only" for="role-{{ u.id }}">Role</label>
               <select id="role-{{ u.id }}" name="role">{% for r in D.ROLES %}<option {% if u.role == r %}selected{% endif %}>{{ r }}</option>{% endfor %}</select>
-              <label class="check"><input type="checkbox" name="disabled" value="1" {% if u.disabled %}checked{% endif %}><span>Disabled</span></label>
+              <label class="switch switch--danger"><input type="checkbox" name="disabled" value="1" {% if u.disabled %}checked{% endif %}><span class="switch__track" aria-hidden="true"></span><span>Disabled</span></label>
               <button class="btn btn--sm btn--ghost" type="submit">Save</button>
             </form>
             {% endif %}

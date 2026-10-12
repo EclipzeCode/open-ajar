@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS intern_applications (
   availability TEXT NOT NULL DEFAULT '',
   statement    TEXT NOT NULL DEFAULT '',
   link         TEXT,
-  status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','placed','declined')),
+  status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','accepted','placed','declined')),
   admin_note   TEXT NOT NULL DEFAULT '',
   created_at   TEXT NOT NULL
 );
@@ -152,6 +152,20 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   admin_note  TEXT NOT NULL DEFAULT '',
   created_at  TEXT NOT NULL
 );
+
+-- The conversation about an application: the team's updates (a status change, a message, or both; emailed) and the
+-- applicant's replies from their profile (by_applicant = 1). Listing submissions keep theirs in review_events.
+CREATE TABLE IF NOT EXISTS application_updates (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind       TEXT NOT NULL CHECK (kind IN ('intern','partner','grant')),   -- data.APPLICATION_KINDS
+  item_id    TEXT NOT NULL,                  -- intern_applications / partner_inquiries / access_grants id
+  actor_id   TEXT REFERENCES users(id) ON DELETE SET NULL,
+  status     TEXT,                           -- the status it moved to, if it changed
+  message    TEXT NOT NULL DEFAULT '',
+  by_applicant INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_updates_item ON application_updates(kind, item_id);
 
 -- Community Voices: one quote per student, shown after an admin approves it.
 CREATE TABLE IF NOT EXISTS testimonials (

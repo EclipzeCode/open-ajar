@@ -111,6 +111,27 @@ def grant_update(config, g, heading, paragraphs):
         send(config, to, f"Your Access Grant request: {g['program']}", *html_text, reply_to=config['CONTACT_EMAIL'])
 
 
+def application_update(config, to, name, kind, title, status=None, message=''):
+    """The team's update on an internship application, partner inquiry or listing submission: a new status, a message,
+    or both. Replies go to the team."""
+    what = data.APPLICATION_KINDS[kind]['noun']
+    paragraphs = [f"Hi {_first(name)},", f"Your {what} ({title}) is now: {status}." if status else f"We have an update on your {what} ({title}).",
+                  *([message] if message else [])]
+    send(config, to, f"Update on your {what}: {title}", *_layout(
+        status or 'An update from OpenAjar', paragraphs, 'See it on your profile', config['APP_URL'] + '/account#applications',
+        'Reply from your profile, or just reply to this email. To see it on your profile, sign in with this email address.'),
+        reply_to=config['CONTACT_EMAIL'])
+
+
+def applicant_reply(config, name, email, kind, title, message, link):
+    """Tell the team an applicant wrote back from their profile. Replying to the email goes straight to them."""
+    what = data.APPLICATION_KINDS[kind]['noun']
+    send(config, config['CONTACT_EMAIL'], f"{name} replied about their {what}", *_layout(
+        f"{name} replied about their {what}", [f"About: {title}", message], 'Open it in admin', config['APP_URL'] + link,
+        'Reply to this email to answer them directly, or send an update from admin so it shows on their profile.'),
+        reply_to=email)
+
+
 def _when(days):
     return 'due today' if days == 0 else 'due tomorrow' if days == 1 else f'due in {days} days'
 

@@ -29,7 +29,7 @@
     <div class="acct-stats">
       <a href="{{ url_for('account.tracker') }}"><strong>{{ counts.tracking }}</strong><span>Tracking</span></a>
       <a href="{{ url_for('account.tracker') }}"><strong>{{ counts.saved }}</strong><span>Saved</span></a>
-      <a href="#submissions"><strong>{{ counts.submitted }}</strong><span>Submitted</span></a>
+      <a href="#applications"><strong>{{ counts.applications }}</strong><span>Applications</span></a>
     </div>
   </header>
 
@@ -44,8 +44,7 @@
     <nav class="acct-nav" aria-label="Account sections">
       <div class="acct-nav__links">
         <a href="#profile">Profile</a>
-        <a href="#submissions">Submissions</a>
-        <a href="#grants">Access Grants</a>
+        <a href="#applications">Applications</a>
         <a href="#story">Your story</a>
         <a href="#security">Security</a>
         <a href="#delete" class="acct-nav__danger">Delete account</a>
@@ -76,49 +75,53 @@
         </form>
       </section>
 
-      <section class="acct-card" id="submissions" aria-labelledby="subs-h">
-        <div class="acct-card__head acct-card__head--row">
-          <div><h2 id="subs-h">Submissions</h2><p>Opportunities you’ve shared and where they are in review.</p></div>
-          <a class="btn btn--ghost btn--sm" href="{{ url_for('site.submit') }}">Submit one</a>
-        </div>
-        {% if submissions %}
-          <ul class="subs">
-            {% for s in submissions %}
-            <li class="subs__item">
-              <div class="subs__main">
-                <strong>{% if s.status == 'approved' %}<a href="{{ url_for('site.detail', opp_id=s.id) }}">{{ s.title }}</a>{% else %}{{ s.title }}{% endif %}</strong>
-                <span class="muted small">{{ s.org }} · updated {{ s.updated_at[:10] }}</span>
-                {% for e in s.events %}<p class="note"><strong>Reviewer:</strong> {{ e.message }}</p>{% endfor %}
+      <section class="acct-card" id="applications" aria-labelledby="apps-h">
+        <div class="acct-card__head"><h2 id="apps-h">Applications</h2><p>Everything you’ve applied for or sent us, where it stands, and updates from the team.</p></div>
+        {{ note('applications') }}
+        {% if not u.email_verified %}
+          <p class="acct-note acct-note--warn">Confirm your email to see internship applications and partner inquiries you sent from {{ u.email }}.</p>
+        {% endif %}
+        {% if applications %}
+          <ul class="apps">
+            {% for a in applications %}
+            <li class="app" id="app-{{ a.kind }}-{{ a.id }}">
+              <div class="app__head">
+                <div class="app__who">
+                  <p class="app__kind">{{ a.label }}</p>
+                  <h3 class="app__title">{% if a.link %}<a href="{{ a.link }}">{{ a.title }}</a>{% else %}{{ a.title }}{% endif %}</h3>
+                  <p class="muted small">{{ a.meta }}</p>
+                </div>
+                <span class="pill pill--{{ a.status }}">{{ a.status_label }}</span>
               </div>
-              <div class="subs__side">
-                <span class="pill pill--{{ s.status }}">{{ D.STATUSES[s.status] }}</span>
-                {% if s.status == 'changes_requested' %}<a class="btn btn--sm" href="{{ url_for('site.submit', opp_id=s.id) }}">Revise</a>{% endif %}
-              </div>
+              {% if a.steps %}
+              <ol class="progress" aria-label="Progress">
+                {% for label, state in a.steps %}<li class="progress__step is-{{ state }}"{% if state == 'current' %} aria-current="step"{% endif %}><span>{{ label }}</span></li>{% endfor %}
+              </ol>
+              {% endif %}
+              {% if a.updates %}
+              <ol class="thread" aria-label="Messages">
+                {% for up in a.updates %}
+                <li class="thread__item{% if up.mine %} is-mine{% endif %}">
+                  <p class="thread__meta">{{ 'You' if up.mine else 'OpenAjar' }} · <time datetime="{{ up.at|day }}">{{ up.at|nice_date }}</time>{% if up.status %} · <strong>{{ up.status }}</strong>{% endif %}</p>
+                  {% if up.message %}<p class="thread__msg">{{ up.message }}</p>{% endif %}
+                </li>
+                {% endfor %}
+              </ol>
+              {% endif %}
+              <form class="thread__reply" method="post" action="{{ url_for('account.reply', kind=a.kind, item_id=a.id) }}">
+                {{ m.csrf() }}
+                <label class="sr-only" for="reply-{{ a.kind }}-{{ a.id }}">Message the OpenAjar team about this</label>
+                <textarea id="reply-{{ a.kind }}-{{ a.id }}" name="message" rows="1" maxlength="1000" required placeholder="{{ 'Reply…' if a.updates else 'Message the team…' }}"></textarea>
+                <button class="btn btn--sm" type="submit">Send</button>
+              </form>
+              {% if a.action %}<div class="app__actions"><a class="btn btn--sm btn--ghost" href="{{ a.action[1] }}">{{ a.action[0] }}</a></div>{% endif %}
             </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="acct-empty">Nothing yet. Know a program other students should hear about? <a href="{{ url_for('site.submit') }}">Share it</a>.</p>
+          <p class="acct-empty">Nothing yet. When you apply, its status and our updates show up here.</p>
         {% endif %}
-      </section>
-
-      <section class="acct-card" id="grants" aria-labelledby="grants-h">
-        <div class="acct-card__head acct-card__head--row">
-          <div><h2 id="grants-h">Access Grants</h2><p>Help with a program fee, up to ${{ D.GRANT_CAP }} a year.</p></div>
-          <a class="btn btn--ghost btn--sm" href="{{ url_for('site.grants') }}">{{ 'See details' if grants else 'Ask for one' }}</a>
-        </div>
-        {% if grants %}
-          <ul class="subs">
-            {% for g in grants %}
-            <li class="subs__item">
-              <div class="subs__main"><strong>{{ g.program }}</strong><span class="muted small">{{ g.org }} · ${{ g.amount }} · sent {{ g.created_at|day }}</span></div>
-              <div class="subs__side"><span class="pill pill--{{ g.status }}">{{ D.GRANT_STATUSES[g.status] }}</span></div>
-            </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="acct-empty">A fee standing between you and a program? <a href="{{ url_for('site.grants') }}">Ask us to cover it</a>.</p>
-        {% endif %}
+        <p class="app__start muted small">Start something new: <a href="{{ url_for('site.apply') }}">intern with us</a> · <a href="{{ url_for('site.grants') }}">ask for an Access Grant</a> · <a href="{{ url_for('site.submit') }}">submit a listing</a></p>
       </section>
 
       <section class="acct-card" id="story" aria-labelledby="story-h">

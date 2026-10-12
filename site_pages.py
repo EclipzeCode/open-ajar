@@ -240,8 +240,11 @@ def submit(opp_id=None):
 
 @bp.route('/apply', methods=['GET', 'POST'])
 def apply():
+    u = current_user()
     if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
-        return render_template('apply.html', values={}, errors={})
+        values = {'full_name': u['name'], 'email': u['email'], 'school': u['school'], 'location': u['location'],
+                  'grade': u['grade'], 'interests': json.loads(u['interests'])} if u else {}
+        return render_template('apply.html', values=values, errors={})
     f = data.Form(request.form)
     f.text('full_name', 'Your name', min=2, max=120)
     f.email('email')
@@ -262,7 +265,8 @@ def apply():
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
         (new_id(), o['full_name'], o['email'], o['grade'], o['school'], o['location'], json.dumps(f.many('interests', data.INTERESTS)),
          o['skills'], o['availability'], o['statement'], o['link'], data.now_iso()))
-    return render_template('applied.html')
+    # they can follow it on their profile once signed in with this email, confirmed
+    return render_template('applied.html', email=o['email'], linked=bool(u and u['email_verified'] and u['email'] == o['email']))
 
 
 @bp.route('/partner', methods=['GET', 'POST'])
