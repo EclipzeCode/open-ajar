@@ -62,7 +62,7 @@
   {# A ribbon of light from the open door that widens as it sweeps off the left edge; app.js shapes it and reveals it with the scroll. #}
   <svg class="trail" aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop class="trail__mid" offset=".9" stop-color="#A3C6B4"/><stop offset="1" stop-color="#1F5C46"/></linearGradient>
+      <linearGradient id="trail-grad" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#B9D3C6"/><stop class="trail__mid" offset=".9" stop-color="#A3C6B4"/><stop offset="1" stop-color="#123829"/></linearGradient>
     </defs>
     <path class="trail__ribbon" fill="url(#trail-grad)"/>
   </svg>
@@ -90,55 +90,11 @@
     </div>
   </div>
 </section>
-
-{# Full-width green band; the ribbon from the door runs down into its top edge. #}
-<section class="band" data-band>
-  <div class="wrap band__inner">
-    <div class="reveal">
-      <h2>Want real experience? Intern with us.</h2>
-      <p>Apply once and we’ll match you with a local business.</p>
-      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
-    </div>
-    <div class="reveal d1">
-      <h2>Host a high-school intern.</h2>
-      <p>Run a small business? We’ll introduce you to a student who wants to learn.</p>
-      <a class="btn btn--light" href="{{ url_for('site.partner') }}">Partner with us</a>
-    </div>
-    {% set discord = 'https://discord.gg/n3WwuRcVWz' %}{# Discord invite link; the column stays hidden while this is empty #}
-    {% if discord %}
-    <div class="reveal d2">
-      <h2>Join the community.</h2>
-      <p>Meet other students, swap tips and hear about new listings first.</p>
-      <a class="btn btn--light" href="{{ discord }}" target="_blank" rel="noopener">Join our Discord ↗</a>
-    </div>
-    {% endif %}
-  </div>
-</section>
-
-{% if featured %}
-<section class="section section--tight">
-  <div class="wrap">
-    <div class="section__head">
-      <div><h2>Open right now.</h2></div>
-      <a class="link" href="{{ url_for('site.browse') }}" data-explore-all>See all {{ '{:,}'.format(total) }} →</a>
-    </div>
-    {# Plain links without JS; app.js swaps the three cards in place instead. #}
-    <nav class="explore" aria-label="Browse by interest" data-explore>
-      <span class="explore__glider" aria-hidden="true"></span>
-      <a href="{{ url_for('site.browse') }}" aria-current="true">All</a>
-      {% for i in ['STEM', 'Health & medicine', 'Business & finance', 'Arts & media', 'Writing & humanities'] %}
-        <a href="{{ url_for('site.browse', interest=i) }}">{{ i.split(' & ')[0] }}</a>
-      {% endfor %}
-    </nav>
-    <div class="grid explore__grid" aria-live="polite">{% for o in featured %}{{ m.card(o, D) }}{% endfor %}</div>
-  </div>
-</section>
-{% endif %}
-
-{# Access Grants. A scroll-driven receipt like the door: app.js sets --p from 0 to 1 as the section scrolls past. A sample
-   fee prints, the grant line covers it, "You pay" counts down to $0 and the stamp lands. Without JS it shows finished. #}
+{# Access Grants. The ribbon from the door runs down into its top edge. A scroll-driven receipt like the door: app.js sets
+   --p from 0 to 1 as the section scrolls past. A sample fee prints, the grant line covers it, "You pay" counts down to $0
+   and the stamp lands. Without JS it shows finished. #}
 {% set fee = D.GRANT_CAP %}
-<section class="grantway" aria-labelledby="grantway-h">
+<section class="grantway" aria-labelledby="grantway-h" data-band>
   <div class="grantway__sticky wrap">
     <div class="grantway__copy">
       <p class="eyebrow">Access Grants</p>
@@ -181,6 +137,25 @@
   </div>
 </section>
 
+{% if featured %}
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="section__head">
+      <div><h2>Open right now.</h2></div>
+      <a class="link" href="{{ url_for('site.browse') }}" data-explore-all>See all {{ '{:,}'.format(total) }} →</a>
+    </div>
+    {# Plain links without JS; app.js swaps the three cards in place instead. #}
+    <nav class="explore" aria-label="Browse by interest" data-explore>
+      <span class="explore__glider" aria-hidden="true"></span>
+      <a href="{{ url_for('site.browse') }}" aria-current="true">All</a>
+      {% for i in ['STEM', 'Health & medicine', 'Business & finance', 'Arts & media', 'Writing & humanities'] %}
+        <a href="{{ url_for('site.browse', interest=i) }}">{{ i.split(' & ')[0] }}</a>
+      {% endfor %}
+    </nav>
+    <div class="grid explore__grid" aria-live="polite">{% for o in featured %}{{ m.card(o, D) }}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
 
 {#
   TESTIMONIALS: edit this list. Each one needs a quote, name and role; photo is optional
@@ -235,6 +210,30 @@
   </div>
 </section>
 {% endif %}
+
+{# Full-width green band with three ways to get involved. #}
+<section class="band">
+  <div class="wrap band__inner">
+    <div class="reveal">
+      <h2>Want real experience? Intern with us.</h2>
+      <p>Apply once and we’ll match you with a local business.</p>
+      <a class="btn btn--light" href="{{ url_for('site.apply') }}">Apply to intern →</a>
+    </div>
+    <div class="reveal d1">
+      <h2>Host a high-school intern.</h2>
+      <p>Run a small business? We’ll introduce you to a student who wants to learn.</p>
+      <a class="btn btn--light" href="{{ url_for('site.partner') }}">Partner with us</a>
+    </div>
+    {% set discord = 'https://discord.gg/n3WwuRcVWz' %}{# Discord invite link; the column stays hidden while this is empty #}
+    {% if discord %}
+    <div class="reveal d2">
+      <h2>Join the community.</h2>
+      <p>Meet other students, swap tips and hear about new listings first.</p>
+      <a class="btn btn--light" href="{{ discord }}" target="_blank" rel="noopener">Join our Discord ↗</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
 
 <section class="section center">
   <div class="wrap">

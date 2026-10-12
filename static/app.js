@@ -157,7 +157,7 @@ if (grantway && !calm) {
 
 // Home: once the door is open, its light continues as a ribbon that starts thin and steadily widens. It flows down
 // past the mission heading, wraps around the outside of each feature's icon (over the top, round the far side, out
-// underneath; it never crosses itself), then runs down into the green band below, turning that band's green. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
+// underneath; it never crosses itself), then runs down into the Access Grants section below, turning its deep green. It's drawn like a pencil line as you scroll (only up to the tip) and stays drawn.
 // The curve is a list of cubic Béziers sampled with plain math: asking the browser for points along a long SVG path
 // re-walks it every time and took seconds.
 const trail = document.querySelector('.trail');
