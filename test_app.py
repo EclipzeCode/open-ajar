@@ -97,7 +97,8 @@ class Flows(unittest.TestCase):
         page = self.c.get('/about').get_data(as_text=True)
         for name in ('Moon Tea', 'Ryujin', 'One Dollar Zone of Cedar Knolls', 'Coders Over Borders', 'Creator Colosseum', 'Partner Portal'):
             self.assertIn(name, page)
-        self.assertNotIn('partner__quote', page)  # no quotes until partners send real ones
+        self.assertEqual(page.count('partner__quote'), 1)  # only partners who sent a real quote get one (Moon Tea)
+        self.assertNotIn('“”', page)
 
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
