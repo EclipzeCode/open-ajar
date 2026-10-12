@@ -1,7 +1,6 @@
 """Email: sending (Resend, or an in-memory outbox in development), the three templates, and deadline reminders."""
 import json
 import urllib.request
-from datetime import date
 from html import escape
 
 import data
@@ -115,7 +114,7 @@ def deadline_digest(config, email, name, items):
 
 def run_reminders(db, config, today=None):
     """Emails each student one digest of upcoming deadlines. Runs at most once a day; each deadline is reminded once."""
-    today = today or date.today()
+    today = today or data.today()
     if not config['REMINDERS_ENABLED'] or db.execute("SELECT 1 FROM app_meta WHERE key='reminders' AND value=?", (today.isoformat(),)).fetchone():
         return 0
     db.execute("INSERT INTO app_meta (key,value) VALUES ('reminders',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (today.isoformat(),))
