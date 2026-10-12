@@ -66,30 +66,42 @@ def _browse(sector):
         'saved_by': current_user()['id'] if a.get('saved') == '1' and current_user() else None,
     }
     page = max(1, min(500, a.get('page', 1, type=int) or 1))
+    chips = _chips(f)
     items, total = search_public(f, PAGE, (page - 1) * PAGE)
     active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest', 'category')) + bool(f['grade']) + bool(f['state']) + bool(f['saved_by'])
     return render_template('browse.html', sector=sector, copy=SECTORS[sector], f=f, items=items, total=total, page=page,
                            pages=max(1, -(-total // PAGE)), facets=facets(f), all_opts=facets({'sector': sector}), active=active, saved=_saved_ids(),
-                           chips=_chips(f))
+                           chips=chips, fixes=_fixes(f, chips) if not total else [])
+
+
+def _fixes(f, chips):
+    """When nothing matches: each active filter that, taken off on its own, would give results, most results first."""
+    out = []
+    for label, url, key, value in chips:
+        g = {**f, key: [v for v in f[key] if v != value] if isinstance(f[key], list) else ('' if key == 'q' else None)}
+        n = search_public(g, limit=0)[1]
+        if n:
+            out.append((label, url, n))
+    return sorted(out, key=lambda x: -x[2])
 
 
 def _chips(f):
-    """(label, link that removes just that filter) for each active filter."""
+    """(label, link that removes just that filter, filter key, value) for each active filter."""
     def without(key, value):
         args = [(k, v) for k, v in request.args.items(multi=True) if k != 'page' and not (k == key and v == str(value))]
         return request.path + ('?' + urlencode(args) if args else '')
     chips = []
     if f['saved_by']:
-        chips.append(('Saved', without('saved', '1')))
+        chips.append(('Saved', without('saved', '1'), 'saved_by', None))
     if f['q']:
-        chips.append((f'“{f["q"]}”', without('q', f['q'])))
+        chips.append((f'“{f["q"]}”', without('q', f['q']), 'q', None))
     if f['grade']:
-        chips.append((f'Grade {f["grade"]}', without('grade', f['grade'])))
+        chips.append((f'Grade {f["grade"]}', without('grade', f['grade']), 'grade', None))
     if f['state']:
-        chips.append((data.STATES[f['state']], without('state', request.args.get('state'))))
+        chips.append((data.STATES[f['state']], without('state', request.args.get('state')), 'state', None))
     for key in ('type', 'cost', 'format', 'commitment', 'interest', 'category'):
         for v in f[key]:
-            chips.append((data.COSTS[v] if key == 'cost' else v, without(key, v)))
+            chips.append((data.COSTS[v] if key == 'cost' else v, without(key, v), key, v))
     return chips
 
 

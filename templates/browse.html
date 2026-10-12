@@ -79,7 +79,7 @@
       <h2 class="results__count" role="status">{{ '{:,}'.format(total) }} {{ 'result' if total == 1 else 'results' }}</h2>
       {% if chips %}
         <ul class="chips" aria-label="Active filters">
-          {% for label, url in chips %}<li><a class="chip" href="{{ url }}" aria-label="Remove filter {{ label }}">{{ label }}<span aria-hidden="true">×</span></a></li>{% endfor %}
+          {% for label, url, _, _ in chips %}<li><a class="chip" href="{{ url }}" aria-label="Remove filter {{ label }}">{{ label }}<span aria-hidden="true">×</span></a></li>{% endfor %}
           {% if chips|length > 1 %}<li><a class="chips__clear" href="{{ request.path }}">Clear all</a></li>{% endif %}
         </ul>
       {% endif %}
@@ -99,7 +99,15 @@
   {% else %}
     <div class="empty">
       <p><strong>Nothing matches that yet.</strong></p>
-      <p>Try removing a filter or searching something broader. Know one that belongs here? <a href="{{ url_for('site.submit') }}">Submit it</a>.</p>
+      {% if fixes %}
+        <p>Try removing one filter:</p>
+        <ul class="chips chips--fixes">
+          {% for label, url, n in fixes[:4] %}<li><a class="chip" href="{{ url }}">Without {{ label }} <span class="muted">· {{ '{:,}'.format(n) }}</span></a></li>{% endfor %}
+        </ul>
+      {% else %}
+        <p>Try removing a filter or searching something broader.</p>
+      {% endif %}
+      <p>Know one that belongs here? <a href="{{ url_for('site.submit') }}">Submit it</a>.</p>
     </div>
   {% endif %}
 </div>

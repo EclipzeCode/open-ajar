@@ -301,6 +301,9 @@ class Flows(unittest.TestCase):
         self.assertEqual(f['cost'], {'Free': 1, 'Fee': 1})
         page = self.c.get('/opportunities?cost=Free').get_data(as_text=True)
         self.assertIn('2 results', page)
+        empty = self.c.get('/opportunities?cost=Fee&type=Summer+program&q=comp').get_data(as_text=True)
+        self.assertIn('0 results', empty)
+        self.assertIn('Without Summer program', empty)  # the one filter whose removal gives results
 
     def test_saved_filter_shows_only_your_saved_listings(self):
         base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
