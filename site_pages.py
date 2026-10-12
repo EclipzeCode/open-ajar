@@ -8,7 +8,8 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 import data
 import mail
 from core import (PUBLIC, add_event, all_, audit, client_ip, current_user, facets, get_db, get_opp, get_public, grant_room,
-                  insert_opp, limited, login_required, new_id, now_iso, one, run, safe_next, search_public, update_opp)
+                  insert_opp, limited, login_required, new_id, now_iso, one, run, safe_next, save_opp, search_public, track_opp,
+                  update_opp)
 
 bp = Blueprint('site', __name__)
 PAGE = 24  # divides evenly into 1, 2, 3 or 4 columns, so full pages never leave a ragged last row
@@ -115,7 +116,7 @@ def toggle_save(opp_id):
         run('DELETE FROM saved WHERE user_id=? AND opportunity_id=?', (u['id'], opp_id))
         flash('Removed from your saved list.')
     elif get_public(opp_id):
-        run('INSERT INTO saved (user_id, opportunity_id, created_at) VALUES (?,?,?)', (u['id'], opp_id, data.now_iso()))
+        save_opp(u['id'], opp_id)
         flash('Saved. Find it any time in your tracker.')
     return redirect(safe_next(url_for('site.detail', opp_id=opp_id)))
 
@@ -126,9 +127,7 @@ def track(opp_id):
     u, opp = current_user(), get_public(opp_id)
     if not opp:
         abort(404)
-    checklist = json.dumps([{'text': t, 'done': False} for t in opp['requirements']])
-    run('INSERT OR IGNORE INTO tracked (user_id, opportunity_id, checklist, added_at) VALUES (?,?,?,?)',
-        (u['id'], opp_id, checklist, data.now_iso()))
+    track_opp(u['id'], opp)
     flash(f'Tracking “{opp["title"]}”. Its requirements are now a checklist in your tracker.')
     return redirect(safe_next(url_for('site.detail', opp_id=opp_id)))
 

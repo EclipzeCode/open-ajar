@@ -312,6 +312,18 @@ class Flows(unittest.TestCase):
         self.assertNotIn('Other Comp', page)
         self.assertIn('2 results', self.c.get('/opportunities').get_data(as_text=True))
 
+    def test_save_pressed_while_signed_out_happens_after_signing_in(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Kept Comp'}], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        oid = db.execute('SELECT id FROM opportunities').fetchone()['id']
+        r = self.post(f'/o/{oid}/save', headers={'Referer': f'http://localhost/o/{oid}'})
+        self.assertIn('/login', r.headers['Location'])
+        self.register()  # signing up counts too
+        self.assertTrue(db.execute('SELECT 1 FROM saved WHERE opportunity_id=?', (oid,)).fetchone())
+
     def test_closed_listings_stop_showing(self):
         base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
                 'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}

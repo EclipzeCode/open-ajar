@@ -76,9 +76,38 @@ def load_user():
 
 
 def sign_in(user):
+    pending = session.get('pending')
     session.clear()
     session.permanent = True
     session.update(uid=user['id'], ver=user['session_version'], csrf=secrets.token_urlsafe(32))
+    if pending:
+        finish_pending(user, pending)
+
+
+# Save or Track pressed while signed out: remembered, then done once they sign in or sign up
+PENDING = {'site.toggle_save': 'save', 'site.track': 'track'}
+
+
+def finish_pending(user, pending):
+    opp = get_public(pending['opp'])
+    if not opp:
+        return
+    if pending['action'] == 'save':
+        save_opp(user['id'], opp['id'])
+        flash(f'Saved “{opp["title"]}”. Find it any time in your tracker.')
+    else:
+        track_opp(user['id'], opp)
+        flash(f'Tracking “{opp["title"]}”. Its requirements are now a checklist in your tracker.')
+
+
+def save_opp(user_id, opp_id):
+    run('INSERT OR IGNORE INTO saved (user_id, opportunity_id, created_at) VALUES (?,?,?)', (user_id, opp_id, now_iso()))
+
+
+def track_opp(user_id, opp):
+    checklist = json.dumps([{'text': t, 'done': False} for t in opp['requirements']])
+    run('INSERT OR IGNORE INTO tracked (user_id, opportunity_id, checklist, added_at) VALUES (?,?,?,?)',
+        (user_id, opp['id'], checklist, now_iso()))
 
 
 def _here():
@@ -93,6 +122,10 @@ def login_required(view):
     @wraps(view)
     def wrapper(*a, **kw):
         if not current_user():
+            if request.method == 'POST' and request.endpoint in PENDING:
+                session['pending'] = {'action': PENDING[request.endpoint], 'opp': kw.get('opp_id')}
+                flash('Sign in to finish. We’ll save it for you.')
+                return redirect(url_for('account.login', next=_here()))
             flash('Sign in to continue.')
             return redirect(url_for('account.login', next=_here()))
         return view(*a, **kw)
