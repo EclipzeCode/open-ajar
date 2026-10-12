@@ -428,6 +428,23 @@ document.addEventListener('submit', (e) => {
   if (el.willValidate && shownOn(el).getAttribute('aria-invalid') === 'true' && el.checkValidity()) clearError(el);
 }));
 
+// Listing cards: the star saves or unsaves without reloading. Signed out, it goes to sign in instead, which finishes
+// the save afterwards. If anything goes wrong it falls back to a normal form post.
+document.addEventListener('submit', async (e) => {
+  const form = e.target.closest('.card__save');
+  if (!form || e.defaultPrevented) return;
+  e.preventDefault();
+  const btn = form.querySelector('button');
+  try {
+    const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'fetch' } });
+    if (r.redirected) { location.href = r.url; return; }
+    if (!r.ok) throw new Error();
+    const { saved } = await r.json();
+    btn.setAttribute('aria-pressed', saved);
+    btn.title = saved ? 'Saved' : 'Save';
+  } catch { form.submit(); }
+});
+
 // "Are you sure?" for destructive buttons and forms
 document.addEventListener('click', (e) => {
   const el = e.target.closest('button[data-confirm]');

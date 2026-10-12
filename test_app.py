@@ -310,7 +310,7 @@ class Flows(unittest.TestCase):
         self.assertNotIn('name="saved"', self.c.get('/opportunities').get_data(as_text=True))  # signed out: no toggle
         self.register()
         kept = connect(self.app.config['DB_PATH']).execute("SELECT id FROM opportunities WHERE title='Kept Comp'").fetchone()['id']
-        self.post(f'/o/{kept}/save')
+        self.assertEqual(self.post(f'/o/{kept}/save', headers={'X-Requested-With': 'fetch'}).json, {'saved': True})  # the card's star
         page = self.c.get('/opportunities?saved=1').get_data(as_text=True)
         self.assertIn('1 result', page)
         self.assertIn('Kept Comp', page)

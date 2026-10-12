@@ -140,6 +140,14 @@ img { max-width: 100%; height: auto; display: block; }
 .card:hover { border-color: #B9D3C6; transform: translateY(-2px); }
 .card__top { display: flex; justify-content: space-between; align-items: center; }
 .card__type { font-size: .75rem; font-weight: 600; color: var(--accent); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .02em; }
+/* the save star on each card (its row sits above the title link's full-card click area) */
+.card__save { margin: -8px -10px 0 8px; }
+.card__save button { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .85); color: var(--muted); cursor: pointer; transition: color .15s, background .15s, transform .15s; }
+.card__save button:hover, .card__save button:focus-visible { color: var(--accent); background: #fff; transform: scale(1.08); }
+.card__save svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.card__save [aria-pressed="true"] { color: var(--brass); }
+.card__save [aria-pressed="true"] svg { fill: currentColor; }
 .card__title { font-size: 1.1rem; margin-bottom: 2px; }
 .card__title a { color: var(--ink-strong); text-decoration: none; }
 .card__title a::after { content: ''; position: absolute; inset: 0; }
@@ -151,7 +159,7 @@ img { max-width: 100%; height: auto; display: block; }
    (a positioned head would shrink the title link's click area to the head). */
 .card__head { display: grid; grid-template-rows: auto auto auto; }
 .card__head > * { grid-column: 1; z-index: 1; }
-.card__head > .card__top { grid-row: 1; } .card__head > .card__title { grid-row: 2; } .card__head > .card__org { grid-row: 3; }
+.card__head > .card__top { grid-row: 1; z-index: 2; } .card__head > .card__title { grid-row: 2; } .card__head > .card__org { grid-row: 3; }
 .card__art { grid-row: 1 / 4; z-index: 0; margin: -22px -22px 0; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
   background: var(--accent-soft) right top / 200px 130px no-repeat;
   -webkit-mask-image: linear-gradient(to bottom, #000, transparent), radial-gradient(90% 150% at 100% 0, #000 25%, transparent 70%);

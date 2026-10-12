@@ -28,7 +28,7 @@ def home():
     states = one(f'SELECT COUNT(DISTINCT o.state) n FROM opportunities o WHERE {PUBLIC} AND o.state IS NOT NULL', (now_iso(),))['n']
     # user_id IS NULL means the account was deleted before quotes were removed with it: never show those
     voices = all_("SELECT name, role_label, quote FROM testimonials WHERE status='approved' AND user_id IS NOT NULL ORDER BY updated_at DESC LIMIT 6")
-    return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices)
+    return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices, saved=_saved_ids())
 
 
 SECTORS = {
@@ -112,11 +112,16 @@ def detail(opp_id):
 @login_required
 def toggle_save(opp_id):
     u = current_user()
+    quiet = request.headers.get('X-Requested-With') == 'fetch'  # the star on a card: no page reload, no message
     if one('SELECT 1 FROM saved WHERE user_id=? AND opportunity_id=?', (u['id'], opp_id)):
         run('DELETE FROM saved WHERE user_id=? AND opportunity_id=?', (u['id'], opp_id))
+        if quiet:
+            return {'saved': False}
         flash('Removed from your saved list.')
     elif get_public(opp_id):
         save_opp(u['id'], opp_id)
+        if quiet:
+            return {'saved': True}
         flash('Saved. Find it any time in your tracker.')
     return redirect(safe_next(url_for('site.detail', opp_id=opp_id)))
 
