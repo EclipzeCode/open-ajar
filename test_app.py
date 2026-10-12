@@ -332,6 +332,23 @@ class Flows(unittest.TestCase):
         self.register()  # signing up counts too
         self.assertTrue(db.execute('SELECT 1 FROM saved WHERE opportunity_id=?', (oid,)).fetchone())
 
+    def test_tracked_deadlines_download_as_a_calendar(self):
+        from datetime import date, timedelta
+        due = (date.today() + timedelta(days=30)).isoformat()
+        base = {'organization': 'Org, Inc', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Robotics Challenge; National Round With A Very Long Name That Needs Folding', 'deadline_date': due}], approve=True)
+        oid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM opportunities').fetchone()['id']
+        self.register()
+        self.post(f'/o/{oid}/track')
+        r = self.c.get('/tracker.ics')
+        ics = r.get_data(as_text=True)
+        self.assertIn('text/calendar', r.headers['Content-Type'])
+        self.assertIn('DTSTART;VALUE=DATE:' + due.replace('-', ''), ics)
+        self.assertIn('Robotics Challenge\\; National', ics)  # escaped for the calendar format
+        self.assertTrue(all(len(line.encode()) <= 75 for line in ics.split('\r\n')))
+
     def test_closed_listings_stop_showing(self):
         base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
                 'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}

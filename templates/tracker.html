@@ -10,7 +10,8 @@
       <span class="acct-avatar" aria-hidden="true"><svg class="acct-avatar__icon" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span>
       <div>
         <h1>Your applications</h1>
-        <p class="muted small">Move each one along as you go. Changes save as you make them.</p>
+        <p class="muted small">Move each one along as you go. Changes save as you make them.
+          {% if total %}<a href="{{ url_for('account.tracker_calendar') }}">Add your deadlines to your calendar</a>{% endif %}</p>
       </div>
     </div>
     <div class="acct-stats">

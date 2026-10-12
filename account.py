@@ -312,6 +312,45 @@ def tracker_counts(uid):
             'due_soon': sum(data.deadline_info(r['deadline'])[1] for r in rows)}
 
 
+@bp.get('/tracker.ics')
+@login_required
+def tracker_calendar():
+    """The deadlines of everything they're tracking, as all-day events (with a reminder the day before) for Google,
+    Apple or Outlook Calendar. Their own deadline wins over the listing's."""
+    u, app_url = current_user(), current_app.config['APP_URL']
+    rows = all_('''SELECT o.id, o.title, o.org, COALESCE(NULLIF(t.deadline, ''), o.deadline_date) deadline FROM tracked t
+                   JOIN opportunities o ON o.id = t.opportunity_id WHERE t.user_id=?''', (u['id'],))
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//OpenAjar//Tracker//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:OpenAjar deadlines']
+    for r in rows:
+        d = data.parse_date((r['deadline'] or '')[:10])
+        if not d:
+            continue
+        lines += ['BEGIN:VEVENT', f"UID:{r['id']}-{u['id']}@openajar.org", f'DTSTAMP:{stamp}',
+                  f'DTSTART;VALUE=DATE:{d:%Y%m%d}', f'DTEND;VALUE=DATE:{d + timedelta(days=1):%Y%m%d}',
+                  f"SUMMARY:{_ics('Deadline: ' + r['title'])}", f"DESCRIPTION:{_ics(r['org'] + ' · confirm the exact deadline on the official page.')}",
+                  f"URL:{app_url}/o/{r['id']}", 'BEGIN:VALARM', 'ACTION:DISPLAY', f"DESCRIPTION:{_ics(r['title'] + ' is due tomorrow')}",
+                  'TRIGGER:-P1D', 'END:VALARM', 'END:VEVENT']
+    lines.append('END:VCALENDAR')
+    body = ''.join(_fold(line) + '\r\n' for line in lines)
+    return body, {'Content-Type': 'text/calendar; charset=utf-8', 'Content-Disposition': 'attachment; filename="openajar-deadlines.ics"'}
+
+
+def _ics(text):
+    return text.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,').replace('\n', '\\n')
+
+
+def _fold(line):
+    """Calendar files want lines of at most 75 bytes; longer ones continue on the next line after a space."""
+    out, cur = [], ''
+    for ch in line:
+        if len((cur + ch).encode()) > 74:
+            out.append(cur)
+            cur = ' '
+        cur += ch
+    return '\r\n'.join(out + [cur])
+
+
 @bp.post('/tracker/<opp_id>')
 @login_required
 def update_tracked(opp_id):
