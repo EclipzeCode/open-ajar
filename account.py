@@ -270,6 +270,7 @@ def delete_account():
     if u['role'] == 'admin' and one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n'] <= 1:
         return back('delete', 'You are the only admin. Make someone else an admin before deleting your account.')
     audit(u['id'], 'account_deleted', u['email'])
+    run('DELETE FROM testimonials WHERE user_id=?', (u['id'],))  # their quote leaves the home page with them
     run('DELETE FROM users WHERE id=?', (u['id'],))
     session.clear()
     flash('Your account and everything in it has been deleted.')

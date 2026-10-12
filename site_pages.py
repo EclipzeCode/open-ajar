@@ -25,7 +25,8 @@ def home():
     items, total = search_public({'sector': 'opportunities'}, limit=3)
     jobs = search_public({'sector': 'jobs'}, limit=1)[1]
     states = len(facets()['state'])
-    voices = all_("SELECT name, role_label, quote FROM testimonials WHERE status='approved' ORDER BY updated_at DESC LIMIT 6")
+    # user_id IS NULL means the account was deleted before quotes were removed with it: never show those
+    voices = all_("SELECT name, role_label, quote FROM testimonials WHERE status='approved' AND user_id IS NOT NULL ORDER BY updated_at DESC LIMIT 6")
     return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices)
 
 

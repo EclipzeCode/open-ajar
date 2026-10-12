@@ -190,6 +190,16 @@ class Flows(unittest.TestCase):
         self.post('/admin/grants', approve, other)
         self.assertEqual((self.grant(gid)['status'], self.grant(gid)['approved_by']), ('approved', 'admin2'))
 
+    def test_deleting_an_account_removes_its_quote_from_the_home_page(self):
+        self.register()
+        self.post('/account/quote', {'quote': 'OpenAjar helped me find my first research program.', 'role_label': 'HS Student'})
+        admin = self.make_admin()
+        qid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM testimonials').fetchone()['id']
+        self.post('/admin/voices', {'id': qid, 'status': 'approved'}, admin)
+        self.assertIn(b'my first research program', self.c.get('/').data)
+        self.post('/account/delete', {'password': PW})
+        self.assertNotIn(b'my first research program', self.c.get('/').data)
+
     def test_partner_inquiry_is_saved_emailed_and_listed_for_admins(self):
         form = {'business': 'Rosa’s Bakery', 'contact_name': 'Rosa Diaz', 'email': 'rosa@example.org', 'location': 'Austin, TX',
                 'message': 'We could use help at the counter and with our social media on weekends.'}
