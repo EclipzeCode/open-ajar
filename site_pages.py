@@ -28,7 +28,13 @@ def home():
     states = one(f'SELECT COUNT(DISTINCT o.state) n FROM opportunities o WHERE {PUBLIC} AND o.state IS NOT NULL', (now_iso(),))['n']
     # user_id IS NULL means the account was deleted before quotes were removed with it: never show those
     voices = all_("SELECT name, role_label, quote FROM testimonials WHERE status='approved' AND user_id IS NOT NULL ORDER BY updated_at DESC LIMIT 6")
-    return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices, saved=_saved_ids())
+    return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices, saved=_saved_ids(),
+                           grants_paid=grants_paid())
+
+
+def grants_paid():
+    """Access Grants actually paid so far: dollars and students. Shown publicly only once there's at least one."""
+    return one("SELECT COALESCE(SUM(paid_amount), 0) dollars, COUNT(DISTINCT email) students FROM access_grants WHERE status='paid'")
 
 
 SECTORS = {
@@ -365,7 +371,7 @@ def team():  # the team page was removed; old links land on About
 
 @bp.get('/support')
 def support():
-    return render_template('support.html')
+    return render_template('support.html', grants_paid=grants_paid())
 
 
 @bp.get('/privacy')

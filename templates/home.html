@@ -131,6 +131,10 @@
       <li><span>02</span>We review it</li>
       <li><span>03</span>We pay the fee</li>
     </ol>
+    {% if grants_paid.dollars %}
+      <p class="grantfacts__paid reveal">So far: <strong>${{ '{:,}'.format(grants_paid.dollars) }}</strong> paid to programs for
+        <strong>{{ grants_paid.students }}</strong> student{{ '' if grants_paid.students == 1 else 's' }}.</p>
+    {% endif %}
     <div class="grantfacts__cta reveal d1">
       <a class="btn btn--light" href="{{ url_for('site.grants') }}">Ask for an Access Grant →</a>
     </div>

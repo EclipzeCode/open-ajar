@@ -432,6 +432,8 @@ html:not(.js) .marquee__nav { display: none; }
 .grantfacts__stats > div + div { padding-left: 32px; border-left: 1px solid rgba(255, 255, 255, .14); }
 .grantfacts__stats strong { font: 800 clamp(2.8rem, 6vw, 4.4rem)/1 var(--display); letter-spacing: -.04em; color: #fff; font-variant-numeric: tabular-nums; }
 .grantfacts__stats > div > span { color: #8FB9A3; }
+.grantfacts__paid { margin: 0 0 24px; color: #B9D3C6; font-size: 1.05rem; }
+.grantfacts__paid strong { color: #fff; }
 .grantfacts__steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 40px; padding: 0; }
 .grantfacts__steps li { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-radius: 14px; background: rgba(255, 255, 255, .06);
   border: 1px solid rgba(255, 255, 255, .1); color: #fff; font: 600 1rem var(--display); }

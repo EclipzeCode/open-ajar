@@ -190,6 +190,7 @@ class Flows(unittest.TestCase):
         g = self.grant(gid)
         self.assertEqual((g['status'], g['paid_amount'], g['paid_by']), ('paid', 150, 'admin1'))
         self.assertIn(b'We paid $150', self.c.get('/access-grants').data)
+        self.assertIn(b'$150</strong> paid to programs for', self.c.get('/').data)  # the public total, once one is paid
         self.assertEqual(self.post('/access-grants', GRANT).status_code, 422)  # only $100 of the yearly cap is left
 
     def test_nobody_handles_their_own_access_grant(self):
