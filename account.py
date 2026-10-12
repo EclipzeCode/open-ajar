@@ -300,10 +300,16 @@ def tracker():
     stage = request.args.get('stage') if request.args.get('stage') in data.STAGES else None
     tracked = [o for o in items if o['is_tracked']]
     saved = [o for o in items if o['is_saved'] and not o['is_tracked']]
-    due_soon = sum(data.deadline_info(o['own_deadline'] or o['deadline_date'])[1] for o in tracked)
-    return render_template('tracker.html', tracked=[o for o in tracked if not stage or o['stage'] == stage],
-                           counts={s: sum(o['stage'] == s for o in tracked) for s in data.STAGES}, stage=stage,
-                           total=len(tracked), due_soon=due_soon, saved=saved)
+    return render_template('tracker.html', tracked=[o for o in tracked if not stage or o['stage'] == stage], stage=stage,
+                           saved=saved, **tracker_counts(u['id']))
+
+
+def tracker_counts(uid):
+    """How many tracked per stage, in all, and due soon: for the tracker page and to refresh it after an autosave."""
+    rows = all_('''SELECT t.stage, COALESCE(NULLIF(t.deadline, ''), o.deadline_date) deadline FROM tracked t
+                   JOIN opportunities o ON o.id = t.opportunity_id WHERE t.user_id=?''', (uid,))
+    return {'counts': {s: sum(r['stage'] == s for r in rows) for s in data.STAGES}, 'total': len(rows),
+            'due_soon': sum(data.deadline_info(r['deadline'])[1] for r in rows)}
 
 
 @bp.post('/tracker/<opp_id>')
@@ -337,5 +343,5 @@ def update_tracked(opp_id):
     if form.get('found') in ('0', '1'):
         flash('Thanks! Congratulations on getting in.' if stage in data.WON_STAGES else 'Thanks for letting us know.')
     if request.headers.get('X-Requested-With') == 'fetch':
-        return '', 204
+        return tracker_counts(u['id'])  # the page refreshes its counts from this
     return redirect(url_for('account.tracker', stage=request.args.get('stage')) + f'#t-{opp_id}')

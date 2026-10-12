@@ -686,6 +686,11 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
       const r = await fetch(form.getAttribute('action'), { method: 'POST', body, headers: { 'X-Requested-With': 'fetch' } });
       if (!r.ok) throw new Error();
       status.textContent = 'Saved';
+      const c = await r.json(); // fresh counts for the stage menu and the numbers at the top
+      document.querySelectorAll('[data-total]').forEach((el) => { el.textContent = c.total; });
+      document.querySelectorAll('[data-stage-count]').forEach((el) => { el.textContent = c.counts[el.dataset.stageCount]; });
+      const due = document.querySelector('[data-due-soon]');
+      if (due) { due.textContent = c.due_soon; due.classList.toggle('is-soon', c.due_soon > 0); }
     } catch { status.textContent = 'Couldn’t save. Check your connection and try again.'; }
   };
   form.addEventListener('change', (e) => { if (e.target.name !== 'new_item') { clearTimeout(timer); save(); } });

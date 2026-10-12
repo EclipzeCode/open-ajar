@@ -14,8 +14,8 @@
       </div>
     </div>
     <div class="acct-stats">
-      <a href="{{ url_for('account.tracker') }}"><strong>{{ total }}</strong><span>Tracking</span></a>
-      <a href="{{ url_for('account.tracker') }}"><strong class="{% if due_soon %}is-soon{% endif %}">{{ due_soon }}</strong><span>Due soon</span></a>
+      <a href="{{ url_for('account.tracker') }}"><strong data-total>{{ total }}</strong><span>Tracking</span></a>
+      <a href="{{ url_for('account.tracker') }}"><strong class="{% if due_soon %}is-soon{% endif %}" data-due-soon>{{ due_soon }}</strong><span>Due soon</span></a>
       <a href="#saved"><strong>{{ saved|length }}</strong><span>Saved</span></a>
     </div>
   </header>
@@ -23,9 +23,9 @@
   <div class="acct-body">
     <nav class="acct-nav" aria-label="Filter by stage">
       <div class="acct-nav__links">
-        <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'true' if not stage else 'false' }}">All <span class="acct-nav__n">{{ total }}</span></a>
+        <a href="{{ url_for('account.tracker') }}" aria-current="{{ 'true' if not stage else 'false' }}">All <span class="acct-nav__n" data-total>{{ total }}</span></a>
         {% for s in D.STAGES %}
-          <a href="{{ url_for('account.tracker', stage=s) }}" aria-current="{{ 'true' if stage == s else 'false' }}">{{ s }} <span class="acct-nav__n">{{ counts[s] }}</span></a>
+          <a href="{{ url_for('account.tracker', stage=s) }}" aria-current="{{ 'true' if stage == s else 'false' }}">{{ s }} <span class="acct-nav__n" data-stage-count="{{ s }}">{{ counts[s] }}</span></a>
         {% endfor %}
       </div>
     </nav>
