@@ -221,6 +221,14 @@ class Flows(unittest.TestCase):
         self.assertIn('NIH summer program', self.make_admin().get('/admin/messages').get_data(as_text=True))
         self.assertIn('href="/contact"', self.c.get('/').get_data(as_text=True))
 
+    def test_admins_can_download_a_backup(self):
+        self.register()
+        self.assertEqual(self.c.get('/admin/backup').status_code, 403)
+        r = self.make_admin().get('/admin/backup')
+        self.assertTrue(r.data.startswith(b'SQLite format 3'))
+        self.assertIn('attachment', r.headers['Content-Disposition'])
+        r.close()
+
     def test_students_cant_reach_admin(self):
         self.register()
         self.assertEqual(self.c.get('/admin/').status_code, 403)

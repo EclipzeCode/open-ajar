@@ -6,7 +6,8 @@
 {% block content %}
 <div class="wrap">
   <header class="page-head"><p class="eyebrow">Admin</p><h1>Stats</h1>
-    <p class="lead">Straight counts from the database, so every number here can be backed up.</p></header>
+    <p class="lead">Straight counts from the database, so every number here can be backed up.</p>
+    <p class="small"><a href="{{ url_for('admin.backup') }}">Download a backup of the database</a> <span class="muted">· holds everyone’s data, so keep it private</span></p></header>
   {% include 'admin/_nav.html' %}
 
   <h2 class="stats__h">Outcomes</h2>

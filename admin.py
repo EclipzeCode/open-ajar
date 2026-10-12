@@ -1,8 +1,11 @@
 """Admin: the listing review queue, editing, users, activity, intern applications, partner inquiries, contact messages,
 Community Voices and Access Grants."""
+import os
+import sqlite3
+import tempfile
 from datetime import date, timedelta
 
-from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_file, url_for
 
 import data
 import mail
@@ -194,6 +197,22 @@ def stats():
                       'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
                       'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
     return render_template('admin/stats.html', s=s, top=top[:20], weeks=weeks)
+
+
+@bp.get('/backup')
+@admin_required
+def backup():
+    """A consistent copy of the whole database to keep somewhere safe. It holds everyone's data (password hashes too),
+    so store it privately."""
+    tmp = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+    tmp.close()
+    out = sqlite3.connect(tmp.name)
+    get_db().backup(out)  # safe while the site is being used, unlike copying the file
+    out.close()
+    audit(current_user()['id'], 'database_backup_downloaded', 'database')
+    resp = send_file(tmp.name, as_attachment=True, download_name=f"openajar-{data.now_iso()[:10]}.db", mimetype='application/octet-stream')
+    resp.call_on_close(lambda: os.remove(tmp.name))
+    return resp
 
 
 @bp.get('/activity')
