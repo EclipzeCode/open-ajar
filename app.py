@@ -132,6 +132,7 @@ def create_app(test_config=None):
     @app.errorhandler(404)
     @app.errorhandler(413)
     @app.errorhandler(429)
+    @app.errorhandler(500)
     def error(e):
         return render_template('error.html', code=e.code, message=e.description if e.code in (400, 429) else None), e.code
 

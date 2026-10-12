@@ -110,6 +110,13 @@ class Flows(unittest.TestCase):
         self.assertEqual(page.count('partner__quote'), 6)  # every partner has sent a real quote
         self.assertNotIn('“”', page)
 
+    def test_a_crash_shows_the_friendly_error_page(self):
+        self.app.config['PROPAGATE_EXCEPTIONS'] = False
+        self.app.view_functions['site.about'] = lambda: 1 / 0
+        r = self.c.get('/about')
+        self.assertEqual(r.status_code, 500)
+        self.assertIn(b'Something broke on our end', r.data)
+
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
 
