@@ -190,6 +190,9 @@ def _filters(f, skip=None):
     if f.get('state') and skip != 'state':
         where.append('o.state = ?')
         params.append(f['state'])
+    if f.get('saved_by'):
+        where.append('EXISTS (SELECT 1 FROM saved s WHERE s.opportunity_id = o.id AND s.user_id = ?)')
+        params.append(f['saved_by'])
     where.append(SECTOR_SQL.get(f.get('sector'), '1'))
     return ' AND '.join(where), params, tokens
 

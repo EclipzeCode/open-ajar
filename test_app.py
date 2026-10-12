@@ -202,6 +202,21 @@ class Flows(unittest.TestCase):
         page = self.c.get('/opportunities?cost=Free').get_data(as_text=True)
         self.assertIn('2 results', page)
 
+    def test_saved_filter_shows_only_your_saved_listings(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Kept Comp'}, {**base, 'id': '2', 'title': 'Other Comp'}], approve=True)
+        self.assertNotIn('name="saved"', self.c.get('/opportunities').get_data(as_text=True))  # signed out: no toggle
+        self.register()
+        kept = connect(self.app.config['DB_PATH']).execute("SELECT id FROM opportunities WHERE title='Kept Comp'").fetchone()['id']
+        self.post(f'/o/{kept}/save')
+        page = self.c.get('/opportunities?saved=1').get_data(as_text=True)
+        self.assertIn('1 result', page)
+        self.assertIn('Kept Comp', page)
+        self.assertNotIn('Other Comp', page)
+        self.assertIn('2 results', self.c.get('/opportunities').get_data(as_text=True))
+
     def test_jobs_get_a_category_and_can_be_filtered_by_it(self):
         base = {'summary': 'A part-time job for high-school students.', 'eligibility': 'At least 16', 'grades': '11;12',
                 'type': 'Job', 'cost': 'Award', 'format': 'In person', 'location': 'Austin, TX', 'commitment': 'Flexible'}

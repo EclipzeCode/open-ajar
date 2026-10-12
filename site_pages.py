@@ -61,10 +61,11 @@ def _browse(sector):
         'commitment': [v for v in a.getlist('commitment') if v in data.COMMITMENTS],
         'interest': [v for v in a.getlist('interest') if v in data.INTERESTS],
         'category': [v for v in a.getlist('category') if v in data.JOB_CATEGORIES] if sector == 'jobs' else [],
+        'saved_by': current_user()['id'] if a.get('saved') == '1' and current_user() else None,
     }
     page = max(1, min(500, a.get('page', 1, type=int) or 1))
     items, total = search_public(f, PAGE, (page - 1) * PAGE)
-    active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest', 'category')) + bool(f['grade']) + bool(f['state'])
+    active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest', 'category')) + bool(f['grade']) + bool(f['state']) + bool(f['saved_by'])
     return render_template('browse.html', sector=sector, copy=SECTORS[sector], f=f, items=items, total=total, page=page,
                            pages=max(1, -(-total // PAGE)), facets=facets(f), all_opts=facets({'sector': sector}), active=active, saved=_saved_ids(),
                            chips=_chips(f))
@@ -76,6 +77,8 @@ def _chips(f):
         args = [(k, v) for k, v in request.args.items(multi=True) if k != 'page' and not (k == key and v == str(value))]
         return request.path + ('?' + urlencode(args) if args else '')
     chips = []
+    if f['saved_by']:
+        chips.append(('Saved', without('saved', '1')))
     if f['q']:
         chips.append((f'“{f["q"]}”', without('q', f['q'])))
     if f['grade']:
