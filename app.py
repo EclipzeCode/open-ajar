@@ -119,8 +119,8 @@ def create_app(test_config=None):
         resp.headers.update({
             'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin',
             'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-            'Content-Security-Policy': f"default-src 'self'; script-src 'self' 'sha256-{JS_FLAG_HASH}'; style-src 'self' https://fonts.googleapis.com; "
-                                       "font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; "
+            'Content-Security-Policy': f"default-src 'self'; script-src 'self' 'sha256-{JS_FLAG_HASH}'; style-src 'self'; "
+                                       "font-src 'self'; img-src 'self' data:; object-src 'none'; "
                                        "base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
         })
         if app.config['PRODUCTION']:
