@@ -3,7 +3,10 @@
 // Fade sections up as they scroll into view
 document.documentElement.classList.add('js');
 const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
-  if (e.isIntersecting) { e.target.classList.add('is-in'); seen.unobserve(e.target); }
+  if (!e.isIntersecting) return;
+  e.target.classList.add('is-in'); seen.unobserve(e.target);
+  // once it has faded in, drop the reveal styles so it never transitions again
+  e.target.addEventListener('transitionend', (ev) => { if (ev.target === e.target) e.target.classList.remove('reveal', 'is-in'); });
 }), { rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.reveal').forEach((el) => seen.observe(el));
 
