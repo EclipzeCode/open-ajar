@@ -45,10 +45,12 @@ OpenAjar is a free site where high-school students find internships, programs, s
 26. **Home order and the receipt (PR #33):** hero, door, ribbon and feature rows, Access Grants, Open right now, Community voices, the three-button green band, FAQ. The ribbon now runs into the Access Grants section (`data-band`) and fades into its deep green (#123829). Access Grants is a pinned, scroll-driven receipt like the door: a sample $250 fee prints, the grant line covers it, "You pay" counts down to $0 and a stamp lands; then the $250 / 100% / $0 stats, three steps and the button. The door and the receipt share `playOnScroll` in `app.js` (plays once, then the section collapses to one screen).
 27. **Name (PR #33):** always written **OpenAjar**, no space, across the site, emails, docs and code. The domain stays `openajar.org`.
 28. **Fixes and polish (PR #34):** privacy page no longer names team members; deleting an account removes its quote; listings past their deadline expire (imports too, and the 10-minute job backfills missing expiries via `data.expiry_for`); admin backup download (Admin → Stats); partner photos resized (about 2 MB to 750 KB) with sizes and lazy loading; friendly 500 page; every admin list pages through all rows (`admin.paged`) with search, and the three inboxes share `admin._inbox`; Save/Track pressed while signed out finishes after sign-in (`core.finish_pending`); tracker counts refresh after autosave; grants count toward the year they were approved (`approved_at`); dates use US Eastern (`data.today`); the `js` class is set by a CSP-hashed inline script in `<head>` (`app.JS_FLAG`) so animated sections don't jump; only private pages are `no-store` (`app.PRIVATE_PATHS`); navbar "Apply" is now "Intern with us"; share image `static/og.jpg`; a save star on every card (saves without reloading); "More like this" on listings; no-results suggests which filter to drop; phone menu closes on Escape or a tap; tracker deadlines download as a calendar (`/tracker.ics`); public grants-paid total once there is one; the home interest tabs swap cards in place again; fonts are served from the site (`static/fonts/`, two variable woff2 files, Latin characters), so the CSP no longer allows Google.
+29. **Email link fix and show password (PR #36, #37):** pages only act on POST, so link scanners' HEAD requests no longer use up email confirmation links; password fields have a show/hide eye.
+30. **Admin rework (PR #38):** the owner (`OWNER_EMAIL`, default madishetty.vrishank2008@gmail.com, `core.is_owner`) is an admin other admins can't demote or disable, and the only one who can add hand adjustments to Overview numbers (stored in `app_meta` as `stat_adj:<key>`, always shown beside the database count, logged in Activity). Admin → Overview (`admin.stats`, where the navbar's Admin link goes) has four headline numbers, six server-drawn SVG charts (`templates/admin/_charts.html`) and one table of every number (`STAT_LABELS`). Tabs show how many things are waiting (`admin.tab_badges`). Users: filters (name, role, status, joined dates), "Mark email confirmed", and a pop-up with a person's details and applications (`admin.user_detail`). Activity: search by who, action kind (`ACTION_NAMES`) and dates. "Download data (CSV)" (`admin.export`) is a zip of readable CSVs without password hashes; "Full backup file" (`admin.backup`) is the restorable database.
 
 ## Current state (Oct 2026)
 
-- Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#34 are merged into `main`; nothing is open.
+- Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#38 are merged into `main`; nothing is open.
 - **Email:** Resend's DNS records (DKIM, `send`/`rsend`, SPF, MX, DMARC) all resolve. Until Oct 12, 2026 Render had no `EMAIL_FROM`, so the site sent from Resend's test address `onboarding@resend.dev`, which only delivers to the Resend account owner: the earlier "it works" test only reached the owner, and other students likely got no emails before then. `EMAIL_FROM` is now `OpenAjar <hello@openajar.org>`. **Still to confirm:** a reset email reaching an address that isn't the Resend account owner's. Test at `/forgot` with a second address. If emails ever stop arriving, check Resend → Emails and search Render → Logs for `[email]` (a 403 means the domain isn't verified or `EMAIL_FROM` is wrong).
 - **Not done yet:** Google Search Console (see to-dos).
 - A local test account exists only in the local database; its login is in `var/LOCAL_TEST_LOGIN.txt` (gitignored).
@@ -106,7 +108,7 @@ A co-founder wants this to be true for their Common App:
 
 > Co-founded web platform closing networking gaps: led 6-person team & 50+ interns; vetted 1k+ opportunities; launched with 160+ engaged members.
 
-Every number must be real and checkable. The Admin → Stats page is the source of truth:
+Every number must be real and checkable. The database counts on Admin → Overview are the source of truth; a hand adjustment (shown as "+N by hand") only counts if it stands for something real you can show, like an offline placement:
 
 - **"Engaged members":** saved or tracked at least one listing.
 - **"Vetted":** about 990 listings have been reviewed, and 752 were checked one by one in the research pass. Vet about 200 more new ones to say 1k+ honestly.
@@ -129,7 +131,7 @@ Every number must be real and checkable. The Admin → Stats page is the source 
 - [x] Confirm `apply-corrections` has run on production.
 - [x] Testimonial photos. Nate John and Sam Lui are hidden until they have photos.
 - [x] Custom domain and HTTPS (`www.openajar.org`).
-- [ ] Check that Render disk snapshots are on, and download a backup from Admin → Stats now and then (keep it private: it has everyone's data).
+- [ ] Check that Render disk snapshots are on, and download the full backup file from Admin → Overview now and then (keep it private: it has everyone's data).
 - [ ] Confirm email reaches a non-owner address now that `EMAIL_FROM` is set (see Current state).
 - [ ] Decide which account Access Grants are paid from before the first real grant.
 - [ ] Google Search Console: add `openajar.org` as a Domain property, add Google's TXT record in Shopify DNS, then submit `https://www.openajar.org/sitemap.xml`. Then import into Bing Webmaster Tools.
