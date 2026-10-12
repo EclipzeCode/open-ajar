@@ -10,16 +10,17 @@
     PARTNERS: edit this list. When a partner sends a testimonial, fill in its quote (and optionally who said it and
     their role). Add a photo by dropping it in static/img/partners/ (about 800px wide, 1200 for 'big'), then set 'img'
     to its filename and 'size' to its (width, height); until then the partner's initials show in its place.
-    'url' and 'address' show at the bottom; 'link' changes the link text (default "Visit website").
+    'url' and 'address' show at the bottom ('about' is a short description, for partners without an address);
+    'link' changes the link text (default "Visit website").
     Set 'wide': True for a wide photo that shouldn't be cropped to the portrait frame, and 'big': True to give it a wider column. Never put placeholder text here: it goes live.
   #}
   {% set partners = [
     {'name': 'Moon Tea', 'quote': 'I really enjoyed working with the OpenAjar team. They were thoughtful, easy to communicate with, and you could tell they genuinely cared about helping students. It felt less like a sponsorship and more like supporting a group of young people building something they really believed in.', 'by': '', 'role': '', 'img': 'moon-tea.jpg', 'size': (800, 1208), 'url': 'https://moonteanj.com/', 'address': '55 Mountain Boulevard, Warren, NJ 07059'},
-    {'name': 'Creator Colosseum', 'quote': 'Working with OpenAjar was a great experience. We appreciate their efforts to connect students with opportunities and help young people take their ideas beyond the classroom.', 'by': '', 'role': '', 'img': 'creator-colosseum.jpg', 'size': (728, 696), 'wide': True, 'url': 'https://creatorcolosseum.tiiny.site/'},
-    {'name': 'Partner Portal', 'quote': 'OpenAjar’s mission of connecting different people with similar goals aligns with our values. Their work has the potential to help students across the nation discover opportunities and build meaningful connections.', 'by': '', 'role': '', 'img': 'partner-portal.jpg', 'size': (1200, 900), 'wide': True, 'big': True, 'url': 'https://partnerportal-j6x1.onrender.com/'},
+    {'name': 'Creator Colosseum', 'quote': 'Working with OpenAjar was a great experience. We appreciate their efforts to connect students with opportunities and help young people take their ideas beyond the classroom.', 'by': '', 'role': '', 'img': 'creator-colosseum.jpg', 'size': (728, 696), 'wide': True, 'url': 'https://creatorcolosseum.tiiny.site/', 'about': 'Start-up incubator'},
+    {'name': 'Partner Portal', 'quote': 'OpenAjar’s mission of connecting different people with similar goals aligns with our values. Their work has the potential to help students across the nation discover opportunities and build meaningful connections.', 'by': '', 'role': '', 'img': 'partner-portal.jpg', 'size': (1200, 900), 'wide': True, 'big': True, 'url': 'https://partnerportal-j6x1.onrender.com/', 'about': 'Networking platform connecting nonprofits & small businesses'},
     {'name': 'Ryujin', 'quote': 'OpenAjar is doing something valuable by helping students connect with organizations and opportunities they might not otherwise discover. It was great to work with a team that is committed to making those connections happen.', 'img': 'ryujin.jpg', 'size': (800, 722), 'wide': True, 'url': 'https://www.ryujinnj.com/', 'address': '1339 Prince Rodgers Avenue, Bridgewater, NJ 08807'},
     {'name': 'One Dollar Zone of Cedar Knolls', 'quote': 'We enjoyed the opportunity to work with OpenAjar and support their mission. It’s exciting to see students taking the initiative to build a platform that helps other young people find opportunities and pursue their interests.', 'img': 'one-dollar-zone.jpg', 'size': (800, 600), 'url': 'https://www.yelp.com/biz/one-dollar-zone-of-cedar-knolls-cedar-knolls', 'link': 'View on Yelp', 'address': '235 Ridgedale Ave, Cedar Knolls, NJ 07927'},
-    {'name': 'Coders Over Borders', 'quote': 'The team was super easy to work with. Communication was smooth throughout the process, and we appreciated the opportunity to work with a group that is passionate about creating opportunities for students.', 'by': '', 'role': '', 'img': 'coders-over-borders.webp', 'size': (1024, 650), 'wide': True, 'big': True},
+    {'name': 'Coders Over Borders', 'quote': 'The team was super easy to work with. Communication was smooth throughout the process, and we appreciated the opportunity to work with a group that is passionate about creating opportunities for students.', 'by': '', 'role': '', 'img': 'coders-over-borders.webp', 'size': (1024, 650), 'wide': True, 'big': True, 'url': 'https://codersoverborders.vercel.app/', 'about': '501(c)(3) improving digital literacy across the world'},
   ] %}
   <section class="partners">
     <header class="partners__head">
@@ -39,9 +40,9 @@
           {% if p.quote %}
             <blockquote class="partner__quote">“{{ p.quote }}”{% if p.by %}<footer>{{ p.by }}{% if p.role %}, {{ p.role }}{% endif %}</footer>{% endif %}</blockquote>
           {% endif %}
-          {% if p.url or p.address %}
+          {% if p.url or p.address or p.about %}
             <p class="partner__info">
-              {% if p.address %}<span>{{ p.address }}</span>{% endif %}
+              {% if p.address or p.about %}<span>{{ p.address or p.about }}</span>{% endif %}
               {% if p.url %}<a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.link or 'Visit website' }} ↗</a>{% endif %}
             </p>
           {% endif %}
