@@ -3,10 +3,12 @@
 Run locally:   flask --app app run --debug
 Production:    gunicorn -w 1 --threads 8 'app:create_app()'     (see render.yaml)
 """
+import base64
 import csv
 import getpass
-import json
+import hashlib
 import hmac
+import json
 import os
 import threading
 import time
@@ -24,6 +26,12 @@ import mail
 from core import add_event, connect, current_user, expire_due, insert_opp, load_user, new_id, same_program_rows, update_opp
 
 ROOT = Path(__file__).parent
+# Runs in <head> before the first paint, so animated sections start in their animated layout instead of jumping when
+# app.js arrives. If app.js hasn't loaded 4 s later, it's undone so nothing stays hidden. Allowed by the CSP via its hash.
+JS_FLAG = ("document.documentElement.classList.add('js');"
+           "setTimeout(function(){if(!window.appReady)document.documentElement.classList.remove('js')},4000);")
+PRIVATE_PATHS = ('/account', '/tracker', '/admin', '/access-grants', '/verify', '/reset')
+JS_FLAG_HASH = base64.b64encode(hashlib.sha256(JS_FLAG.encode()).digest()).decode()
 
 
 def load_dotenv():
@@ -111,14 +119,18 @@ def create_app(test_config=None):
         resp.headers.update({
             'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin',
             'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-            'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
-                                       "font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; "
+            'Content-Security-Policy': f"default-src 'self'; script-src 'self' 'sha256-{JS_FLAG_HASH}'; style-src 'self'; "
+                                       "font-src 'self'; img-src 'self' data:; object-src 'none'; "
                                        "base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
         })
         if app.config['PRODUCTION']:
             resp.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        if current_user():
+        # Private pages are never stored. Other pages a signed-in person sees are re-checked rather than banned from
+        # the cache, so Back returns to the page as it was (scroll position, open filters) instead of reloading it.
+        if request.path.startswith(PRIVATE_PATHS):
             resp.headers['Cache-Control'] = 'no-store'
+        elif current_user():
+            resp.headers['Cache-Control'] = 'private, no-cache'
         return resp
 
     @app.teardown_appcontext
@@ -132,6 +144,7 @@ def create_app(test_config=None):
     @app.errorhandler(404)
     @app.errorhandler(413)
     @app.errorhandler(429)
+    @app.errorhandler(500)
     def error(e):
         return render_template('error.html', code=e.code, message=e.description if e.code in (400, 429) else None), e.code
 
@@ -140,7 +153,7 @@ def create_app(test_config=None):
         return {'user': current_user(), 'csrf_token': session.get('csrf', ''), 'D': data, 'production': app.config['PRODUCTION'],
                 'dev_inbox': not app.config['PRODUCTION'] and not app.config['RESEND_API_KEY'],
                 'contact_email': app.config['CONTACT_EMAIL'], 'canonical': app.config['APP_URL'] + request.path,
-                'app_url': app.config['APP_URL']}
+                'app_url': app.config['APP_URL'], 'js_flag': JS_FLAG}
 
     def page_url(page):
         args = [(k, v) for k, v in request.args.items(multi=True) if k != 'page'] + [('page', page)]
@@ -165,7 +178,8 @@ def init_db(path):
     db.execute('PRAGMA journal_mode = WAL')
     db.executescript((ROOT / 'schema.sql').read_text())
     # Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database.
-    for table, col, ddl in (('users', 'school', "TEXT NOT NULL DEFAULT ''"), ('tracked', 'found_here', 'INTEGER')):
+    for table, col, ddl in (('users', 'school', "TEXT NOT NULL DEFAULT ''"), ('tracked', 'found_here', 'INTEGER'),
+                            ('access_grants', 'approved_at', 'TEXT')):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
     db.commit()
@@ -287,8 +301,7 @@ def apply_correction_file(fixes):
             problems.append(f"{fx['external_id']} ({row['title']}): {errors}")
             continue
         if fx.get('set', {}).get('deadline_date') and not row['expires_at']:
-            from datetime import date, timedelta
-            clean['expires_at'] = (date.fromisoformat(clean['deadline_date']) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+            clean['expires_at'] = data.expiry_for(clean['deadline_date'])
         update_opp(db, row['id'], clean)
         if fx.get('verified'):
             db.execute("UPDATE opportunities SET verification='verified' WHERE id=?", (row['id'],))
@@ -327,6 +340,8 @@ def import_rows(rows, approve=False, batch=''):
             problems.append(f"{r.get('id')} duplicate of “{dup['title']}”")
             continue
         status = 'approved' if approve else 'pending_review'
+        if approve and clean['deadline_date'] and not clean.get('expires_at'):  # same as approving it by hand
+            clean['expires_at'] = data.expiry_for(clean['deadline_date'])
         opp_id = insert_opp(db, clean, status=status, source='import:' + (r.get('group') or 'sheet'), external_id=ext,
                             verification='source' if approve else 'unreviewed', published_at=data.now_iso() if approve else None)
         add_event(opp_id, None, 'imported', status, note)

@@ -1,6 +1,8 @@
 // Small progressive enhancements. Every page works without this file.
 
-// Fade sections up as they scroll into view
+// Fade sections up as they scroll into view. base.html already set .js before the first paint; this repeats it in
+// case that gave up waiting for this file on a very slow connection.
+window.appReady = true;
 document.documentElement.classList.add('js');
 const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
   if (!e.isIntersecting) return;
@@ -292,6 +294,54 @@ if (marquee) {
   }));
 }
 
+// Home: interest tabs swap the three "open right now" cards in place (each tab is still a normal link)
+const explore = document.querySelector('[data-explore]');
+if (explore) {
+  const grid = document.querySelector('.explore__grid');
+  const all = document.querySelector('[data-explore-all]');
+  const glider = explore.querySelector('.explore__glider');
+  const tabs = [...explore.querySelectorAll('a')];
+  const cache = new Map();
+  const place = (a) => {
+    glider.style.width = `${a.offsetWidth}px`;
+    glider.style.transform = `translateX(${a.offsetLeft}px)`;
+  };
+  const load = async (url) => {
+    if (!cache.has(url)) {
+      cache.set(url, fetch(url).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return { cards: [...doc.querySelectorAll('.grid .card')].slice(0, 3), count: doc.querySelector('.results__count')?.textContent.trim() };
+      }).catch((e) => { cache.delete(url); throw e; }));
+    }
+    return cache.get(url);
+  };
+  tabs.forEach((a) => {
+    a.addEventListener('pointerenter', () => load(a.href).catch(() => {})); // warm the cache before the click
+    a.addEventListener('click', async (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || a.getAttribute('aria-current') === 'true') return;
+      e.preventDefault();
+      tabs.forEach((t) => t.setAttribute('aria-current', t === a ? 'true' : 'false'));
+      place(a);
+      explore.scrollTo({ left: a.offsetLeft - (explore.clientWidth - a.offsetWidth) / 2, behavior: calm ? 'auto' : 'smooth' }); // keep the chosen tab in view on phones
+      grid.style.minHeight = `${grid.offsetHeight}px`; // no jump while the cards change
+      grid.classList.add('is-leaving');
+      try {
+        const [{ cards, count }] = await Promise.all([load(a.href), new Promise((r) => setTimeout(r, calm ? 0 : 180))]);
+        if (!cards.length) { location.href = a.href; return; }
+        grid.replaceChildren(...cards.map((c) => document.importNode(c, true)));
+        all.href = a.href;
+        all.textContent = `See all ${(count || '').replace(/ results?$/, '')} →`.replace('See all  →', 'See all →');
+      } catch { location.href = a.href; return; }
+      grid.classList.remove('is-leaving');
+      grid.classList.add('is-swapped');
+      grid.style.minHeight = '';
+    });
+  });
+  place(tabs[0]);
+  addEventListener('resize', () => place(explore.querySelector('[aria-current="true"]')));
+  requestAnimationFrame(() => explore.classList.add('is-ready')); // the glider only animates after its first placement
+}
+
 // FAQ: answers slide open and closed. <details> normally snaps, and CSS can't animate it in every browser,
 // so the click is taken over: open, then grow from the closed height (or shrink, then close).
 document.querySelectorAll('.faq details').forEach((d) => {
@@ -363,12 +413,14 @@ if (acctLinks.length) {
   update();
 }
 
-// Mobile menu
-const menuBtn = document.querySelector('.menu-btn');
-menuBtn?.addEventListener('click', () => {
-  const open = document.getElementById('nav').classList.toggle('is-open');
-  menuBtn.setAttribute('aria-expanded', open);
-});
+// Mobile menu. Escape or tapping a link closes it (a link to the page you're on wouldn't otherwise).
+const menuBtn = document.querySelector('.menu-btn'), nav = document.getElementById('nav');
+if (menuBtn && nav) {
+  const setMenu = (open) => { nav.classList.toggle('is-open', open); menuBtn.setAttribute('aria-expanded', open); };
+  menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('is-open')));
+  nav.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nav.classList.contains('is-open')) { setMenu(false); menuBtn.focus(); } });
+}
 
 // Form errors: our own message under each field instead of the browser's pop-up bubbles.
 // The server still checks everything; this just gives quicker, nicer feedback.
@@ -425,6 +477,23 @@ document.addEventListener('submit', (e) => {
   const el = e.target;
   if (el.willValidate && shownOn(el).getAttribute('aria-invalid') === 'true' && el.checkValidity()) clearError(el);
 }));
+
+// Listing cards: the star saves or unsaves without reloading. Signed out, it goes to sign in instead, which finishes
+// the save afterwards. If anything goes wrong it falls back to a normal form post.
+document.addEventListener('submit', async (e) => {
+  const form = e.target.closest('.card__save');
+  if (!form || e.defaultPrevented) return;
+  e.preventDefault();
+  const btn = form.querySelector('button');
+  try {
+    const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'fetch' } });
+    if (r.redirected) { location.href = r.url; return; }
+    if (!r.ok) throw new Error();
+    const { saved } = await r.json();
+    btn.setAttribute('aria-pressed', saved);
+    btn.title = saved ? 'Saved' : 'Save';
+  } catch { form.submit(); }
+});
 
 // "Are you sure?" for destructive buttons and forms
 document.addEventListener('click', (e) => {
@@ -686,6 +755,11 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
       const r = await fetch(form.getAttribute('action'), { method: 'POST', body, headers: { 'X-Requested-With': 'fetch' } });
       if (!r.ok) throw new Error();
       status.textContent = 'Saved';
+      const c = await r.json(); // fresh counts for the stage menu and the numbers at the top
+      document.querySelectorAll('[data-total]').forEach((el) => { el.textContent = c.total; });
+      document.querySelectorAll('[data-stage-count]').forEach((el) => { el.textContent = c.counts[el.dataset.stageCount]; });
+      const due = document.querySelector('[data-due-soon]');
+      if (due) { due.textContent = c.due_soon; due.classList.toggle('is-soon', c.due_soon > 0); }
     } catch { status.textContent = 'Couldn’t save. Check your connection and try again.'; }
   };
   form.addEventListener('change', (e) => { if (e.target.name !== 'new_item') { clearTimeout(timer); save(); } });

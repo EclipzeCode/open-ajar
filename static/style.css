@@ -1,5 +1,8 @@
 /* OpenAjar. One stylesheet: tokens, base, layout, components, pages.
    Look: Inter only, warm stone text, flat evergreen accent, white cards with hairline borders, floating pill header. */
+/* Fonts, served from this site (variable fonts, Latin characters; anything else falls back to the system font) */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 600; font-display: swap; src: url(fonts/inter.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plus Jakarta Sans'; font-style: normal; font-weight: 500 800; font-display: swap; src: url(fonts/plus-jakarta-sans.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 :root {
   --bg: #FFFFFF; --surface: #FFFFFF; --soft: #FAFAF9; --ink: #44403C; --ink-strong: #1C1917; --muted: #78716C; --line: #E7E5E4; --line-strong: #D6D3D1;
   --accent: #1F5C46; --accent-2: #2E7D5B; --accent-ink: #FFFFFF; --accent-soft: #EEF5F1; --accent-hover: #174A38; --brass: #E8A33D;
@@ -140,6 +143,14 @@ img { max-width: 100%; height: auto; display: block; }
 .card:hover { border-color: #B9D3C6; transform: translateY(-2px); }
 .card__top { display: flex; justify-content: space-between; align-items: center; }
 .card__type { font-size: .75rem; font-weight: 600; color: var(--accent); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .02em; }
+/* the save star on each card (its row sits above the title link's full-card click area) */
+.card__save { margin: -8px -10px 0 8px; }
+.card__save button { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .85); color: var(--muted); cursor: pointer; transition: color .15s, background .15s, transform .15s; }
+.card__save button:hover, .card__save button:focus-visible { color: var(--accent); background: #fff; transform: scale(1.08); }
+.card__save svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.card__save [aria-pressed="true"] { color: var(--brass); }
+.card__save [aria-pressed="true"] svg { fill: currentColor; }
 .card__title { font-size: 1.1rem; margin-bottom: 2px; }
 .card__title a { color: var(--ink-strong); text-decoration: none; }
 .card__title a::after { content: ''; position: absolute; inset: 0; }
@@ -151,7 +162,7 @@ img { max-width: 100%; height: auto; display: block; }
    (a positioned head would shrink the title link's click area to the head). */
 .card__head { display: grid; grid-template-rows: auto auto auto; }
 .card__head > * { grid-column: 1; z-index: 1; }
-.card__head > .card__top { grid-row: 1; } .card__head > .card__title { grid-row: 2; } .card__head > .card__org { grid-row: 3; }
+.card__head > .card__top { grid-row: 1; z-index: 2; } .card__head > .card__title { grid-row: 2; } .card__head > .card__org { grid-row: 3; }
 .card__art { grid-row: 1 / 4; z-index: 0; margin: -22px -22px 0; border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
   background: var(--accent-soft) right top / 200px 130px no-repeat;
   -webkit-mask-image: linear-gradient(to bottom, #000, transparent), radial-gradient(90% 150% at 100% 0, #000 25%, transparent 70%);
@@ -424,6 +435,8 @@ html:not(.js) .marquee__nav { display: none; }
 .grantfacts__stats > div + div { padding-left: 32px; border-left: 1px solid rgba(255, 255, 255, .14); }
 .grantfacts__stats strong { font: 800 clamp(2.8rem, 6vw, 4.4rem)/1 var(--display); letter-spacing: -.04em; color: #fff; font-variant-numeric: tabular-nums; }
 .grantfacts__stats > div > span { color: #8FB9A3; }
+.grantfacts__paid { margin: 0 0 24px; color: #B9D3C6; font-size: 1.05rem; }
+.grantfacts__paid strong { color: #fff; }
 .grantfacts__steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 40px; padding: 0; }
 .grantfacts__steps li { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-radius: 14px; background: rgba(255, 255, 255, .06);
   border: 1px solid rgba(255, 255, 255, .1); color: #fff; font: 600 1rem var(--display); }
@@ -507,6 +520,7 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .results__left { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
 .results__count { font: 500 .95rem var(--sans); color: var(--muted); letter-spacing: 0; margin: 0; padding-left: 4px; }
 .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.chips--fixes { justify-content: center; margin: 0 0 16px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 5px 12px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-size: .82rem; font-weight: 500; text-decoration: none; }
 .chip span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: .9rem; line-height: 1; }
 .chip:hover span { background: rgba(31, 92, 70, .15); }
@@ -619,7 +633,7 @@ html:not(.js) .explore a[aria-current="true"], .explore--static a[aria-current="
 .partner:nth-of-type(even) .partner__img { order: 2; }
 .partner--big { grid-template-columns: 3fr 2fr; }
 .partner--big:nth-of-type(even) { grid-template-columns: 2fr 3fr; }
-.partner__img { width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
+.partner__img { width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
 .partner__img--wide { aspect-ratio: auto; }
 .partner__img--blank { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 600 3.2rem/1 var(--display); letter-spacing: .02em; }
 .partner h3 { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -.02em; margin: 0; }

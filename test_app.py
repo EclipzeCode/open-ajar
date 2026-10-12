@@ -65,10 +65,10 @@ class Flows(unittest.TestCase):
         self.assertIn(b'href="/opportunities"', page)
         self.assertIn(b'href="/jobs"', page)
         nav = lambda client: re.findall(r'>([^<>]+)</a>', client.get('/about').get_data(as_text=True).split('id="nav"')[1].split('</nav>')[0])
-        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Sign in'])
-        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Admin', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Sign in'])
+        self.assertEqual(nav(self.make_admin()), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Admin', 'Profile'])
         self.register()
-        self.assertEqual(nav(self.c), ['Opportunities', 'Apply', 'Access Grants', 'About', 'Profile'])
+        self.assertEqual(nav(self.c), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Profile'])
 
     def test_static_files_are_versioned_and_cached(self):
         css = re.search(r'href="(/static/style\.css\?v=\d+)"', self.c.get('/').get_data(as_text=True)).group(1)
@@ -109,6 +109,18 @@ class Flows(unittest.TestCase):
             self.assertIn(name, page)
         self.assertEqual(page.count('partner__quote'), 6)  # every partner has sent a real quote
         self.assertNotIn('“”', page)
+
+    def test_a_crash_shows_the_friendly_error_page(self):
+        self.app.config['PROPAGATE_EXCEPTIONS'] = False
+        self.app.view_functions['site.about'] = lambda: 1 / 0
+        r = self.c.get('/about')
+        self.assertEqual(r.status_code, 500)
+        self.assertIn(b'Something broke on our end', r.data)
+
+    def test_private_pages_are_never_cached(self):
+        self.register()
+        self.assertEqual(self.c.get('/account').headers['Cache-Control'], 'no-store')
+        self.assertEqual(self.c.get('/opportunities').headers['Cache-Control'], 'private, no-cache')  # Back keeps your place
 
     def test_writes_need_the_csrf_token(self):
         self.assertEqual(self.c.post('/register', data={'name': 'x', 'email': 'a@b.co', 'password': PW}).status_code, 400)
@@ -178,6 +190,7 @@ class Flows(unittest.TestCase):
         g = self.grant(gid)
         self.assertEqual((g['status'], g['paid_amount'], g['paid_by']), ('paid', 150, 'admin1'))
         self.assertIn(b'We paid $150', self.c.get('/access-grants').data)
+        self.assertIn(b'$150</strong> paid to programs for', self.c.get('/').data)  # the public total, once one is paid
         self.assertEqual(self.post('/access-grants', GRANT).status_code, 422)  # only $100 of the yearly cap is left
 
     def test_nobody_handles_their_own_access_grant(self):
@@ -189,6 +202,16 @@ class Flows(unittest.TestCase):
         self.assertEqual(self.grant(gid)['status'], 'new')
         self.post('/admin/grants', approve, other)
         self.assertEqual((self.grant(gid)['status'], self.grant(gid)['approved_by']), ('approved', 'admin2'))
+
+    def test_deleting_an_account_removes_its_quote_from_the_home_page(self):
+        self.register()
+        self.post('/account/quote', {'quote': 'OpenAjar helped me find my first research program.', 'role_label': 'HS Student'})
+        admin = self.make_admin()
+        qid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM testimonials').fetchone()['id']
+        self.post('/admin/voices', {'id': qid, 'status': 'approved'}, admin)
+        self.assertIn(b'my first research program', self.c.get('/').data)
+        self.post('/account/delete', {'password': PW})
+        self.assertNotIn(b'my first research program', self.c.get('/').data)
 
     def test_partner_inquiry_is_saved_emailed_and_listed_for_admins(self):
         form = {'business': 'Rosa’s Bakery', 'contact_name': 'Rosa Diaz', 'email': 'rosa@example.org', 'location': 'Austin, TX',
@@ -210,6 +233,31 @@ class Flows(unittest.TestCase):
         self.assertIn('Jordan Lee', mail.OUTBOX[0]['subject'])
         self.assertIn('NIH summer program', self.make_admin().get('/admin/messages').get_data(as_text=True))
         self.assertIn('href="/contact"', self.c.get('/').get_data(as_text=True))
+
+    def test_admins_can_download_a_backup(self):
+        self.register()
+        self.assertEqual(self.c.get('/admin/backup').status_code, 403)
+        r = self.make_admin().get('/admin/backup')
+        self.assertTrue(r.data.startswith(b'SQLite format 3'))
+        self.assertIn('attachment', r.headers['Content-Disposition'])
+        r.close()
+
+    def test_admin_lists_page_and_search_instead_of_stopping_at_a_limit(self):
+        db = connect(self.app.config['DB_PATH'])
+        db.executemany("INSERT INTO partner_inquiries (id, business, contact_name, email, message, created_at) VALUES (?,?,?,?,?,?)",
+                       [(f'p{i}', f'Shop {i}', 'Owner', f'o{i}@example.org', 'We could use a hand.', f'2026-01-01T00:00:{i % 60:02d}')
+                        for i in range(130)] + [('rosa', 'Rosa’s Bakery', 'Rosa', 'rosa@example.org', 'Counter help.', '2026-02-01')])
+        db.commit()
+        admin = self.make_admin()
+        page = admin.get('/admin/partners').get_data(as_text=True)
+        self.assertIn('131 in all · page 1 of 2', page)
+        self.assertIn('Shop', admin.get('/admin/partners?page=2').get_data(as_text=True))
+        found = admin.get('/admin/partners?q=rosa').get_data(as_text=True)
+        self.assertIn('Rosa’s Bakery', found)
+        self.assertIn('1 in all', found)
+        r = self.post('/admin/partners?q=rosa', {'id': 'rosa', 'status': 'contacted', 'admin_note': 'Called her.'}, admin)
+        self.assertEqual(r.headers['Location'], '/admin/partners?q=rosa')  # back to the same search
+        self.assertEqual(db.execute("SELECT status FROM partner_inquiries WHERE id='rosa'").fetchone()['status'], 'contacted')
 
     def test_students_cant_reach_admin(self):
         self.register()
@@ -254,6 +302,9 @@ class Flows(unittest.TestCase):
         self.assertEqual(f['cost'], {'Free': 1, 'Fee': 1})
         page = self.c.get('/opportunities?cost=Free').get_data(as_text=True)
         self.assertIn('2 results', page)
+        empty = self.c.get('/opportunities?cost=Fee&type=Summer+program&q=comp').get_data(as_text=True)
+        self.assertIn('0 results', empty)
+        self.assertIn('Without Summer program', empty)  # the one filter whose removal gives results
 
     def test_saved_filter_shows_only_your_saved_listings(self):
         base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
@@ -263,12 +314,57 @@ class Flows(unittest.TestCase):
         self.assertNotIn('name="saved"', self.c.get('/opportunities').get_data(as_text=True))  # signed out: no toggle
         self.register()
         kept = connect(self.app.config['DB_PATH']).execute("SELECT id FROM opportunities WHERE title='Kept Comp'").fetchone()['id']
-        self.post(f'/o/{kept}/save')
+        self.assertEqual(self.post(f'/o/{kept}/save', headers={'X-Requested-With': 'fetch'}).json, {'saved': True})  # the card's star
         page = self.c.get('/opportunities?saved=1').get_data(as_text=True)
         self.assertIn('1 result', page)
         self.assertIn('Kept Comp', page)
         self.assertNotIn('Other Comp', page)
         self.assertIn('2 results', self.c.get('/opportunities').get_data(as_text=True))
+
+    def test_save_pressed_while_signed_out_happens_after_signing_in(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Kept Comp'}], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        oid = db.execute('SELECT id FROM opportunities').fetchone()['id']
+        r = self.post(f'/o/{oid}/save', headers={'Referer': f'http://localhost/o/{oid}'})
+        self.assertIn('/login', r.headers['Location'])
+        self.register()  # signing up counts too
+        self.assertTrue(db.execute('SELECT 1 FROM saved WHERE opportunity_id=?', (oid,)).fetchone())
+
+    def test_tracked_deadlines_download_as_a_calendar(self):
+        from datetime import date, timedelta
+        due = (date.today() + timedelta(days=30)).isoformat()
+        base = {'organization': 'Org, Inc', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Robotics Challenge; National Round With A Very Long Name That Needs Folding', 'deadline_date': due}], approve=True)
+        oid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM opportunities').fetchone()['id']
+        self.register()
+        self.post(f'/o/{oid}/track')
+        r = self.c.get('/tracker.ics')
+        ics = r.get_data(as_text=True)
+        self.assertIn('text/calendar', r.headers['Content-Type'])
+        self.assertIn('DTSTART;VALUE=DATE:' + due.replace('-', ''), ics)
+        self.assertIn('Robotics Challenge\\; National', ics)  # escaped for the calendar format
+        self.assertTrue(all(len(line.encode()) <= 75 for line in ics.split('\r\n')))
+
+    def test_closed_listings_stop_showing(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': '1', 'title': 'Closed Comp', 'deadline_date': '2026-01-05'},
+                         {**base, 'id': '2', 'title': 'Old Comp', 'deadline_date': '2026-01-06'}], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        self.assertTrue(db.execute("SELECT expires_at FROM opportunities WHERE title='Closed Comp'").fetchone()['expires_at'])
+        db.execute("UPDATE opportunities SET expires_at=NULL WHERE title='Old Comp'")  # live from before expiries were set on import
+        db.commit()
+        from core import expire_due
+        expire_due(db)
+        page = self.c.get('/opportunities').get_data(as_text=True)
+        self.assertNotIn('Closed Comp', page)
+        self.assertNotIn('Old Comp', page)
 
     def test_jobs_get_a_category_and_can_be_filtered_by_it(self):
         base = {'summary': 'A part-time job for high-school students.', 'eligibility': 'At least 16', 'grades': '11;12',

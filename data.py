@@ -1,6 +1,7 @@
 """Taxonomy, validation and spreadsheet import. No Flask here, so it is easy to test and reuse from the CLI."""
 import re
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from urllib.parse import urlparse
 
 TYPES = ['Internship', 'Job', 'Research program', 'Scholarship', 'Summer program', 'Competition', 'Volunteer',
@@ -231,7 +232,7 @@ def validate_opportunity(src, admin=False):
         f.out['deadline_date'] = None
     elif not parse_date(d):
         f.errors['deadline_date'] = 'Use a valid date'
-    elif parse_date(d) > date.today() + timedelta(days=3 * 365):
+    elif parse_date(d) > today() + timedelta(days=3 * 365):
         f.errors['deadline_date'] = 'That date is too far away'
     else:
         f.out['deadline_date'] = d
@@ -271,12 +272,28 @@ def password_problem(pw, email=''):
 
 # ---------------------------------------------------------------- display helpers (used by templates)
 
+try:
+    STUDENT_TZ = ZoneInfo('America/New_York')
+except ZoneInfoNotFoundError:  # a machine without time zone data
+    STUDENT_TZ = timezone.utc
+
+
+def today():
+    """Today for students: US Eastern time, so "Due today" and reminders turn over at midnight there, not in UTC."""
+    return datetime.now(STUDENT_TZ).date()
+
+
+def expiry_for(deadline):
+    """When a listing with this YYYY-MM-DD deadline hides itself: two days later, so it has passed in every US time zone."""
+    return (date.fromisoformat(deadline) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+
+
 def deadline_info(deadline, note=''):
     """(text, soon) for a YYYY-MM-DD deadline."""
     d = parse_date((deadline or '')[:10])
     if not d:
         return (note or 'Rolling or not stated'), False
-    days = (d - date.today()).days
+    days = (d - today()).days
     when = d.strftime('%b %-d, %Y')
     if days < 0:
         return f'Closed {when}', False

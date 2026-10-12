@@ -270,6 +270,7 @@ def delete_account():
     if u['role'] == 'admin' and one("SELECT COUNT(*) n FROM users WHERE role='admin' AND disabled=0")['n'] <= 1:
         return back('delete', 'You are the only admin. Make someone else an admin before deleting your account.')
     audit(u['id'], 'account_deleted', u['email'])
+    run('DELETE FROM testimonials WHERE user_id=?', (u['id'],))  # their quote leaves the home page with them
     run('DELETE FROM users WHERE id=?', (u['id'],))
     session.clear()
     flash('Your account and everything in it has been deleted.')
@@ -299,10 +300,55 @@ def tracker():
     stage = request.args.get('stage') if request.args.get('stage') in data.STAGES else None
     tracked = [o for o in items if o['is_tracked']]
     saved = [o for o in items if o['is_saved'] and not o['is_tracked']]
-    due_soon = sum(data.deadline_info(o['own_deadline'] or o['deadline_date'])[1] for o in tracked)
-    return render_template('tracker.html', tracked=[o for o in tracked if not stage or o['stage'] == stage],
-                           counts={s: sum(o['stage'] == s for o in tracked) for s in data.STAGES}, stage=stage,
-                           total=len(tracked), due_soon=due_soon, saved=saved)
+    return render_template('tracker.html', tracked=[o for o in tracked if not stage or o['stage'] == stage], stage=stage,
+                           saved=saved, **tracker_counts(u['id']))
+
+
+def tracker_counts(uid):
+    """How many tracked per stage, in all, and due soon: for the tracker page and to refresh it after an autosave."""
+    rows = all_('''SELECT t.stage, COALESCE(NULLIF(t.deadline, ''), o.deadline_date) deadline FROM tracked t
+                   JOIN opportunities o ON o.id = t.opportunity_id WHERE t.user_id=?''', (uid,))
+    return {'counts': {s: sum(r['stage'] == s for r in rows) for s in data.STAGES}, 'total': len(rows),
+            'due_soon': sum(data.deadline_info(r['deadline'])[1] for r in rows)}
+
+
+@bp.get('/tracker.ics')
+@login_required
+def tracker_calendar():
+    """The deadlines of everything they're tracking, as all-day events (with a reminder the day before) for Google,
+    Apple or Outlook Calendar. Their own deadline wins over the listing's."""
+    u, app_url = current_user(), current_app.config['APP_URL']
+    rows = all_('''SELECT o.id, o.title, o.org, COALESCE(NULLIF(t.deadline, ''), o.deadline_date) deadline FROM tracked t
+                   JOIN opportunities o ON o.id = t.opportunity_id WHERE t.user_id=?''', (u['id'],))
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//OpenAjar//Tracker//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:OpenAjar deadlines']
+    for r in rows:
+        d = data.parse_date((r['deadline'] or '')[:10])
+        if not d:
+            continue
+        lines += ['BEGIN:VEVENT', f"UID:{r['id']}-{u['id']}@openajar.org", f'DTSTAMP:{stamp}',
+                  f'DTSTART;VALUE=DATE:{d:%Y%m%d}', f'DTEND;VALUE=DATE:{d + timedelta(days=1):%Y%m%d}',
+                  f"SUMMARY:{_ics('Deadline: ' + r['title'])}", f"DESCRIPTION:{_ics(r['org'] + ' · confirm the exact deadline on the official page.')}",
+                  f"URL:{app_url}/o/{r['id']}", 'BEGIN:VALARM', 'ACTION:DISPLAY', f"DESCRIPTION:{_ics(r['title'] + ' is due tomorrow')}",
+                  'TRIGGER:-P1D', 'END:VALARM', 'END:VEVENT']
+    lines.append('END:VCALENDAR')
+    body = ''.join(_fold(line) + '\r\n' for line in lines)
+    return body, {'Content-Type': 'text/calendar; charset=utf-8', 'Content-Disposition': 'attachment; filename="openajar-deadlines.ics"'}
+
+
+def _ics(text):
+    return text.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,').replace('\n', '\\n')
+
+
+def _fold(line):
+    """Calendar files want lines of at most 75 bytes; longer ones continue on the next line after a space."""
+    out, cur = [], ''
+    for ch in line:
+        if len((cur + ch).encode()) > 74:
+            out.append(cur)
+            cur = ' '
+        cur += ch
+    return '\r\n'.join(out + [cur])
 
 
 @bp.post('/tracker/<opp_id>')
@@ -336,5 +382,5 @@ def update_tracked(opp_id):
     if form.get('found') in ('0', '1'):
         flash('Thanks! Congratulations on getting in.' if stage in data.WON_STAGES else 'Thanks for letting us know.')
     if request.headers.get('X-Requested-With') == 'fetch':
-        return '', 204
+        return tracker_counts(u['id'])  # the page refreshes its counts from this
     return redirect(url_for('account.tracker', stage=request.args.get('stage')) + f'#t-{opp_id}')

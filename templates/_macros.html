@@ -95,7 +95,12 @@
     {% if art %}<span class="card__art card__art--{{ art|lower|replace(' & ', '-')|replace(' ', '-') }}" aria-hidden="true"></span>{% endif %}
     <div class="card__top">
       <p class="card__type">{{ o.job_category or o.type }}</p>
-      {% if o.id in saved %}<span class="pill pill--saved">Saved</span>{% endif %}
+      {% set on = o.id in saved %}
+      <form class="card__save" method="post" action="{{ url_for('site.toggle_save', opp_id=o.id, next=request.full_path) }}">{{ csrf() }}
+        <button type="submit" aria-pressed="{{ 'true' if on else 'false' }}" aria-label="Save {{ o.title }}" title="{{ 'Saved' if on else 'Save' }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>
+        </button>
+      </form>
     </div>
     <h3 class="card__title"><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></h3>
     <p class="card__org">{{ o.org }}</p>

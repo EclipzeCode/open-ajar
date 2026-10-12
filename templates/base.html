@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <script>{{ js_flag|safe }}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}OpenAjar</title>
   {% set description %}{% block description %}OpenAjar helps high-school students find internships, programs, scholarships and jobs, then track them all the way to an application.{% endblock %}{% endset %}
@@ -12,11 +13,16 @@
   <meta property="og:title" content="{{ self.title() }}{% if self.title() %} · {% endif %}OpenAjar">
   <meta property="og:description" content="{{ description|trim }}">
   <meta property="og:url" content="{{ canonical }}">
+  <meta property="og:image" content="{{ app_url }}{{ url_for('static', filename='og.jpg') }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="OpenAjar: Opportunity shouldn’t depend on who you know.">
+  <meta name="twitter:card" content="summary_large_image">
   {% block head %}{% endblock %}
   <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+  {# same URLs the stylesheet uses, so the fonts start downloading right away instead of after the CSS #}
+  <link rel="preload" href="/static/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
@@ -31,7 +37,7 @@
          the footer lists the rest. Each item stays highlighted on the pages it covers. #}
       {% set ep = request.endpoint or '' %}
       <a href="{{ url_for('site.browse') }}" {% if ep in ('site.browse', 'site.jobs', 'site.detail', 'site.submit') %}aria-current="page"{% endif %}>Opportunities</a>
-      <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Apply</a>
+      <a href="{{ url_for('site.apply') }}" {% if ep == 'site.apply' %}aria-current="page"{% endif %}>Intern with us</a>
       <a href="{{ url_for('site.grants') }}" {% if ep == 'site.grants' %}aria-current="page"{% endif %}>Access Grants</a>
       <a href="{{ url_for('site.about') }}" {% if ep in ('site.about', 'site.support') %}aria-current="page"{% endif %}>About</a>
       {% if user %}

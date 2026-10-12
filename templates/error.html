@@ -6,7 +6,7 @@
   <header class="page-head">
     <p class="eyebrow">Error {{ code }}</p>
     <h1>{{ {404: 'We couldn’t find that.', 403: 'You don’t have access to that.', 413: 'That was too much to send.', 429: 'Too many tries.'}.get(code, 'Something went wrong.') }}</h1>
-    <p class="lead">{{ message or 'Check the address, or head back to the start.' }}</p>
+    <p class="lead">{{ message or ('Something broke on our end. Try again in a moment, and if it keeps happening, email ' ~ contact_email ~ '.' if code == 500 else 'Check the address, or head back to the start.') }}</p>
   </header>
   <div class="actions"><a class="btn" href="{{ url_for('site.home') }}">Go home</a><a class="link" href="{{ url_for('site.browse') }}">Browse opportunities →</a></div>
 </div>

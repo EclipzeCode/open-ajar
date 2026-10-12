@@ -43,9 +43,10 @@
         </tbody>
       </table>
     </div>
-    <p class="muted small">Showing up to 300. Bulk approval only approves; rejecting or asking for changes needs a note, so open the listing.</p>
+    <p class="muted small">Bulk approval only approves; rejecting or asking for changes needs a note, so open the listing.</p>
     <button class="btn" type="submit" data-confirm="Approve the selected listings? They’ll go live right away.">Approve selected</button>
   </form>
+  {% include 'admin/_pager.html' %}
   {% else %}
     <p class="empty">Nothing here.</p>
   {% endif %}

@@ -76,9 +76,38 @@ def load_user():
 
 
 def sign_in(user):
+    pending = session.get('pending')
     session.clear()
     session.permanent = True
     session.update(uid=user['id'], ver=user['session_version'], csrf=secrets.token_urlsafe(32))
+    if pending:
+        finish_pending(user, pending)
+
+
+# Save or Track pressed while signed out: remembered, then done once they sign in or sign up
+PENDING = {'site.toggle_save': 'save', 'site.track': 'track'}
+
+
+def finish_pending(user, pending):
+    opp = get_public(pending['opp'])
+    if not opp:
+        return
+    if pending['action'] == 'save':
+        save_opp(user['id'], opp['id'])
+        flash(f'Saved “{opp["title"]}”. Find it any time in your tracker.')
+    else:
+        track_opp(user['id'], opp)
+        flash(f'Tracking “{opp["title"]}”. Its requirements are now a checklist in your tracker.')
+
+
+def save_opp(user_id, opp_id):
+    run('INSERT OR IGNORE INTO saved (user_id, opportunity_id, created_at) VALUES (?,?,?)', (user_id, opp_id, now_iso()))
+
+
+def track_opp(user_id, opp):
+    checklist = json.dumps([{'text': t, 'done': False} for t in opp['requirements']])
+    run('INSERT OR IGNORE INTO tracked (user_id, opportunity_id, checklist, added_at) VALUES (?,?,?,?)',
+        (user_id, opp['id'], checklist, now_iso()))
 
 
 def _here():
@@ -93,6 +122,10 @@ def login_required(view):
     @wraps(view)
     def wrapper(*a, **kw):
         if not current_user():
+            if request.method == 'POST' and request.endpoint in PENDING:
+                session['pending'] = {'action': PENDING[request.endpoint], 'opp': kw.get('opp_id')}
+                flash('Sign in to finish. We’ll save it for you.')
+                return redirect(url_for('account.login', next=_here()))
             flash('Sign in to continue.')
             return redirect(url_for('account.login', next=_here()))
         return view(*a, **kw)
@@ -155,9 +188,9 @@ PUBLIC = "o.status = 'approved' AND (o.expires_at IS NULL OR o.expires_at > ?)"
 
 
 def grant_room(user_id, exclude=None):
-    """Dollars a student can still be granted this calendar year: data.GRANT_CAP minus what's approved or paid."""
+    """Dollars a student can still be granted this calendar year: data.GRANT_CAP minus what was approved this year."""
     used = one("""SELECT COALESCE(SUM(COALESCE(paid_amount, approved_amount)), 0) n FROM access_grants
-                  WHERE user_id=? AND status IN ('approved', 'paid') AND substr(created_at, 1, 4)=? AND id<>?""",
+                  WHERE user_id=? AND status IN ('approved', 'paid') AND substr(COALESCE(approved_at, created_at), 1, 4)=? AND id<>?""",
                (user_id, now_iso()[:4], exclude or ''))['n']
     return max(0, data.GRANT_CAP - used)
 
@@ -257,6 +290,9 @@ def facets(f=None):
 
 
 def expire_due(db):
+    # a live listing with a deadline but no expiry (imported straight to live before that was set) gets the usual one
+    for r in db.execute("SELECT id, deadline_date FROM opportunities WHERE status='approved' AND expires_at IS NULL AND deadline_date IS NOT NULL").fetchall():
+        db.execute('UPDATE opportunities SET expires_at=? WHERE id=?', (data.expiry_for(r['deadline_date']), r['id']))
     db.execute("UPDATE opportunities SET status='expired', updated_at=? WHERE status='approved' AND expires_at IS NOT NULL AND expires_at <= ?",
                (now_iso(), now_iso()))
     db.commit()
