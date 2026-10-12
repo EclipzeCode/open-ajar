@@ -142,13 +142,20 @@ def login_required(view):
     return wrapper
 
 
+ADMIN_ONLY = ('admin.backup', 'admin.export')  # downloads of everyone's data: admins only, even though they're GETs
+
+
 def admin_required(view):
+    """Admin pages. Moderators see them too but only look: anything that changes something (not a GET), and the data
+    downloads, are for admins."""
     @wraps(view)
     def wrapper(*a, **kw):
         u = current_user()
         if not u:
             return redirect(url_for('account.login', next=_here()))
-        if u['role'] != 'admin':
+        if u['role'] not in data.STAFF:
+            abort(403)
+        if u['role'] != 'admin' and (request.method not in ('GET', 'HEAD') or request.endpoint in ADMIN_ONLY):
             abort(403)
         return view(*a, **kw)
     return wrapper

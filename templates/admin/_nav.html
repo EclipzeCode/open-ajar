@@ -2,6 +2,7 @@
 {% macro tab(endpoint, label, current, n=0) %}
   <a href="{{ url_for(endpoint) }}" {% if current %}aria-current="page"{% endif %}>{{ label }}{% if n %} <span class="tabs__n" aria-label="{{ n }} waiting">{{ n }}</span>{% endif %}</a>
 {% endmacro %}
+{% if not can_edit %}<p class="viewonly" role="note"><strong>View only.</strong> As a moderator you can see everything here, but only admins can make changes.</p>{% endif %}
 <nav class="tabs" aria-label="Admin">
   {% set ep = request.endpoint %}
   {{ tab('admin.stats', 'Overview', ep == 'admin.stats') }}

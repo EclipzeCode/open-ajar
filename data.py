@@ -65,11 +65,13 @@ RELATIONSHIPS = {'organization_rep': 'I represent the organization', 'counselor_
                  'student_or_parent': 'I’m a student or parent', 'other': 'Something else'}
 STATUSES = {'pending_review': 'Pending review', 'changes_requested': 'Changes requested', 'approved': 'Approved',
             'rejected': 'Rejected', 'expired': 'Expired'}
-ROLES = ['student', 'organization', 'counselor', 'admin']
+ROLES = ['student', 'organization', 'counselor', 'moderator', 'admin']
+STAFF = ('admin', 'moderator')  # open the admin pages; moderators only look, admins change things
 
 INTERN_STATUSES = {'new': 'Received', 'contacted': 'In review', 'accepted': 'Accepted', 'placed': 'Placed with a business',
                    'declined': 'Not selected'}
 PARTNER_STATUSES = {'new': 'Received', 'contacted': 'In conversation', 'partnered': 'Partnered', 'declined': 'Not a fit right now'}
+CONTACT_STATUSES = {'new': 'Received', 'replied': 'Answered', 'closed': 'Closed'}
 
 # Everything someone can apply for, as they see it on their profile: a name (label; noun in emails), its statuses, and the usual path through
 # them (drawn as progress steps). A status off the path is either waiting on the applicant (shown at a step, see
@@ -78,6 +80,7 @@ APPLICATION_KINDS = {
     'intern': {'label': 'Internship application', 'noun': 'internship application', 'statuses': INTERN_STATUSES, 'path': ['new', 'contacted', 'accepted', 'placed']},
     'partner': {'label': 'Partner inquiry', 'noun': 'partner inquiry', 'statuses': PARTNER_STATUSES, 'path': ['new', 'contacted', 'partnered']},
     'grant': {'label': 'Access Grant', 'noun': 'Access Grant request', 'statuses': GRANT_STATUSES, 'path': ['new', 'approved', 'paid']},
+    'contact': {'label': 'Message to the team', 'noun': 'message', 'statuses': CONTACT_STATUSES, 'path': ['new', 'replied']},
     'listing': {'label': 'Listing you submitted', 'noun': 'listing submission', 'statuses': STATUSES, 'path': ['pending_review', 'approved']},
 }
 WAITING = {'needs_info': 'new', 'changes_requested': 'pending_review'}  # waiting on the applicant, at this step

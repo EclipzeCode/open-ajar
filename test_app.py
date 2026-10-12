@@ -260,6 +260,70 @@ class Flows(unittest.TestCase):
         self.assertIn('vbadge--no', users)  # Lee: not yet
         self.assertIn('Verify manually', users)
 
+    def test_moderators_see_everything_but_change_nothing(self):
+        admin = self.make_admin()
+        self.register('mo@example.org')
+        db = connect(self.app.config['DB_PATH'])
+        mid = db.execute("SELECT id FROM users WHERE email='mo@example.org'").fetchone()['id']
+        self.post('/admin/users', {'id': mid, 'role': 'moderator'}, admin)  # an admin makes them a moderator
+        self.assertEqual(db.execute('SELECT role FROM users WHERE id=?', (mid,)).fetchone()['role'], 'moderator')
+        self.post('/login', {'email': 'mo@example.org', 'password': PW})  # changing a role signs them out
+        self.post('/contact', {'name': 'Jordan Lee', 'email': 'jordan@example.org', 'topic': 'A question', 'message': 'Do you have summer programs in Ohio?'})
+        cid = db.execute('SELECT id FROM contact_messages').fetchone()['id']
+        for path in ('/admin/stats', '/admin/', '/admin/interns', '/admin/partners', '/admin/messages', '/admin/grants',
+                     '/admin/voices', '/admin/users', '/admin/activity'):
+            page = self.c.get(path)
+            self.assertEqual(page.status_code, 200, path)
+            self.assertIn('View only.', page.get_data(as_text=True))
+        self.assertNotIn('Reply to Jordan', self.c.get('/admin/messages').get_data(as_text=True))  # no forms to change things
+        self.assertIn('Admin', self.c.get('/about').get_data(as_text=True))  # the navbar link
+        self.assertEqual(self.post('/admin/messages', {'id': cid, 'status': 'closed'}).status_code, 403)
+        self.assertEqual(self.post('/admin/users', {'id': mid, 'role': 'admin'}).status_code, 403)
+        self.assertEqual(self.c.get('/admin/backup').status_code, 403)  # everyone's data stays with admins
+        self.assertEqual(self.c.get('/admin/export').status_code, 403)
+        self.assertEqual(db.execute('SELECT status FROM contact_messages').fetchone()['status'], 'new')
+
+    def test_admins_answer_contact_messages_and_the_sender_can_reply(self):
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute('UPDATE users SET email_verified=1')
+        db.commit()
+        self.post('/contact', {'name': 'Sam Rivera', 'email': 'sam@example.org', 'topic': 'A listing', 'message': 'The NIH deadline looks out of date.'})
+        cid = db.execute('SELECT id FROM contact_messages').fetchone()['id']
+        admin = self.make_admin()
+        mail.OUTBOX.clear()
+        self.post('/admin/messages', {'id': cid, 'status': 'new', 'message': 'Thanks! Fixed it.', 'notify': '1'}, admin)
+        self.assertEqual(db.execute('SELECT status FROM contact_messages').fetchone()['status'], 'replied')  # answering marks it answered
+        self.assertEqual(mail.OUTBOX[0]['to'], 'sam@example.org')
+        self.assertIn('Thanks! Fixed it.', mail.OUTBOX[0]['text'])
+        profile = self.c.get('/account').get_data(as_text=True)
+        self.assertIn('The NIH deadline looks out of date.', profile)  # their message starts the conversation
+        self.assertIn('Thanks! Fixed it.', profile)
+        self.post(f'/account/applications/contact/{cid}', {'message': 'Great, thank you!'})
+        self.assertEqual(db.execute('SELECT status FROM contact_messages').fetchone()['status'], 'new')  # back in the team's pile
+        self.assertIn('Reply from Sam Rivera', admin.get('/admin/messages').get_data(as_text=True))
+
+    def test_older_databases_are_upgraded_without_losing_anything(self):
+        from app import init_db
+        old = Path(self.tmp.name) / 'old.db'
+        schema = (Path(__file__).parent / 'schema.sql').read_text()
+        db = connect(str(old))  # the tables as they were before moderators and contact replies
+        db.executescript(schema.replace("'moderator',", '').replace(",'contact'", ''))
+        db.execute("INSERT INTO users (id, email, password_hash, name, created_at) VALUES ('u1', 'a@example.org', 'x', 'A', '2026-01-01')")
+        db.execute("INSERT INTO opportunities (id, title, org, type, summary, cost, format, commitment, created_at, updated_at) "
+                   "VALUES ('o1', 'T', 'O', 'Job', 'S', 'Free', 'Online', 'Summer', '2026-01-01', '2026-01-01')")
+        db.execute("INSERT INTO saved (user_id, opportunity_id, created_at) VALUES ('u1', 'o1', '2026-01-01')")
+        db.commit()
+        db.close()
+        init_db(str(old))
+        init_db(str(old))  # safe to run again
+        db = connect(str(old))
+        db.execute("UPDATE users SET role='moderator' WHERE id='u1'")
+        self.assertEqual(db.execute('SELECT COUNT(*) n FROM saved').fetchone()['n'], 1)  # rebuilding users didn't cascade
+        db.execute("DELETE FROM users WHERE id='u1'")
+        self.assertEqual(db.execute('SELECT COUNT(*) n FROM saved').fetchone()['n'], 0)  # and references still work
+        db.close()
+
     def test_partners_grants_and_listing_submitters_get_updates_too(self):
         self.register()
         db = connect(self.app.config['DB_PATH'])

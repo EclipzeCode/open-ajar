@@ -350,7 +350,7 @@ def stat_adjustments():
 @bp.context_processor
 def tab_badges():
     """How many things are waiting on each admin tab, for the number badges in the admin menu."""
-    if not current_user() or current_user()['role'] != 'admin':
+    if not current_user() or current_user()['role'] not in data.STAFF:
         return {}
     return {'badges': dict(one('''SELECT
         (SELECT COUNT(*) FROM opportunities WHERE status='pending_review') listings,
@@ -508,7 +508,8 @@ ACTION_NAMES = {
 @bp.route('/messages', methods=['GET', 'POST'])
 @admin_required
 def messages():
-    return _inbox('contact_messages', ['new', 'replied', 'closed'], 'admin/messages.html', ('name', 'email', 'topic', 'message'))
+    return _inbox('contact_messages', list(data.CONTACT_STATUSES), 'admin/messages.html', ('name', 'email', 'topic', 'message'),
+                  kind='contact')
 
 
 @bp.route('/partners', methods=['GET', 'POST'])
@@ -658,6 +659,8 @@ def _inbox(table, statuses, template, cols, kind=None):
         status = request.form.get('quick') or request.form.get('status')  # quick: a one-click button such as Accept
         if row and status in statuses:
             message = data.clean(request.form.get('message', ''), multiline=True)[:1000] if kind else ''
+            if kind == 'contact' and message and status == 'new':
+                status = 'replied'  # answering a message marks it answered
             run(f'UPDATE {table} SET status=?, admin_note=? WHERE id=?',
                 (status, data.clean(request.form.get('admin_note', row['admin_note']), multiline=True)[:2000], row['id']))
             changed = status != row['status']
@@ -665,8 +668,9 @@ def _inbox(table, statuses, template, cols, kind=None):
                 label = data.APPLICATION_KINDS[kind]['statuses'][status] if changed else None
                 record_update(kind, row['id'], status if changed else None, message)
                 if message or request.form.get('notify'):
-                    name, title = ((row['full_name'], 'OpenAjar internships') if kind == 'intern'
-                                   else (row['contact_name'], f"hosting an intern at {row['business']}"))
+                    name, title = {'intern': lambda: (row['full_name'], 'OpenAjar internships'),
+                                   'partner': lambda: (row['contact_name'], f"hosting an intern at {row['business']}"),
+                                   'contact': lambda: (row['name'], row['topic'])}[kind]()
                     mail.later(f'{kind} update', mail.application_update, current_app.config, row['email'], name, kind, title, label, message)
                     flash(f"Saved and emailed {row['email']}.")
                 else:

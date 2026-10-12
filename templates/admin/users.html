@@ -34,7 +34,7 @@
               {% if u.email_verified %}<span class="vbadge vbadge--yes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Verified</span>
               {% else %}<span class="vbadge vbadge--no">Unverified</span>{% endif %}
               {% if u.disabled %}<span class="vbadge vbadge--off">Disabled</span>{% endif %}
-              {% if not u.email_verified and not locked %}
+              {% if not u.email_verified and not locked and can_edit %}
                 <form method="post">{{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">
                   <button class="btn btn--sm btn--ghost btn--icon" type="submit" name="action" value="verify"
                     data-confirm="Verify {{ u.email }} manually? Only do this if you know the address is theirs."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.2-2.9 7.9-7 9.5-4.1-1.6-7-5.3-7-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/></svg>Verify manually</button></form>
@@ -44,6 +44,8 @@
           <td>
             {% if locked %}
               <span class="muted small">{{ u.role|capitalize }} · only the owner can change this</span>
+            {% elif not can_edit %}
+              <span class="small">{{ u.role|capitalize }}</span>
             {% else %}
             <form class="inline-form" method="post">
               {{ m.csrf() }}<input type="hidden" name="id" value="{{ u.id }}">

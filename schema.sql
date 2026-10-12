@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   id               TEXT PRIMARY KEY,
   email            TEXT NOT NULL UNIQUE,
   password_hash    TEXT NOT NULL,
-  role             TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student','organization','counselor','admin')),
+  role             TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student','organization','counselor','moderator','admin')),
   name             TEXT NOT NULL,
   disabled         INTEGER NOT NULL DEFAULT 0,
   email_verified   INTEGER NOT NULL DEFAULT 0,
@@ -157,8 +157,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 -- applicant's replies from their profile (by_applicant = 1). Listing submissions keep theirs in review_events.
 CREATE TABLE IF NOT EXISTS application_updates (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  kind       TEXT NOT NULL CHECK (kind IN ('intern','partner','grant')),   -- data.APPLICATION_KINDS
-  item_id    TEXT NOT NULL,                  -- intern_applications / partner_inquiries / access_grants id
+  kind       TEXT NOT NULL CHECK (kind IN ('intern','partner','grant','contact')),   -- data.APPLICATION_KINDS
+  item_id    TEXT NOT NULL,                  -- intern_applications / partner_inquiries / access_grants / contact_messages id
   actor_id   TEXT REFERENCES users(id) ON DELETE SET NULL,
   status     TEXT,                           -- the status it moved to, if it changed
   message    TEXT NOT NULL DEFAULT '',

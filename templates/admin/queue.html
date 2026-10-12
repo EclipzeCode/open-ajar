@@ -28,11 +28,11 @@
     {{ m.csrf() }}
     <div class="table-wrap">
       <table class="table">
-        <thead><tr><th><label class="sr-only" for="all">Select all</label><input type="checkbox" id="all" data-select-all></th><th>Listing</th><th>Type</th><th>Origin</th><th>Deadline</th><th>Updated</th></tr></thead>
+        <thead><tr>{% if can_edit %}<th><label class="sr-only" for="all">Select all</label><input type="checkbox" id="all" data-select-all></th>{% endif %}<th>Listing</th><th>Type</th><th>Origin</th><th>Deadline</th><th>Updated</th></tr></thead>
         <tbody>
           {% for o in items %}
           <tr>
-            <td><input type="checkbox" name="ids" value="{{ o.id }}" aria-label="Select {{ o.title }}"></td>
+            {% if can_edit %}<td><input type="checkbox" name="ids" value="{{ o.id }}" aria-label="Select {{ o.title }}"></td>{% endif %}
             <td><a href="{{ url_for('admin.review', opp_id=o.id) }}"><strong>{{ o.title }}</strong></a><br><span class="muted small">{{ o.org }}</span>{% if status == 'all' %} <span class="pill pill--{{ o.status }}">{{ D.STATUSES[o.status] }}</span>{% endif %}</td>
             <td>{{ o.type }}</td>
             <td class="small">{{ o.source }}</td>
@@ -43,8 +43,10 @@
         </tbody>
       </table>
     </div>
+    {% if can_edit %}
     <p class="muted small">Bulk approval only approves; rejecting or asking for changes needs a note, so open the listing.</p>
     <button class="btn" type="submit" data-confirm="Approve the selected listings? They’ll go live right away.">Approve selected</button>
+    {% endif %}
   </form>
   {% include 'admin/_pager.html' %}
   {% else %}

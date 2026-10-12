@@ -16,8 +16,10 @@
   <header class="page-head admin-head">
     <div><p class="eyebrow">Admin</p><h1>Overview</h1></div>
     <div class="admin-head__actions">
+      {% if can_edit %}
       <a class="btn btn--sm" href="{{ url_for('admin.export') }}">Download data (CSV)</a>
       <a class="small muted" href="{{ url_for('admin.backup') }}" title="The whole database as one file, for restoring the site. Keep it private.">Full backup file</a>
+      {% endif %}
     </div>
   </header>
   {% include 'admin/_nav.html' %}

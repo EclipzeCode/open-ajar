@@ -10,12 +10,14 @@
     <article class="panel">
       <blockquote>“{{ t.quote }}”</blockquote>
       <p class="muted small">{{ t.name }}{% if t.role_label %}, {{ t.role_label }}{% endif %} · {{ t.updated_at|day }} · <span class="pill pill--{{ t.status }}">{{ t.status|capitalize }}</span></p>
+      {% if can_edit %}
       <form class="inline-form" method="post">
         {{ m.csrf() }}<input type="hidden" name="id" value="{{ t.id }}">
         {% if t.status != 'approved' %}<button class="btn btn--sm" name="status" value="approved">Approve</button>{% endif %}
         {% if t.status != 'declined' %}<button class="btn btn--sm btn--ghost" name="status" value="declined">Decline</button>{% endif %}
         {% if t.status != 'pending' %}<button class="btn btn--sm btn--ghost" name="status" value="pending">Back to pending</button>{% endif %}
       </form>
+      {% endif %}
     </article>
   {% else %}
     <p class="empty">No quotes yet.</p>
