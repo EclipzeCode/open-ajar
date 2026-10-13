@@ -407,6 +407,11 @@ def terms():
     return render_template('terms.html')
 
 
+@bp.get('/favicon.ico')
+def favicon():  # browsers and search engines ask for this address whatever the page links to
+    return current_app.send_static_file('favicon.png')
+
+
 @bp.get('/robots.txt')
 def robots():
     lines = ['User-agent: *', *(f'Disallow: {p}' for p in ('/admin', '/account', '/tracker', '/verify', '/reset', '/dev/')),
