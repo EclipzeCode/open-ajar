@@ -71,6 +71,17 @@ class Flows(unittest.TestCase):
         self.register()
         self.assertEqual(nav(self.c), ['Opportunities', 'Intern with us', 'Access Grants', 'About', 'Profile'])
 
+    def test_home_title_and_icons(self):
+        home = self.c.get('/').get_data(as_text=True)
+        self.assertIn('<title>OpenAjar: free internships, programs and scholarships for high school students</title>', home)
+        self.assertIn('content="OpenAjar: free internships, programs and scholarships for high school students"', home)  # og:title
+        self.assertIn('<title>About · OpenAjar</title>', self.c.get('/about').get_data(as_text=True))  # other pages unchanged
+        for icon in ('favicon.svg', 'favicon.png', 'apple-touch-icon.png'):
+            self.assertIn(f'/static/{icon}?v=', home)
+        r = self.c.get('/favicon.ico')
+        self.assertEqual((r.status_code, r.mimetype), (200, 'image/png'))
+        r.close()
+
     def test_static_files_are_versioned_and_cached(self):
         css = re.search(r'href="(/static/style\.css\?v=\d+)"', self.c.get('/').get_data(as_text=True)).group(1)
         self.assertIn('max-age=31536000', self.c.get(css).headers['Cache-Control'])
