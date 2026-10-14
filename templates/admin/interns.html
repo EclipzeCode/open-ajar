@@ -26,7 +26,31 @@
         <p class="review-app__statement">{{ a.statement }}</p>
         {{ app.history(updates.get(a.id), labels) }}
       </div>
-      {{ app.update_form(a, a.full_name, a.email, labels, ('accepted', 'Accept ' ~ a.full_name.split()[0])) }}
+      <div class="review-app__side">
+      {{ app.update_form(a, a.full_name, a.email, labels,
+                         [('accepted', 'Accept ' ~ a.full_name.split()[0], None),
+                          ('declined', 'Decline', 'Decline ' ~ a.full_name ~ '? They’ll be emailed that they weren’t selected.')], D.DECISIONS.intern) }}
+      {% if a.status in D.PLACED %}{% set pl = dict(a) %}
+      <form class="placement" method="post" action="{{ request.full_path }}">
+        {{ m.csrf() }}<input type="hidden" name="id" value="{{ a.id }}"><input type="hidden" name="action" value="placement">
+        <h3>Placement</h3>
+        <p class="muted small">Shown on {{ a.full_name.split()[0] }}’s profile. Saving doesn’t email them.</p>
+        {% if can_edit %}
+        <div class="row2">
+          {{ m.input('placement_business', 'Business', pl, {}, max=160) }}
+          {{ m.input('placement_start', 'Start date', pl, {}, type='date') }}
+        </div>
+        <div class="row2">
+          {{ m.input('placement_hours', 'Hours', pl, {}, max=160, placeholder='e.g. 10 hours a week, after school') }}
+          {{ m.input('placement_supervisor', 'Supervisor', pl, {}, max=200, placeholder='Name and email or phone') }}
+        </div>
+        <button class="btn btn--sm" type="submit">Save placement</button>
+        {% else %}
+        <dl class="review-app__facts">{% for k, label in (('placement_business', 'Business'), ('placement_start', 'Start date'), ('placement_hours', 'Hours'), ('placement_supervisor', 'Supervisor')) %}<div><dt>{{ label }}</dt><dd>{{ a[k] or '—' }}</dd></div>{% endfor %}</dl>
+        {% endif %}
+      </form>
+      {% endif %}
+      </div>
     </article>
   {% else %}
     <p class="empty">No applications{% if status %} marked {{ labels[status]|lower }}{% endif %} yet.</p>

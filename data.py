@@ -65,13 +65,34 @@ RELATIONSHIPS = {'organization_rep': 'I represent the organization', 'counselor_
                  'student_or_parent': 'I’m a student or parent', 'other': 'Something else'}
 STATUSES = {'pending_review': 'Pending review', 'changes_requested': 'Changes requested', 'approved': 'Approved',
             'rejected': 'Rejected', 'expired': 'Expired'}
-ROLES = ['student', 'organization', 'counselor', 'moderator', 'admin']
+ROLES = ['student', 'organization', 'counselor', 'partner', 'moderator', 'admin']
 STAFF = ('admin', 'moderator')  # open the admin pages; moderators only look, admins change things
 
 INTERN_STATUSES = {'new': 'Received', 'contacted': 'In review', 'accepted': 'Accepted', 'placed': 'Placed with a business',
                    'declined': 'Not selected'}
 PARTNER_STATUSES = {'new': 'Received', 'contacted': 'In conversation', 'partnered': 'Partnered', 'declined': 'Not a fit right now'}
 CONTACT_STATUSES = {'new': 'Received', 'replied': 'Answered', 'closed': 'Closed'}
+DECISIONS = {'intern': ('accepted', 'declined')}  # status changes that always email the applicant
+PLACED = ('accepted', 'placed')  # intern statuses that have placement details
+
+# The About page's partners when the site first starts with partner_profiles (app.init_db). After that they're edited
+# under Admin > Partner profiles; changing this list does nothing to a database that already has them.
+PARTNER_SEED = [
+    {'name': 'Moon Tea', 'quote': 'I really enjoyed working with the OpenAjar team. They were thoughtful, easy to communicate with, and you could tell they genuinely cared about helping students. It felt less like a sponsorship and more like supporting a group of young people building something they really believed in.',
+     'img': 'moon-tea.jpg', 'width': 800, 'height': 1208, 'url': 'https://moonteanj.com/', 'address': '55 Mountain Boulevard, Warren, NJ 07059'},
+    {'name': 'Strategic Training Endeavors', 'quote': 'Having hosted internships myself, I know how difficult it can be for students to find these opportunities. That’s why I love what OpenAjar is doing to make them more accessible.',
+     'img': 'strategic-training-endeavors.png', 'width': 1200, 'height': 300, 'wide': 1, 'big': 1, 'logo': 1, 'url': 'https://strategictrainingendeavors.com/'},
+    {'name': 'Creator Colosseum', 'quote': 'Working with OpenAjar was a great experience. We appreciate their efforts to connect students with opportunities and help young people take their ideas beyond the classroom.',
+     'img': 'creator-colosseum.jpg', 'width': 728, 'height': 696, 'wide': 1, 'url': 'https://creatorcolosseum.tiiny.site/', 'about': 'Start-up incubator'},
+    {'name': 'Partner Portal', 'quote': 'OpenAjar’s mission of connecting different people with similar goals aligns with our values. Their work has the potential to help students across the nation discover opportunities and build meaningful connections.',
+     'img': 'partner-portal.jpg', 'width': 1200, 'height': 900, 'wide': 1, 'big': 1, 'url': 'https://partnerportal-j6x1.onrender.com/', 'about': 'Networking platform connecting nonprofits & small businesses'},
+    {'name': 'Coders Over Borders', 'quote': 'The team was super easy to work with. Communication was smooth throughout the process, and we appreciated the opportunity to work with a group that is passionate about creating opportunities for students.',
+     'img': 'coders-over-borders.webp', 'width': 1024, 'height': 650, 'wide': 1, 'big': 1, 'url': 'https://codersoverborders.vercel.app/', 'about': '501(c)(3) improving digital literacy across the world'},
+    {'name': 'Ryujin', 'tier': 'supporter', 'quote': 'OpenAjar is doing something valuable by helping students connect with organizations and opportunities they might not otherwise discover. It was great to work with a team that is committed to making those connections happen.',
+     'img': 'ryujin.jpg', 'width': 800, 'height': 722, 'wide': 1, 'url': 'https://www.ryujinnj.com/', 'address': '1339 Prince Rodgers Avenue, Bridgewater, NJ 08807'},
+    {'name': 'One Dollar Zone of Cedar Knolls', 'tier': 'supporter', 'quote': 'We enjoyed the opportunity to work with OpenAjar and support their mission. It’s exciting to see students taking the initiative to build a platform that helps other young people find opportunities and pursue their interests.',
+     'img': 'one-dollar-zone.jpg', 'width': 800, 'height': 600, 'url': 'https://www.yelp.com/biz/one-dollar-zone-of-cedar-knolls-cedar-knolls', 'link_text': 'View on Yelp', 'address': '235 Ridgedale Ave, Cedar Knolls, NJ 07927'},
+]
 
 # Everything someone can apply for, as they see it on their profile: a name (label; noun in emails), its statuses, and the usual path through
 # them (drawn as progress steps). A status off the path is either waiting on the applicant (shown at a step, see

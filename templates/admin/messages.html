@@ -19,7 +19,7 @@
         <p class="review-app__statement">{{ p.message }}</p>
         {{ app.history(updates.get(p.id), labels) }}
       </div>
-      {{ app.update_form(p, p.name, p.email, labels, ('replied', 'Mark as answered')) }}
+      {{ app.update_form(p, p.name, p.email, labels, [('replied', 'Mark as answered', None)]) }}
     </article>
   {% else %}
     <p class="empty">No messages{% if status %} marked {{ labels[status]|lower }}{% endif %} yet.</p>

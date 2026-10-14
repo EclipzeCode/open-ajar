@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
 {% block title %}{{ u.name }}{% endblock %}
 {% block content %}
 <div class="wrap">
@@ -9,7 +10,7 @@
     <div class="user-detail__head">
       <span class="acct-avatar" aria-hidden="true">{{ u.name[:1]|upper }}</span>
       <div>
-        <h2 class="user-detail__name">{{ u.name }}
+        <h2 class="user-detail__name">{{ u.name }}{% if u.nickname %} <span class="muted">“{{ u.nickname }}”</span>{% endif %}
           {% if is_owner(u) %}<span class="pill pill--approved">Owner</span>{% endif %}
           {% if u.disabled %}<span class="pill pill--declined">Disabled</span>{% endif %}</h2>
         <p class="muted small"><a href="mailto:{{ u.email }}">{{ u.email }}</a>
@@ -29,6 +30,39 @@
       <div><dt>Tracker</dt><dd>{{ counts.tracked }} tracked · {{ counts.saved }} saved</dd></div>
       <div><dt>Reminder emails</dt><dd>{{ 'On' if u.email_reminders else 'Off' }}</dd></div>
     </dl>
+
+    <form class="user-notes" method="post" action="{{ url_for('admin.user_notes', uid=u.id) }}">
+      {{ m.csrf() }}
+      <h3>Notes</h3>
+      {% set locked = is_owner(u) and not is_owner(user) %}
+      {% if can_edit and not locked %}
+        <div class="field"><label for="nick-{{ u.id }}">Nickname <span class="muted">(optional)</span></label>
+          <input id="nick-{{ u.id }}" name="nickname" value="{{ u.nickname }}" maxlength="60" placeholder="What the team calls them"></div>
+        <div class="field"><label for="snote-{{ u.id }}">Admin note</label>
+          <p class="field__help">Every admin and moderator sees this. The person themselves never does.</p>
+          <textarea id="snote-{{ u.id }}" name="staff_note" rows="3" maxlength="2000">{{ u.staff_note }}</textarea></div>
+      {% else %}
+        <dl class="user-detail__facts">
+          <div><dt>Nickname</dt><dd>{{ u.nickname or '—' }}</dd></div>
+          <div><dt>Admin note</dt><dd class="user-notes__text">{{ u.staff_note or '—' }}</dd></div>
+        </dl>
+      {% endif %}
+      <div class="field"><label for="pnote-{{ u.id }}">Your private note</label>
+        <p class="field__help">Only you can see this, not other admins or moderators.</p>
+        <textarea id="pnote-{{ u.id }}" name="private_note" rows="3" maxlength="2000">{{ my_note }}</textarea></div>
+      <button class="btn btn--sm" type="submit">Save notes</button>
+    </form>
+
+    {% if is_owner(user) %}
+    <div class="user-detail__partner">
+      {% if profile %}
+        <p class="small">Partner profile: <a href="{{ url_for('admin.partner_profile', pid=profile.id) }}">{{ profile.name }}</a>{% if not profile.shown %} <span class="muted">(hidden)</span>{% endif %}</p>
+      {% elif u.role not in D.STAFF %}
+        <form method="post" action="{{ url_for('admin.make_partner', uid=u.id) }}">{{ m.csrf() }}
+          <button class="btn btn--sm btn--ghost" type="submit" data-confirm="Make {{ u.name }} a partner? Their role becomes Partner (signing them out) and they get a partner profile, hidden until you show it.">Make partner</button></form>
+      {% endif %}
+    </div>
+    {% endif %}
 
     <h3>Intern applications <span class="muted">({{ apps|length }})</span></h3>
     {% for a in apps %}

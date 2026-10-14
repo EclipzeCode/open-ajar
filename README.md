@@ -69,8 +69,9 @@ Leave out `--approve` if you'd rather check the listings in the review queue bef
 - Passwords are hashed (scrypt via Werkzeug). Login checks a dummy hash for unknown emails so timing doesn't reveal who has an account.
 - The login cookie is signed, HttpOnly, SameSite=Lax and Secure in production. Changing your password, resetting it, or an admin changing
   your role signs you out on every device.
-- Roles: student (everyone who signs up), organization, counselor, moderator (sees every admin page, changes nothing, can't
-  download data) and admin. Admins change roles under Admin → Users.
+- Roles: student (everyone who signs up), organization, counselor, partner, moderator (sees every admin page, changes nothing
+  except their own private notes, can't download data) and admin. Admins change roles under Admin → Users. Only the owner edits the About page's partners
+  (Admin → Partner profiles) and turns a user into one ("Make partner").
 - Every form carries a CSRF token. Security headers include a strict Content-Security-Policy (no inline scripts).
 - Email links are single-use, expire (24h verify, 1h reset), and are stored only as SHA-256 hashes. Opening a link doesn't use it up;
   pressing the button on the page does, so email scanners can't spend it.

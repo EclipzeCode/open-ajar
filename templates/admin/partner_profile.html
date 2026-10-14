@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}{{ p.name or 'New partner' }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin · <a href="{{ url_for('admin.partner_profiles') }}">Partner profiles</a></p><h1>{{ p.name or 'New partner' }}</h1></header>
+  {% include 'admin/_nav.html' %}
+  <form class="panel partner-form" method="post" enctype="multipart/form-data">
+    {{ m.csrf() }}
+    {{ m.summary(errors) }}
+    {% if linked %}<p class="muted small">Linked to the account of {{ linked.name }} ({{ linked.email }}).</p>{% endif %}
+    <div class="row2">
+      {{ m.input('name', 'Name', p, errors, required=True, max=120) }}
+      {{ m.select('tier', 'Where it shows', {'partner': 'Partner: a full row with a photo', 'supporter': 'Supporter: a card in the scrolling strip'}, p, errors, required=True) }}
+    </div>
+    <div class="row2">
+      {{ m.input('position', 'Order', p, errors, required=True, max=6, mode='numeric', help='Smallest first. Gaps of 10 make it easy to slot one in between.') }}
+      <div class="field"><span class="field__label">On the About page</span>
+        <label class="check"><input type="checkbox" name="shown" value="1" {% if p.shown %}checked{% endif %}><span>Show</span></label></div>
+    </div>
+    {{ m.textarea('quote', 'Quote', p, errors, max=600, rows=4, help='Their own words only. Never placeholder text: it goes live as soon as this is shown.') }}
+    <div class="row2">
+      {{ m.input('quote_by', 'Who said it', p, errors, max=120) }}
+      {{ m.input('quote_role', 'Their role', p, errors, max=120) }}
+    </div>
+    <div class="row2">
+      {{ m.input('url', 'Website', p, errors, type='url', max=500, placeholder='https://') }}
+      {{ m.input('link_text', 'Link text', p, errors, max=60, placeholder='Visit website') }}
+    </div>
+    <div class="row2">
+      {{ m.input('address', 'Address', p, errors, max=200) }}
+      {{ m.input('about', 'Short description', p, errors, max=200, help='Shown instead of an address when there isn’t one.') }}
+    </div>
+    <fieldset class="field{% if errors.get('photo') %} has-error{% endif %}">
+      <legend>Photo or logo</legend>
+      {% if p.img %}<img class="partner-form__img" src="{{ partner_img(p.img) }}" alt="Current photo" loading="lazy">{% endif %}
+      <label class="sr-only" for="photo">Upload a new one</label>
+      <input id="photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp">
+      <p class="field__help">PNG, JPEG or WebP, up to 5 MB. About 800px wide (1200 for a wide column).</p>
+      {{ m.err(errors, 'photo') }}
+      {% if p.img %}<label class="check"><input type="checkbox" name="remove_photo" value="1"><span>Remove the photo (shows their initials)</span></label>{% endif %}
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="wide" value="1" {% if p.wide %}checked{% endif %}><span>Wide image: don’t crop it to a portrait frame</span></label>
+        <label class="check"><input type="checkbox" name="big" value="1" {% if p.big %}checked{% endif %}><span>Wider image column</span></label>
+        <label class="check"><input type="checkbox" name="logo" value="1" {% if p.logo %}checked{% endif %}><span>It’s a logo: frame it on white</span></label>
+      </div>
+    </fieldset>
+    <div class="partner-form__foot">
+      <button class="btn" type="submit">Save</button>
+      {% if p.id %}<button class="btn btn--danger" type="submit" name="action" value="delete" formnovalidate
+        data-confirm="Remove {{ p.name }} from the About page for good?">Delete</button>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

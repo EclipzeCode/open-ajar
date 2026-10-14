@@ -6,6 +6,7 @@ import time
 import uuid
 from collections import defaultdict, deque
 from functools import wraps
+from pathlib import Path
 from urllib.parse import urlparse
 
 from flask import abort, current_app, flash, g, redirect, request, session, url_for
@@ -143,6 +144,7 @@ def login_required(view):
 
 
 ADMIN_ONLY = ('admin.backup', 'admin.export')  # downloads of everyone's data: admins only, even though they're GETs
+MOD_WRITES = ('admin.user_notes',)  # the one change a moderator can make: their own private note (the view checks the rest)
 
 
 def admin_required(view):
@@ -155,7 +157,8 @@ def admin_required(view):
             return redirect(url_for('account.login', next=_here()))
         if u['role'] not in data.STAFF:
             abort(403)
-        if u['role'] != 'admin' and (request.method not in ('GET', 'HEAD') or request.endpoint in ADMIN_ONLY):
+        if u['role'] != 'admin' and ((request.method not in ('GET', 'HEAD') and request.endpoint not in MOD_WRITES)
+                                     or request.endpoint in ADMIN_ONLY):
             abort(403)
         return view(*a, **kw)
     return wrapper
@@ -346,3 +349,33 @@ def same_program_rows(db, data):
         if same_program(r['title'], r['org'], data['title'], data['org'], r['url'], data.get('url'), r['location'], data.get('location')):
             return r
     return None
+
+
+# ---------------------------------------------------------------- uploaded images (partner photos)
+
+UPLOAD_TYPES = {b'\x89PNG': 'png', b'\xff\xd8\xff': 'jpg', b'RIFF': 'webp'}  # first bytes -> extension
+
+
+def uploads_dir():
+    """Next to the database (on Render that's the persistent disk), so uploads survive deploys. Not in the database backup."""
+    return Path(current_app.config['DB_PATH']).parent / 'uploads'
+
+
+def save_upload(file):
+    """Saves an uploaded PNG, JPEG or WebP under a random name. Returns the name, or None if it isn't one of those."""
+    head = file.stream.read(12)
+    ext = next((e for magic, e in UPLOAD_TYPES.items() if head.startswith(magic)), None)
+    if not ext or (ext == 'webp' and head[8:12] != b'WEBP'):
+        return None
+    name = f'up-{secrets.token_hex(8)}.{ext}'
+    uploads_dir().mkdir(parents=True, exist_ok=True)
+    file.stream.seek(0)
+    file.save(uploads_dir() / name)
+    return name
+
+
+def partner_img(name):
+    """Where a partner's image is served: uploads from the uploads folder, the original six from static/img/partners/."""
+    if name.startswith('up-'):
+        return url_for('site.media', name=name)
+    return url_for('static', filename='img/partners/' + name)
