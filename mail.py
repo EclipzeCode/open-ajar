@@ -84,6 +84,25 @@ def partner_inquiry(config, inq):
         config['APP_URL'] + '/admin/partners', 'Reply to this email to answer them directly.'), reply_to=inq['email'])
 
 
+def intern_application(config, a):
+    """Tell the team a student applied to intern. Replying goes straight to the student."""
+    facts = [f"{k}: {v}" for k, v in (('Email', a['email']), ('Grade', a['grade']), ('School', a['school']),
+                                      ('Location', a['location']), ('Availability', a['availability'])) if v]
+    send(config, config['CONTACT_EMAIL'], f"Internship application: {a['full_name']}", *_layout(
+        f"{a['full_name']} applied to intern", [*facts, a['statement']], 'Open intern applications',
+        config['APP_URL'] + '/admin/interns', 'Reply to this email to answer them directly.'), reply_to=a['email'])
+
+
+def intern_received(config, a):
+    """Tell a student their internship application arrived and where to follow it."""
+    send(config, a['email'], 'We got your OpenAjar internship application', *_layout(
+        f"Thanks, {_first(a['full_name'])}.",
+        ['Your application to intern through OpenAjar arrived. Our team reads every one and will email you with any update.',
+         'You can follow it on your profile: sign in (or create a free account) with this email address and confirm it.'],
+        'See it on your profile', config['APP_URL'] + '/account#applications',
+        'If you didn’t apply, you can ignore this email.'), reply_to=config['CONTACT_EMAIL'])
+
+
 def contact_message(config, msg):
     """Forward a Contact form message to the team. Replying goes straight to the sender."""
     send(config, config['CONTACT_EMAIL'], f"Contact form: {msg['topic']} from {msg['name']}", *_layout(

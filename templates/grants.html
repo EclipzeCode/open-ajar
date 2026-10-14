@@ -64,8 +64,8 @@
             {{ m.input('due_date', 'When it’s due', values, errors, type='date') }}
           </div>
           <div class="row2">
-            {{ m.input('total_cost', 'Total cost ($)', values, errors, required=True, max=10, placeholder='e.g. 400') }}
-            {{ m.input('amount', 'How much you’re asking for ($)', values, errors, required=True, max=10, placeholder='Up to ' ~ room ~ ' this year') }}
+            {{ m.input('total_cost', 'Total cost ($)', values, errors, required=True, max=10, placeholder='e.g. 400', mode='decimal') }}
+            {{ m.input('amount', 'How much you’re asking for ($)', values, errors, required=True, max=10, placeholder='Up to ' ~ room ~ ' this year', mode='decimal') }}
           </div>
           <div class="row2">
             {{ m.select('accepted', 'Have you been accepted?', D.GRANT_ACCEPTED, values, errors, required=True) }}

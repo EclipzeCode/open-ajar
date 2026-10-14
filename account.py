@@ -2,6 +2,7 @@
 import hashlib
 import json
 import secrets
+import sqlite3
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
@@ -81,8 +82,12 @@ def register():
     if f.errors:
         return render_template('auth/register.html', values=request.form, errors=f.errors), 422
     uid = new_id()  # self-registration is always a student; roles are only changed by admins
-    run('INSERT INTO users (id, email, password_hash, name, school, created_at) VALUES (?,?,?,?,?,?)',
-        (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], f.out.get('school', ''), data.now_iso()))
+    try:
+        run('INSERT INTO users (id, email, password_hash, name, school, created_at) VALUES (?,?,?,?,?,?)',
+            (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], f.out.get('school', ''), data.now_iso()))
+    except sqlite3.IntegrityError:  # the same email signed up a moment ago (a double click)
+        return render_template('auth/register.html', values=request.form,
+                               errors={'email': 'That email may already be registered. Try signing in.'}), 422
     user = one('SELECT * FROM users WHERE id=?', (uid,))
     sign_in(user)
     send_verification(user, wait=False)  # never hold up sign-up on email; the account page offers a resend
@@ -306,6 +311,7 @@ def save_profile():
     run('UPDATE users SET name=?, grade=?, location=?, school=?, interests=?, email_reminders=? WHERE id=?',
         (f.out['name'], f.out['grade'], f.out['location'], f.out['school'], json.dumps(f.many('interests', data.INTERESTS)),
          1 if request.form.get('email_reminders') else 0, u['id']))
+    run('UPDATE testimonials SET name=? WHERE user_id=?', (f.out['name'], u['id']))  # their quote shows their name
     return back('profile', 'Profile saved.', ok=True)
 
 

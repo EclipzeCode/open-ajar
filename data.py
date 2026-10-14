@@ -272,6 +272,8 @@ def validate_opportunity(src, admin=False):
         f.out['deadline_date'] = None
     elif not parse_date(d):
         f.errors['deadline_date'] = 'Use a valid date'
+    elif not admin and parse_date(d) < today():
+        f.errors['deadline_date'] = 'That deadline has already passed'
     elif parse_date(d) > today() + timedelta(days=3 * 365):
         f.errors['deadline_date'] = 'That date is too far away'
     else:
@@ -332,6 +334,13 @@ def nice_date(iso):
 def expiry_for(deadline):
     """When a listing with this YYYY-MM-DD deadline hides itself: two days later, so it has passed in every US time zone."""
     return (date.fromisoformat(deadline) + timedelta(days=2)).isoformat() + 'T00:00:00+00:00'
+
+
+def follow_deadline(old, new):
+    """When an edit changes a listing's deadline but leaves its expiry as it was, the expiry moves with the deadline
+    (two days after it, as when approving), so a later deadline doesn't leave the listing hiding on the old date."""
+    if new['deadline_date'] != old['deadline_date'] and (new.get('expires_at') or '')[:10] == (old['expires_at'] or '')[:10]:
+        new['expires_at'] = expiry_for(new['deadline_date']) if new['deadline_date'] else None
 
 
 def deadline_info(deadline, note=''):

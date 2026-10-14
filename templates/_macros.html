@@ -1,11 +1,11 @@
 {% macro err(errors, name) %}{% if errors.get(name) %}<p class="field__error" id="{{ name }}-err">{{ errors[name] }}</p>{% endif %}{% endmacro %}
 
-{% macro input(name, label, values, errors, type='text', required=False, help=None, max=None, auto=None, placeholder=None) %}
+{% macro input(name, label, values, errors, type='text', required=False, help=None, max=None, auto=None, placeholder=None, mode=None) %}
 <div class="field{% if errors.get(name) %} has-error{% endif %}">
   <label for="{{ name }}">{{ label }}{% if not required %} <span class="muted">(optional)</span>{% endif %}</label>
   {% if help %}<p class="field__help">{{ help }}</p>{% endif %}
   <input id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ values.get(name) or '' }}" {% if required %}required{% endif %}
-    {% if max %}maxlength="{{ max }}"{% endif %} {% if auto %}autocomplete="{{ auto }}"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if max %}maxlength="{{ max }}"{% endif %} {% if auto %}autocomplete="{{ auto }}"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} {% if mode %}inputmode="{{ mode }}"{% endif %}
     {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-err"{% endif %}>
   {{ err(errors, name) }}
 </div>

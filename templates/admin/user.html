@@ -40,6 +40,22 @@
       </div>
     {% else %}<p class="muted small">None.</p>{% endfor %}
 
+    <h3>Partner inquiries <span class="muted">({{ partners|length }})</span></h3>
+    {% for p in partners %}
+      <div class="user-detail__item">
+        <p><strong>{{ p.business }}</strong> · sent {{ p.created_at|day }} <span class="pill pill--{{ p.status }}">{{ D.PARTNER_STATUSES[p.status] }}</span> <a class="small" href="{{ url_for('admin.partners', q=p.email) }}#a-{{ p.id }}">Update →</a></p>
+        <p class="small">{{ p.message }}</p>
+      </div>
+    {% else %}<p class="muted small">None.</p>{% endfor %}
+
+    <h3>Messages to the team <span class="muted">({{ messages|length }})</span></h3>
+    {% for c in messages %}
+      <div class="user-detail__item">
+        <p><strong>{{ c.topic }}</strong> · sent {{ c.created_at|day }} <span class="pill pill--{{ c.status }}">{{ D.CONTACT_STATUSES[c.status] }}</span> <a class="small" href="{{ url_for('admin.messages', q=c.email) }}#a-{{ c.id }}">Answer →</a></p>
+        <p class="small">{{ c.message }}</p>
+      </div>
+    {% else %}<p class="muted small">None.</p>{% endfor %}
+
     <h3>Access Grant requests <span class="muted">({{ grants|length }})</span></h3>
     {% for g in grants %}
       <div class="user-detail__item">

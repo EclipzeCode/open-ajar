@@ -316,7 +316,8 @@ if (explore) {
   };
   const load = async (url) => {
     if (!cache.has(url)) {
-      cache.set(url, fetch(url).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
+      // the header asks the server for just the three cards and the count, not the whole page
+      cache.set(url, fetch(url, { headers: { 'X-Requested-With': 'fetch' } }).then((r) => (r.ok ? r.text() : Promise.reject())).then((html) => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
         return { cards: [...doc.querySelectorAll('.grid .card')].slice(0, 3), count: doc.querySelector('.results__count')?.textContent.trim() };
       }).catch((e) => { cache.delete(url); throw e; }));
@@ -652,7 +653,9 @@ function enhanceSelect(sel) {
   sel.form?.addEventListener('reset', () => setTimeout(sync));
   sync();
 }
-document.querySelectorAll('select:not([multiple])').forEach(enhanceSelect);
+// Touch screens keep their own pickers (a wheel or full-screen list), which are easier to use with a thumb
+const touch = matchMedia('(pointer: coarse)').matches;
+if (!touch) document.querySelectorAll('select:not([multiple])').forEach(enhanceSelect);
 document.addEventListener('click', (e) => document.querySelectorAll('.dd.is-open').forEach((d) => { if (!d.contains(e.target)) d.dispatchEvent(new Event('dd:close')); }));
 
 // Styled date picker. Each <input type=date> gets a button + calendar; the real input stays (hidden) so forms submit
@@ -766,7 +769,7 @@ function enhanceDate(input) {
   input.form?.addEventListener('reset', () => setTimeout(sync));
   sync();
 }
-document.querySelectorAll('input[type=date]').forEach(enhanceDate);
+if (!touch) document.querySelectorAll('input[type=date]').forEach(enhanceDate);
 
 // Admin Users: a name opens that person's details in a pop-up. The link still works as a normal page (new tab, no JS).
 const userLinks = document.querySelectorAll('[data-user-modal]');
@@ -803,7 +806,7 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
   let timer, queue = Promise.resolve();
   // one save at a time, each sending the form as it is when its turn comes, so a slow earlier save can't land after
   // (and undo) a later one
-  const save = () => { queue = queue.then(send); };
+  const save = () => { clearTimeout(timer); timer = null; queue = queue.then(send); };
   const send = async () => {
     const body = new FormData(form);
     body.delete('new_item'); // adding an item reloads the page so it shows up
@@ -834,4 +837,12 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
   const found = form.querySelector('[data-found]');
   if (stage && found) stage.addEventListener('change', () => { found.hidden = !stage.dataset.won.split('|').includes(stage.value); });
   form.querySelector('textarea')?.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(save, 800); });
+  // leaving the page with notes still waiting to save: send them now (keepalive lets the request outlive the page)
+  addEventListener('pagehide', () => {
+    if (!timer) return;
+    clearTimeout(timer); timer = null;
+    const body = new FormData(form);
+    body.delete('new_item');
+    fetch(form.getAttribute('action'), { method: 'POST', body, keepalive: true, headers: { 'X-Requested-With': 'fetch' } });
+  });
 });

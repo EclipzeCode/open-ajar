@@ -1,0 +1,4 @@
+{# Three cards and the count for the home page's interest tabs (site._browse answers app.js with just this). #}
+{% import '_macros.html' as m with context %}
+<p class="results__count">{{ '{:,}'.format(total) }} {{ 'result' if total == 1 else 'results' }}</p>
+<div class="grid">{% for o in items %}{{ m.card(o, D, saved) }}{% endfor %}</div>

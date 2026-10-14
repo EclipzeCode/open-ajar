@@ -15,7 +15,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 import data
 import mail
 from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, grant_room,
-                  is_owner, one, run, update_opp)
+                  is_owner, one, run, update_opp, _like)
 
 bp = Blueprint('admin', __name__)
 PER_PAGE = 100
@@ -34,7 +34,7 @@ def searched(cols):
     q = request.args.get('q', '')[:100].strip().lower()
     if not q:
         return None, []
-    return '(' + ' OR '.join(f'lower({c}) LIKE ?' for c in cols) + ')', [f'%{q}%'] * len(cols)
+    return '(' + ' OR '.join(f"lower({c}) LIKE ? ESCAPE '\\'" for c in cols) + ')', [_like(q)] * len(cols)
 
 # action -> (statuses it can start from, resulting status, needs a message for the submitter)
 TRANSITIONS = {
@@ -138,6 +138,7 @@ def review(opp_id):
         if request.form.get('action') == 'edit':
             clean, errors = data.validate_opportunity(request.form, admin=True)
             if not errors:
+                data.follow_deadline(opp, clean)
                 db = get_db()
                 update_opp(db, opp_id, clean)
                 db.commit()
@@ -226,13 +227,15 @@ USER_STATUSES = {'active': ('Active', 'disabled=0'), 'disabled': ('Disabled', 'd
 @bp.get('/users/<uid>')
 @admin_required
 def user_detail(uid):
-    """One person: their account, intern applications (matched by email), Access Grant requests, listings they
-    submitted and what they track. Opens in a pop-up on the Users page; on its own it's a normal page."""
+    """One person: their account, intern applications, partner inquiries and messages (matched by email), Access Grant
+    requests, listings they submitted and what they track. Opens in a pop-up on the Users page; on its own it's a normal page."""
     u = one('SELECT * FROM users WHERE id=?', (uid,))
     if not u:
         abort(404)
     return render_template('admin/user.html', u=u,
         apps=all_('SELECT * FROM intern_applications WHERE lower(email)=? ORDER BY created_at DESC', (u['email'].lower(),)),
+        partners=all_('SELECT * FROM partner_inquiries WHERE lower(email)=? ORDER BY created_at DESC', (u['email'].lower(),)),
+        messages=all_('SELECT * FROM contact_messages WHERE lower(email)=? ORDER BY created_at DESC', (u['email'].lower(),)),
         grants=all_('SELECT * FROM access_grants WHERE user_id=? ORDER BY created_at DESC', (uid,)),
         listings=all_('SELECT id, title, status, created_at FROM opportunities WHERE submitted_by=? ORDER BY created_at DESC', (uid,)),
         counts=one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracked, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved,
@@ -447,7 +450,7 @@ EXPORTS = {  # file name -> query with readable column names
         admin_note "Private note", created_at "Sent" FROM access_grants ORDER BY created_at''',
     'application-updates': '''SELECT a.created_at "When", a.kind "Kind",
         COALESCE((SELECT email FROM intern_applications WHERE id=a.item_id), (SELECT email FROM partner_inquiries WHERE id=a.item_id),
-                 (SELECT email FROM access_grants WHERE id=a.item_id)) "Applicant", COALESCE(u.email, 'System') "From",
+                 (SELECT email FROM access_grants WHERE id=a.item_id), (SELECT email FROM contact_messages WHERE id=a.item_id)) "Applicant", COALESCE(u.email, 'System') "From",
         a.status "New status", a.message "Message" FROM application_updates a LEFT JOIN users u ON u.id=a.actor_id ORDER BY a.created_at''',
     'activity': '''SELECT at "When", actor "Who", action "Action", title "About", message "Note" FROM (
         SELECT e.created_at at, COALESCE(u.email, 'System') actor, e.action, o.title, e.message FROM review_events e
@@ -589,7 +592,7 @@ def grant_action(g, action, form, me):
         if amount > room:
             return False, f'That’s over the ${data.GRANT_CAP} yearly cap for this student (${room} left).'
         run("UPDATE access_grants SET approved_amount=?, approved_by=?, approved_at=?, status='approved', message=?, updated_at=? WHERE id=?",
-            (amount, me['id'], now, msg or g['message'], now, g['id']))
+            (amount, me['id'], now, msg, now, g['id']))  # an earlier "needs info" note no longer applies
         audit(me['id'], f'grant_approved ${amount}', g['id'])
         record_update('grant', g['id'], 'approved', msg or f'Approved for ${amount}.')
         _tell(g, 'Your Access Grant is approved', [
