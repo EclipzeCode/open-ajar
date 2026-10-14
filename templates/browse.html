@@ -92,7 +92,10 @@
     {% if pages > 1 %}
     <nav class="pager" aria-label="Pages">
       {% if page > 1 %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page - 1) }}">← Previous</a>{% endif %}
-      <span class="muted">Page {{ page }} of {{ pages }}</span>
+      <span class="pager__nums">{% for p in range(1, pages + 1) if p in (1, pages) or (p - page)|abs <= 1 %}
+        {% if loop.previtem is defined and p - loop.previtem > 1 %}<span class="muted" aria-hidden="true">…</span>{% endif %}
+        {% if p == page %}<span class="pager__num" aria-current="page">{{ p }}</span>{% else %}<a class="pager__num" href="{{ page_url(p) }}" aria-label="Page {{ p }}">{{ p }}</a>{% endif %}
+      {% endfor %}</span>
       {% if page < pages %}<a class="btn btn--ghost btn--sm" href="{{ page_url(page + 1) }}">Next →</a>{% endif %}
     </nav>
     {% endif %}

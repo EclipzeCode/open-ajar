@@ -2,7 +2,7 @@
 import json
 import re
 from html import escape
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
@@ -75,10 +75,16 @@ def _browse(sector):
     page = max(1, min(500, a.get('page', 1, type=int) or 1))
     chips = _chips(f)
     items, total = search_public(f, PAGE, (page - 1) * PAGE)
+    pages = max(1, -(-total // PAGE))
+    if page > pages:  # an old link past the last page: show the last page, not "nothing matches"
+        page = pages
+        items, total = search_public(f, PAGE, (page - 1) * PAGE)
+    if request.headers.get('X-Requested-With') == 'fetch':  # the home page's interest tabs only need three cards
+        return render_template('_explore.html', items=items[:3], total=total, saved=_saved_ids()), {'Vary': 'X-Requested-With'}
     active = sum(len(f[k]) for k in ('type', 'cost', 'format', 'commitment', 'interest', 'category')) + bool(f['grade']) + bool(f['state']) + bool(f['saved_by'])
     return render_template('browse.html', sector=sector, copy=SECTORS[sector], f=f, items=items, total=total, page=page,
-                           pages=max(1, -(-total // PAGE)), facets=facets(f), all_opts=facets({'sector': sector}), active=active, saved=_saved_ids(),
-                           chips=chips, fixes=_fixes(f, chips) if not total else [])
+                           pages=pages, facets=facets(f), all_opts=facets({'sector': sector}), active=active, saved=_saved_ids(),
+                           chips=chips, fixes=_fixes(f, chips) if not total else []), {'Vary': 'X-Requested-With'}
 
 
 def _fixes(f, chips):
@@ -125,7 +131,15 @@ def detail(opp_id):
     u, saved = current_user(), _saved_ids()
     tracked = u and one('SELECT stage FROM tracked WHERE user_id=? AND opportunity_id=?', (u['id'], opp_id))
     return render_template('detail.html', o=opp, saved=opp_id in saved, saved_ids=saved, tracked=tracked, similar=_similar(opp),
-                           job_posting=_job_posting(opp))
+                           job_posting=_job_posting(opp), back=_back(opp))
+
+
+def _back(opp):
+    """'Back to opportunities' returns to the search and filters they came from, when they came from a list here."""
+    ref = urlsplit(request.referrer or '')
+    if ref.netloc == request.host and ref.path in ('/opportunities', '/jobs'):
+        return ref.path + ('?' + ref.query if ref.query else '')
+    return url_for('site.jobs' if opp['type'] == 'Job' else 'site.browse')
 
 
 def _job_posting(o):
@@ -179,6 +193,10 @@ def toggle_save(opp_id):
         if quiet:
             return {'saved': True}
         flash('Saved. Find it any time in your tracker.')
+    elif quiet:
+        return {'saved': False}, 404  # closed since the page loaded: the star posts the form instead, which says so
+    else:
+        flash('That listing has closed, so it can’t be saved.', 'error')
     return redirect(safe_next(url_for('site.detail', opp_id=opp_id)))
 
 
@@ -265,6 +283,8 @@ def apply():
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
         (new_id(), o['full_name'], o['email'], o['grade'], o['school'], o['location'], json.dumps(f.many('interests', data.INTERESTS)),
          o['skills'], o['availability'], o['statement'], o['link'], data.now_iso()))
+    mail.later('intern application notice', mail.intern_application, current_app.config, o)  # saved already; admin shows it
+    mail.later('intern application receipt', mail.intern_received, current_app.config, o)
     # they can follow it on their profile once signed in with this email, confirmed
     return render_template('applied.html', email=o['email'], linked=bool(u and u['email_verified'] and u['email'] == o['email']))
 
@@ -350,6 +370,8 @@ def grants():
         f.errors['amount'] = 'Ask for no more than the total cost'
     elif 'amount' in o and o['amount'] > room:
         f.errors['amount'] = f'You can ask for up to ${room} this year'
+    if o.get('due_date') and data.parse_date(o['due_date']) < data.today():
+        f.errors['due_date'] = 'That date has passed. If the fee is still owed, leave this blank and explain below'
     if not request.form.get('consent'):
         f.errors['consent'] = 'Confirm that your parent or guardian knows you’re asking'
     if not f.errors and limited(f"grant:{u['id']}", 5, 3600):

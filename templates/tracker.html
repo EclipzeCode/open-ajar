@@ -38,7 +38,7 @@
 
         <div class="track__top">
           <div class="track__title">
-            <h2><a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a></h2>
+            <h2>{% if o.available %}<a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a>{% else %}{{ o.title }}{% endif %}</h2>
             <p class="track__meta">{{ o.org }} · <span class="{% if dl[1] %}is-soon{% endif %}">{{ dl[0] }}</span>{% if not o.available %} · <strong>No longer listed</strong>{% endif %}</p>
           </div>
           <div class="track__stage">
@@ -111,7 +111,7 @@
       {% for o in saved %}
       <li>
         <div class="saved-list__main">
-          <a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a>
+          {% if o.available %}<a href="{{ url_for('site.detail', opp_id=o.id) }}">{{ o.title }}</a>{% else %}<span>{{ o.title }}</span>{% endif %}
           <span class="muted small">{{ o.org }}{% if not o.available %} · No longer listed{% endif %}</span>
         </div>
         <div class="saved-list__actions">

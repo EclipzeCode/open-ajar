@@ -6,7 +6,7 @@
 {% block content %}
 {% set dl = deadline_info(o.deadline_date, o.deadline_note) %}
 <div class="wrap">
-  <nav class="crumbs"><a href="{{ url_for('site.jobs' if o.type == 'Job' else 'site.browse') }}">← Back to {{ 'jobs' if o.type == 'Job' else 'opportunities' }}</a></nav>
+  <nav class="crumbs"><a href="{{ back }}">← Back to {{ 'jobs' if o.type == 'Job' else 'opportunities' }}</a></nav>
   <article class="detail">
     <header class="detail__head">
       <p class="eyebrow">{{ o.type }}</p>

@@ -107,6 +107,8 @@ def create_app(test_config=None):
         if (app.config['PRODUCTION'] and request.host != canonical_host and request.method in ('GET', 'HEAD')
                 and request.path != '/healthz'):
             return redirect(app.config['APP_URL'] + request.full_path.rstrip('?'), 301)
+        if request.endpoint == 'static':  # files: no database lookup, and no session cookie in the response
+            return
         if not app.config.get('TESTING'):
             start_maintenance(app)
         load_user()
@@ -244,12 +246,14 @@ def start_maintenance(app):
         while True:
             try:
                 db = connect(app.config['DB_PATH'])
-                expire_due(db)
-                db.execute("DELETE FROM auth_tokens WHERE used=1 OR expires_at < datetime('now','-1 day')")
-                db.commit()
-                if datetime.now(data.STUDENT_TZ).hour >= 8:  # in the morning, not at midnight
-                    mail.run_reminders(db, app.config)
-                db.close()
+                try:
+                    expire_due(db)
+                    db.execute("DELETE FROM auth_tokens WHERE used=1 OR expires_at < datetime('now','-1 day')")
+                    db.commit()
+                    if datetime.now(data.STUDENT_TZ).hour >= 8:  # in the morning, not at midnight
+                        mail.run_reminders(db, app.config)
+                finally:
+                    db.close()
             except Exception as e:
                 print(f'[maintenance] {e}')
             time.sleep(600)
@@ -338,8 +342,7 @@ def apply_correction_file(fixes):
         if errors:
             problems.append(f"{fx['external_id']} ({row['title']}): {errors}")
             continue
-        if fx.get('set', {}).get('deadline_date') and not row['expires_at']:
-            clean['expires_at'] = data.expiry_for(clean['deadline_date'])
+        data.follow_deadline(row, clean)
         update_opp(db, row['id'], clean)
         if fx.get('verified'):
             db.execute("UPDATE opportunities SET verification='verified' WHERE id=?", (row['id'],))

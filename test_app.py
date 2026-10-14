@@ -199,6 +199,7 @@ class Flows(unittest.TestCase):
         self.assertEqual(self.grant(gid)['status'], 'needs_info')
         self.post('/admin/grants', {'id': gid, 'action': 'approve', 'approved_amount': '150'}, admin)
         self.assertEqual(self.grant(gid)['status'], 'approved')
+        self.assertNotIn(b'Please send your acceptance letter.', self.c.get('/access-grants').data)  # the old ask is gone
         self.post('/admin/grants', {'id': gid, 'action': 'paid', 'paid_amount': '150', 'paid_on': '2026-10-12', 'paid_method': 'Card'}, admin)
         g = self.grant(gid)
         self.assertEqual((g['status'], g['paid_amount'], g['paid_by']), ('paid', 150, 'admin1'))
@@ -209,6 +210,8 @@ class Flows(unittest.TestCase):
     def test_interns_follow_their_application_and_admins_accept_and_message_them(self):
         app_form = {'full_name': 'Sam Rivera', 'email': 'sam@example.org', 'statement': 'I want to learn how a small business runs.'}
         self.post('/apply', app_form)  # sent before having an account
+        self.assertEqual({m['to']: m['subject'] for m in mail.OUTBOX}, {  # the team is told, and the student gets a receipt
+            self.app.config['CONTACT_EMAIL']: 'Internship application: Sam Rivera', 'sam@example.org': 'We got your OpenAjar internship application'})
         self.register()
         self.assertNotIn('Intern with OpenAjar', self.c.get('/account').get_data(as_text=True))  # email not confirmed yet
         db = connect(self.app.config['DB_PATH'])
@@ -621,6 +624,56 @@ class Flows(unittest.TestCase):
         page = self.c.get('/opportunities').get_data(as_text=True)
         self.assertNotIn('Closed Comp', page)
         self.assertNotIn('Old Comp', page)
+
+    def test_browsing_edges(self):
+        base = {'organization': 'Org', 'summary': 'A program for high-school students to try.', 'eligibility': 'Any high schooler',
+                'grades': '9', 'format': 'Online', 'location': 'Online', 'commitment': 'Summer', 'type': 'Competition', 'cost': 'Free'}
+        with self.app.app_context():
+            import_rows([{**base, 'id': str(i), 'title': f'Comp number {i}'} for i in range(30)], approve=True)
+        page = self.c.get('/opportunities?page=99').get_data(as_text=True)  # past the last page: the last page
+        self.assertNotIn('Nothing matches', page)
+        self.assertIn('aria-current="page">2</span>', page)
+        cards = self.c.get('/opportunities', headers={'X-Requested-With': 'fetch'}).get_data(as_text=True)  # the home tabs
+        self.assertEqual(cards.count('class="card"'), 3)
+        self.assertIn('30 results', cards)
+        oid = connect(self.app.config['DB_PATH']).execute('SELECT id FROM opportunities LIMIT 1').fetchone()['id']
+        back = self.c.get(f'/o/{oid}', headers={'Referer': 'http://localhost/opportunities?cost=Free&q=comp'}).get_data(as_text=True)
+        self.assertIn('href="/opportunities?cost=Free&amp;q=comp">← Back', back)  # back to their search
+        self.assertIn('href="/opportunities">← Back', self.c.get(f'/o/{oid}', headers={'Referer': 'https://evil.example/'}).get_data(as_text=True))
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute("UPDATE opportunities SET status='rejected' WHERE id=?", (oid,))
+        db.commit()
+        r = self.post(f'/o/{oid}/save', headers={'X-Requested-With': 'fetch'})  # the card star on a listing that just closed
+        self.assertEqual(r.status_code, 404)
+        self.assertIn('has closed', self.post(f'/o/{oid}/save', follow_redirects=True).get_data(as_text=True))
+
+    def test_past_dates_and_names_stay_sensible(self):
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute('UPDATE users SET email_verified=1')
+        db.commit()
+        self.assertIn('already passed', self.post('/submit', {**LISTING, 'deadline_date': '2020-01-01'}).get_data(as_text=True))
+        self.assertIn('That date has passed', self.post('/access-grants', {**GRANT, 'due_date': '2020-01-01'}).get_data(as_text=True))
+        self.assertEqual(self.post('/register', {'name': 'Sam', 'email': 'sam@example.org', 'password': PW}).status_code, 422)
+        self.post('/account/quote', {'quote': 'OpenAjar helped me find my summer program.'})
+        self.post('/account/profile', {'name': 'Sam R.'})
+        self.assertEqual(db.execute('SELECT name FROM testimonials').fetchone()['name'], 'Sam R.')
+
+    def test_editing_a_deadline_moves_an_untouched_expiry(self):
+        admin = self.make_admin()
+        with self.app.app_context():
+            import_rows([{**{k: v for k, v in LISTING.items() if k not in ('grades', 'interests', 'requirements')},
+                          'organization': LISTING['org'], 'grades': '11', 'id': '1', 'deadline_date': '2027-03-01'}], approve=True)
+        db = connect(self.app.config['DB_PATH'])
+        o = core.opp_dict(db.execute('SELECT * FROM opportunities').fetchone())
+        form = {**LISTING, 'action': 'edit', 'verification': o['verification'], 'expires_at': o['expires_at'][:10]}
+        expiry = lambda: db.execute('SELECT expires_at FROM opportunities').fetchone()['expires_at'][:10]
+        self.assertEqual(expiry(), '2027-03-03')
+        self.post(f"/admin/o/{o['id']}", {**form, 'deadline_date': '2027-05-01'}, admin)  # expiry field left as it was
+        self.assertEqual(expiry(), '2027-05-03')
+        self.post(f"/admin/o/{o['id']}", {**form, 'deadline_date': '2027-06-01', 'expires_at': '2027-07-01'}, admin)
+        self.assertEqual(expiry(), '2027-07-01')  # an expiry set by hand is kept
 
     def test_jobs_get_a_category_and_can_be_filtered_by_it(self):
         base = {'summary': 'A part-time job for high-school students.', 'eligibility': 'At least 16', 'grades': '11;12',
