@@ -117,9 +117,15 @@ class Flows(unittest.TestCase):
 
     def test_about_lists_partners_without_placeholder_quotes(self):
         page = self.c.get('/about').get_data(as_text=True)
-        for name in ('Moon Tea', 'Ryujin', 'One Dollar Zone of Cedar Knolls', 'Coders Over Borders', 'Creator Colosseum', 'Partner Portal'):
+        for name in ('Moon Tea', 'Strategic Training Endeavors', 'Ryujin', 'One Dollar Zone of Cedar Knolls', 'Coders Over Borders',
+                     'Creator Colosseum', 'Partner Portal'):
             self.assertIn(name, page)
-        self.assertEqual(page.count('partner__quote'), 6)  # every partner has sent a real quote
+        self.assertEqual(page.count('partner__quote'), 5)  # every partner has sent a real quote
+        self.assertLess(page.index('Strategic Training Endeavors'), page.index('Creator Colosseum'))
+        supporters = page.split('id="supporters-h"')[1]
+        self.assertIn('Ryujin', supporters)
+        self.assertIn('One Dollar Zone of Cedar Knolls', supporters)
+        self.assertEqual(supporters.count('<figure class="quote">'), 2)  # the repeats are hidden from screen readers
         self.assertNotIn('“”', page)
 
     def test_a_crash_shows_the_friendly_error_page(self):
