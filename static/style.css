@@ -1061,6 +1061,37 @@ fieldset.plain:disabled :is(input, textarea, .dd__btn) { background: var(--soft)
 .history--wide li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin-bottom: 8px; }
 pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; background: var(--soft); padding: 12px; border-radius: 10px; overflow-wrap: anywhere; }
 
+/* placement details on a student's application card */
+.app__details { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 20px; margin: 16px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--accent-soft); }
+.app__details dt { font-size: .78rem; color: var(--muted); }
+.app__details dd { margin: 2px 0 0; color: var(--ink-strong); }
+
+/* admin: intern decisions and placement */
+.review-app__side { display: grid; gap: 16px; align-self: start; }
+.review-app__quick { display: flex; gap: 8px; flex-wrap: wrap; }
+.placement { padding: 20px 24px; border-radius: 16px; border: 1px solid var(--line); }
+.placement h3 { margin: 0 0 2px; font-size: 1.05rem; }
+.placement .row2 { margin-top: 12px; }
+
+/* admin: notes about a user */
+.user-notes { margin: 20px 0; padding: 18px 20px; border-radius: 16px; background: var(--soft); display: grid; gap: 12px; }
+.user-notes h3 { margin: 0; }
+.user-notes .field { margin: 0; }
+.user-notes textarea { background: #fff; }
+.user-notes .btn { justify-self: start; }
+.user-notes__text { white-space: pre-line; }
+.user-detail__partner { margin: 0 0 16px; }
+
+/* admin: partner profiles */
+.partner-list__h { font-size: 1.15rem; margin: 28px 0 10px; }
+.partner-list__name { display: flex; align-items: center; gap: 12px; }
+.partner-list__img { flex: none; width: 36px; height: 36px; border-radius: 8px; object-fit: contain; border: 1px solid var(--line); background: #fff; }
+.partner-form { padding: 28px; max-width: 860px; }
+.partner-form__img { display: block; max-width: 240px; max-height: 160px; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); margin: 6px 0 12px; }
+.partner-form .checks { margin-top: 12px; }
+.partner-form__foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.field__label { display: block; font-weight: 500; margin-bottom: 6px; }
+
 /* phones: tighter, even blocks */
 @media (max-width: 640px) {
   .section { padding: 56px 0; }

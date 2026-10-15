@@ -9,7 +9,7 @@
   {% include 'admin/_nav.html' %}
 
   <form class="filterbar filterbar--users" method="get">
-    <label class="sr-only" for="uq">Name, email or school</label><input id="uq" name="q" value="{{ f.q }}" placeholder="Name, email or school">
+    <label class="sr-only" for="uq">Name, email or school</label><input id="uq" name="q" value="{{ f.q }}" placeholder="Name, nickname, email or school">
     <label class="sr-only" for="urole">Role</label>
     <select id="urole" name="role"><option value="">Any role</option>{% for r in D.ROLES %}<option value="{{ r }}" {% if f.role == r %}selected{% endif %}>{{ r|capitalize }}</option>{% endfor %}</select>
     <label class="sr-only" for="ustatus">Status</label>
@@ -27,7 +27,7 @@
         {% for u in users %}
         {% set locked = is_owner(u) and not is_owner(user) %}
         <tr>
-          <td><a class="user-link" href="{{ url_for('admin.user_detail', uid=u.id) }}" data-user-modal><strong>{{ u.name }}</strong></a>
+          <td><a class="user-link" href="{{ url_for('admin.user_detail', uid=u.id) }}" data-user-modal><strong>{{ u.name }}</strong></a>{% if u.nickname %} <span class="muted small">“{{ u.nickname }}”</span>{% endif %}
             {% if is_owner(u) %}<span class="pill pill--approved">Owner</span>{% endif %}
             <br><span class="muted small">{{ u.email }}</span>
             <div class="user-badges">

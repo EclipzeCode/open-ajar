@@ -98,6 +98,9 @@
                 {% for label, state in a.steps %}<li class="progress__step is-{{ state }}"{% if state == 'current' %} aria-current="step"{% endif %}><span>{{ label }}</span></li>{% endfor %}
               </ol>
               {% endif %}
+              {% if a.details %}
+              <dl class="app__details">{% for label, v in a.details %}<div><dt>{{ label }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>
+              {% endif %}
               {% if a.updates %}
               <ol class="thread" aria-label="Messages">
                 {% for up in a.updates %}

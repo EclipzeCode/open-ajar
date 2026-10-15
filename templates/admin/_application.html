@@ -16,18 +16,20 @@
 {% endif %}
 {% endmacro %}
 
-{# Change the status, write to the applicant, keep a private note (admin._inbox). quick = (status, button label):
-   a one-click button for the usual next step, shown until the application gets there. Admins only. #}
-{% macro update_form(row, name, email, labels, quick=None) %}
+{# Change the status, write to the applicant, keep a private note (admin._inbox). quicks = [(status, button label, confirm)]:
+   one-click buttons for the usual decisions, each shown until the application gets there. Admins only. #}
+{% macro update_form(row, name, email, labels, quicks=(), decisions=()) %}
 {% if can_edit %}
 {% set first = (name or 'them').split()[0] %}
 <form class="review-app__form" method="post" action="{{ request.full_path }}">
   {{ m.csrf() }}<input type="hidden" name="id" value="{{ row.id }}">
   <div class="review-app__formhead">
     <h3>Reply to {{ first }}</h3>
-    {% if quick and row.status in labels and (labels|list).index(row.status) < (labels|list).index(quick[0]) %}
-      <button class="btn btn--sm" type="submit" name="quick" value="{{ quick[0] }}">{{ quick[1] }}</button>
-    {% endif %}
+    <div class="review-app__quick">
+    {% for st, label, confirm in quicks if row.status in labels and (labels|list).index(row.status) < (labels|list).index(st) %}
+      <button class="btn btn--sm{% if confirm %} btn--ghost{% endif %}" type="submit" name="quick" value="{{ st }}"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>{{ label }}</button>
+    {% endfor %}
+    </div>
   </div>
   <div class="field review-app__wide">
     <label class="sr-only" for="msg-{{ row.id }}">Message to {{ first }}</label>
@@ -42,7 +44,8 @@
     <input id="note-{{ row.id }}" name="admin_note" value="{{ row.admin_note }}" maxlength="2000" placeholder="Only admins see this">
   </div>
   <div class="review-app__wide review-app__formfoot">
-    <label class="check"><input type="checkbox" name="notify" value="1" checked><span>Email them about a status change</span></label>
+    <label class="check"><input type="checkbox" name="notify" value="1" checked><span>Email them about a status change{% if decisions %}
+      <span class="muted">({% for d in decisions %}{{ labels[d] }}{% if not loop.last %} and {% endif %}{% endfor %} always email)</span>{% endif %}</span></label>
     <button class="btn" type="submit">Save</button>
   </div>
 </form>

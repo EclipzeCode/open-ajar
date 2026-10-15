@@ -9,13 +9,14 @@ import sqlite3
 import tempfile
 import zipfile
 from datetime import date, timedelta
+from urllib.parse import urlsplit
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_file, url_for
 
 import data
 import mail
 from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, grant_room,
-                  is_owner, one, run, update_opp, _like)
+                  is_owner, new_id, one, run, save_upload, update_opp, uploads_dir, _like)
 
 bp = Blueprint('admin', __name__)
 PER_PAGE = 100
@@ -202,7 +203,7 @@ def users():
          'status': a.get('status') if a.get('status') in USER_STATUSES else '',
          'joined_from': a.get('joined_from') if data.parse_date(a.get('joined_from', '')) else '',
          'joined_to': a.get('joined_to') if data.parse_date(a.get('joined_to', '')) else ''}
-    cond, args = searched(('name', 'email', 'school'))
+    cond, args = searched(('name', 'nickname', 'email', 'school'))
     where = [cond] if cond else []
     if f['role']:
         where.append('role=?')
@@ -240,7 +241,148 @@ def user_detail(uid):
         listings=all_('SELECT id, title, status, created_at FROM opportunities WHERE submitted_by=? ORDER BY created_at DESC', (uid,)),
         counts=one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracked, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved,
                       (SELECT COUNT(*) FROM user_days WHERE user_id=:u) days, (SELECT MAX(day) FROM user_days WHERE user_id=:u) last_seen''', {'u': uid}),
-        quote=one('SELECT quote, status FROM testimonials WHERE user_id=?', (uid,)))
+        quote=one('SELECT quote, status FROM testimonials WHERE user_id=?', (uid,)),
+        my_note=(one('SELECT note FROM user_notes WHERE user_id=? AND author_id=?', (uid, current_user()['id'])) or {'note': ''})['note'],
+        profile=one('SELECT id, name, shown FROM partner_profiles WHERE user_id=?', (uid,)))
+
+
+def _back(default):
+    """The admin page the form was on (the Users list keeps its filters), or `default`."""
+    ref = urlsplit(request.referrer or '')
+    return ref.path + ('?' + ref.query if ref.query else '') if ref.netloc == request.host and ref.path.startswith('/admin') else default
+
+
+@bp.post('/users/<uid>/notes')
+@admin_required
+def user_notes(uid):
+    """A person's nickname and admin note (admins set them; every admin and moderator sees them) and the private note of
+    whoever is saving (moderators can save theirs too; nobody else ever sees it)."""
+    me, u = current_user(), one('SELECT * FROM users WHERE id=?', (uid,))
+    if not u:
+        abort(404)
+    note = data.clean(request.form.get('private_note', ''), multiline=True)[:2000]
+    if note:
+        run('''INSERT INTO user_notes (user_id, author_id, note, updated_at) VALUES (?,?,?,?)
+               ON CONFLICT(user_id, author_id) DO UPDATE SET note=excluded.note, updated_at=excluded.updated_at''', (uid, me['id'], note, data.now_iso()))
+    else:
+        run('DELETE FROM user_notes WHERE user_id=? AND author_id=?', (uid, me['id']))
+    if me['role'] == 'admin' and 'nickname' in request.form:
+        nickname = data.clean(request.form.get('nickname', ''))[:60]
+        staff_note = data.clean(request.form.get('staff_note', ''), multiline=True)[:2000]
+        if (nickname, staff_note) != (u['nickname'], u['staff_note']):
+            if is_owner(u) and not is_owner(me):
+                flash('Only the owner can change the owner’s nickname or admin note. Your private note was saved.', 'error')
+                return redirect(_back(url_for('admin.user_detail', uid=uid)))
+            run('UPDATE users SET nickname=?, staff_note=? WHERE id=?', (nickname, staff_note, uid))
+            audit(me['id'], 'user_notes_updated', u['email'])
+    flash(f"Notes saved for {u['name']}.")
+    return redirect(_back(url_for('admin.user_detail', uid=uid)))
+
+
+@bp.post('/users/<uid>/make-partner')
+@admin_required
+def make_partner(uid):
+    """Owner only: gives the person the partner role and a partner profile (hidden until the owner fills it in and shows it)."""
+    me, u = current_user(), one('SELECT * FROM users WHERE id=?', (uid,))
+    if not is_owner(me):
+        abort(403)
+    if not u:
+        abort(404)
+    if u['role'] in data.STAFF:
+        flash('Admins and moderators can’t be made partners: it would remove their access. Change their role first.', 'error')
+        return redirect(_back(url_for('admin.users')))
+    if u['role'] != 'partner':  # a new role signs them out everywhere, like any role change
+        run("UPDATE users SET role='partner', session_version=session_version+1 WHERE id=?", (uid,))
+        audit(me['id'], 'user_updated role=partner disabled=' + str(u['disabled']), u['email'])
+    profile = one('SELECT id FROM partner_profiles WHERE user_id=?', (uid,))
+    if not profile:
+        pid = new_id()
+        run('INSERT INTO partner_profiles (id, name, user_id, position, updated_at) VALUES (?,?,?,(SELECT COALESCE(MAX(position), 0) + 10 FROM partner_profiles),?)',
+            (pid, u['name'], uid, data.now_iso()))
+        audit(me['id'], 'partner_profile_created', u['name'])
+        flash(f"{u['name']} is now a partner. Fill in their profile below; it shows on the About page once you tick “Show”.")
+        return redirect(url_for('admin.partner_profile', pid=pid))
+    flash(f"{u['name']} is now a partner.")
+    return redirect(url_for('admin.partner_profile', pid=profile['id']))
+
+
+@bp.get('/partner-profiles')
+@admin_required
+def partner_profiles():
+    """The About page's partners and supporters, in page order. Only the owner edits them."""
+    return render_template('admin/partner_profiles.html', profiles=all_('''SELECT p.*, u.email user_email FROM partner_profiles p
+        LEFT JOIN users u ON u.id = p.user_id ORDER BY p.tier, p.position, p.name'''))
+
+
+@bp.route('/partner-profiles/new', methods=['GET', 'POST'])
+@bp.route('/partner-profiles/<pid>', methods=['GET', 'POST'])
+@admin_required
+def partner_profile(pid=None):
+    me = current_user()
+    if not is_owner(me):
+        abort(403)
+    p = one('SELECT * FROM partner_profiles WHERE id=?', (pid,)) if pid else None
+    if pid and not p:
+        abort(404)
+    if request.method != 'POST':
+        return render_template('admin/partner_profile.html', p=dict(p) if p else {'tier': 'partner', 'position': next_position()}, errors={},
+                               linked=one('SELECT name, email FROM users WHERE id=?', (p['user_id'],)) if p and p['user_id'] else None)
+    if request.form.get('action') == 'delete' and p:
+        run('DELETE FROM partner_profiles WHERE id=?', (pid,))
+        _drop_upload(p['img'])
+        audit(me['id'], 'partner_profile_deleted', p['name'])
+        flash(f"Removed {p['name']} from the About page.")
+        return redirect(url_for('admin.partner_profiles'))
+    f = data.Form(request.form)
+    f.text('name', 'Name', min=2, max=120)
+    f.one_of('tier', ('partner', 'supporter'), 'where it shows')
+    f.text('quote', 'Quote', max=600, required=False, multiline=True)
+    f.text('quote_by', 'Who said it', max=120, required=False)
+    f.text('quote_role', 'Their role', max=120, required=False)
+    f.url('url')
+    f.text('link_text', 'Link text', max=60, required=False)
+    f.text('address', 'Address', max=200, required=False)
+    f.text('about', 'Description', max=200, required=False)
+    pos = request.form.get('position', '')
+    if not pos.isdigit() or int(pos) > 100000:
+        f.errors['position'] = 'Enter a whole number, like 10'
+    o = {**f.out, 'url': f.out.get('url') or '', 'position': int(pos) if pos.isdigit() else 0,
+         **{k: 1 if request.form.get(k) else 0 for k in ('shown', 'wide', 'big', 'logo')}}
+    photo = request.files.get('photo')
+    if photo and photo.filename:
+        name = save_upload(photo)
+        if name:
+            o.update(img=name, width=None, height=None)
+        else:
+            f.errors['photo'] = 'Upload a PNG, JPEG or WebP image'
+    elif request.form.get('remove_photo'):
+        o.update(img='', width=None, height=None)
+    if f.errors:
+        if o.get('img', '').startswith('up-') and (not p or o['img'] != p['img']):
+            _drop_upload(o['img'])  # the rest of the form didn't save, so neither does its photo
+        return render_template('admin/partner_profile.html', p={**(dict(p) if p else {}), **request.form.to_dict(), **{k: o[k] for k in ('shown', 'wide', 'big', 'logo')}},
+                               errors=f.errors, linked=None), 422
+    o['updated_at'] = data.now_iso()
+    if p:
+        run(f"UPDATE partner_profiles SET {', '.join(k + '=?' for k in o)} WHERE id=?", (*o.values(), pid))
+        if 'img' in o and o['img'] != p['img']:
+            _drop_upload(p['img'])
+    else:
+        pid = o['id'] = new_id()
+        run(f"INSERT INTO partner_profiles ({','.join(o)}) VALUES ({','.join('?' * len(o))})", tuple(o.values()))
+    audit(me['id'], 'partner_profile_saved', o['name'])
+    flash(f"Saved {o['name']}." + ('' if o['shown'] else ' It’s hidden from the About page until you tick “Show”.'))
+    return redirect(url_for('admin.partner_profile', pid=pid))
+
+
+def next_position():
+    return one('SELECT COALESCE(MAX(position), 0) + 10 n FROM partner_profiles')['n']
+
+
+def _drop_upload(name):
+    """Deletes an uploaded photo nothing uses any more (the original six in static/ are left alone)."""
+    if name and name.startswith('up-'):
+        (uploads_dir() / name).unlink(missing_ok=True)
 
 
 @bp.route('/stats', methods=['GET', 'POST'])
@@ -423,7 +565,7 @@ YES = lambda col: f"CASE WHEN {col} THEN 'Yes' ELSE 'No' END"
 EXPORTS = {  # file name -> query with readable column names
     'members': f'''SELECT name "Name", email "Email", role "Role", school "School", grade "Grade", location "Location",
         interests "Interests", {YES('email_verified')} "Email confirmed", {YES('email_reminders')} "Reminder emails",
-        {YES('disabled')} "Disabled", created_at "Joined" FROM users ORDER BY created_at''',
+        {YES('disabled')} "Disabled", nickname "Nickname", staff_note "Admin note", created_at "Joined" FROM users ORDER BY created_at''',
     'listings': '''SELECT title "Title", org "Organization", type "Type", status "Status", verification "Checked", cost "Cost",
         cost_note "Cost note", format "Format", location "Location", state "State", commitment "Commitment", grades "Grades",
         interests "Interests", deadline_date "Deadline", deadline_note "Deadline note", url "Link", summary "Summary",
@@ -436,11 +578,14 @@ EXPORTS = {  # file name -> query with readable column names
         JOIN opportunities o ON o.id=s.opportunity_id ORDER BY s.created_at''',
     'intern-applications': '''SELECT full_name "Name", email "Email", grade "Grade", school "School", location "Location",
         interests "Interests", skills "Skills", availability "Availability", statement "Why they want to intern", link "Link",
-        status "Status", admin_note "Private note", created_at "Applied" FROM intern_applications ORDER BY created_at''',
+        status "Status", admin_note "Private note", placement_business "Placed with", placement_start "Starts",
+        placement_hours "Hours", placement_supervisor "Supervisor", created_at "Applied" FROM intern_applications ORDER BY created_at''',
     'partner-inquiries': '''SELECT business "Business", contact_name "Contact", email "Email", phone "Phone", location "Location",
         message "Message", status "Status", admin_note "Private note", created_at "Sent" FROM partner_inquiries ORDER BY created_at''',
     'messages': '''SELECT name "Name", email "Email", topic "Topic", message "Message", status "Status", admin_note "Private note",
         created_at "Sent" FROM contact_messages ORDER BY created_at''',
+    'partner-profiles': '''SELECT name "Name", tier "Shown as", CASE WHEN shown THEN 'Yes' ELSE 'No' END "On the About page",
+        position "Order", quote "Quote", url "Website", address "Address", about "Description" FROM partner_profiles ORDER BY tier, position''',
     'quotes': '''SELECT name "Name", role_label "Role", quote "Quote", status "Status", updated_at "Updated" FROM testimonials
         ORDER BY updated_at''',
     'access-grants': '''SELECT name "Student", email "Email", parent_email "Parent or guardian", program "Program", org "Organization",
@@ -505,6 +650,9 @@ ACTION_NAMES = {
     'grant_withdrawn': 'Withdrew an Access Grant request', 'stat_adjusted': 'Adjusted a stat by hand',
     'database_backup_downloaded': 'Downloaded a database backup', 'application_update': 'Updated an applicant',
     'message': 'Sent a listing submitter an update', 'reply': 'Replied about their listing',
+    'placement_updated': 'Saved an intern’s placement', 'user_notes_updated': 'Changed a user’s nickname or admin note',
+    'partner_profile_created': 'Made a user a partner', 'partner_profile_saved': 'Saved a partner profile',
+    'partner_profile_deleted': 'Deleted a partner profile',
 }
 
 
@@ -632,8 +780,35 @@ def _tell(g, heading, paragraphs):
 @bp.route('/interns', methods=['GET', 'POST'])
 @admin_required
 def interns():
+    if request.method == 'POST' and request.form.get('action') == 'placement':
+        return save_placement()
     return _inbox('intern_applications', list(data.INTERN_STATUSES), 'admin/interns.html',
                   ('full_name', 'email', 'school', 'location'), kind='intern')
+
+
+def save_placement():
+    """Where an accepted intern is placed: business, start date, hours and supervisor. Shown on their profile; not emailed."""
+    row = one('SELECT * FROM intern_applications WHERE id=?', (request.form.get('id', ''),))
+    if not row:
+        abort(404)
+    back = redirect(request.full_path + f"#a-{row['id']}")
+    if row['status'] not in data.PLACED:
+        flash('Accept the application before adding where they’re placed.', 'error')
+        return back
+    f = data.Form(request.form)
+    f.text('placement_business', 'Business', max=160, required=False)
+    f.date('placement_start')
+    f.text('placement_hours', 'Hours', max=160, required=False)
+    f.text('placement_supervisor', 'Supervisor', max=200, required=False)
+    if f.errors:
+        flash(' '.join(f.errors.values()), 'error')
+        return back
+    o = f.out
+    run('UPDATE intern_applications SET placement_business=?, placement_start=?, placement_hours=?, placement_supervisor=? WHERE id=?',
+        (o['placement_business'], o['placement_start'], o['placement_hours'], o['placement_supervisor'], row['id']))
+    audit(current_user()['id'], 'placement_updated', row['id'])
+    flash(f"Placement saved. {row['full_name'].split()[0]} sees it on their profile.")
+    return back
 
 
 def record_update(kind, item_id, status=None, message=''):
@@ -670,7 +845,8 @@ def _inbox(table, statuses, template, cols, kind=None):
             if kind and (changed or message):
                 label = data.APPLICATION_KINDS[kind]['statuses'][status] if changed else None
                 record_update(kind, row['id'], status if changed else None, message)
-                if message or request.form.get('notify'):
+                decided = changed and status in data.DECISIONS.get(kind, ())  # accepted or declined: they're always told
+                if message or request.form.get('notify') or decided:
                     name, title = {'intern': lambda: (row['full_name'], 'OpenAjar internships'),
                                    'partner': lambda: (row['contact_name'], f"hosting an intern at {row['business']}"),
                                    'contact': lambda: (row['name'], row['topic'])}[kind]()

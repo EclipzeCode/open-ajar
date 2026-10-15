@@ -4,13 +4,13 @@ import re
 from html import escape
 from urllib.parse import urlencode, urlsplit
 
-from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_from_directory, url_for
 
 import data
 import mail
 from core import (PUBLIC, add_event, all_, audit, client_ip, current_user, facets, get_db, get_opp, get_public, grant_room,
                   insert_opp, limited, login_required, new_id, now_iso, one, run, safe_next, save_opp, search_public, track_opp,
-                  update_opp)
+                  update_opp, uploads_dir)
 
 bp = Blueprint('site', __name__)
 PAGE = 24  # divides evenly into 1, 2, 3 or 4 columns, so full pages never leave a ragged last row
@@ -406,7 +406,17 @@ def withdraw_grant(gid):
 
 @bp.get('/about')
 def about():
-    return render_template('about.html')
+    rows = all_('SELECT * FROM partner_profiles WHERE shown=1 ORDER BY position, name')
+    return render_template('about.html', partners=[p for p in rows if p['tier'] == 'partner'],
+                           supporters=[p for p in rows if p['tier'] == 'supporter'])
+
+
+@bp.get('/media/<name>')
+def media(name):
+    """Uploaded partner photos. Names are random and never reused, so browsers keep them for a year."""
+    if not re.fullmatch(r'up-[0-9a-f]{16}\.(png|jpg|webp)', name):
+        abort(404)
+    return send_from_directory(uploads_dir(), name, max_age=31536000)
 
 
 @bp.get('/team')

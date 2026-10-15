@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Partner profiles{% endblock %}
+{% block content %}
+<div class="wrap">
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Partner profiles</h1>
+    <p class="muted">The partners and supporters on the About page, in the order they show.{% if is_owner(user) %} Only you (the owner) can change them.{% else %} Only the owner can change them.{% endif %}</p></header>
+  {% include 'admin/_nav.html' %}
+  {% if is_owner(user) %}<p><a class="btn btn--sm" href="{{ url_for('admin.partner_profile') }}">Add a partner</a></p>{% endif %}
+  {% for tier, title in (('partner', 'Partners: full rows with a photo'), ('supporter', 'Supporters: cards in the scrolling strip')) %}
+  <h2 class="partner-list__h">{{ title }}</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Order</th><th>Name</th><th>On the About page</th><th>Account</th></tr></thead>
+      <tbody>
+        {% for p in profiles if p.tier == tier %}
+        <tr>
+          <td class="small">{{ p.position }}</td>
+          <td><div class="partner-list__name">
+            {% if p.img %}<img class="partner-list__img" src="{{ partner_img(p.img) }}" alt="" width="36" height="36">{% else %}<span class="partner-list__img" aria-hidden="true"></span>{% endif %}
+            <div>{% if is_owner(user) %}<a href="{{ url_for('admin.partner_profile', pid=p.id) }}"><strong>{{ p.name }}</strong></a>{% else %}<strong>{{ p.name }}</strong>{% endif %}
+            {% if not p.quote %}<br><span class="muted small">No quote yet</span>{% endif %}</div></div></td>
+          <td>{% if p.shown %}<span class="pill pill--approved">Shown</span>{% else %}<span class="pill pill--pending">Hidden</span>{% endif %}</td>
+          <td class="small">{{ p.user_email or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="muted">None yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -213,13 +213,22 @@ def account():
 LISTING_UPDATES = ('approve', 'request_changes', 'reject', 'expire', 'reopen', 'message', 'reply')
 
 
+def placement(r):
+    """(label, value) for where an accepted intern is placed, for their profile."""
+    if r['status'] not in data.PLACED:
+        return []
+    return [('Placed with', r['placement_business']), ('Starts', data.nice_date(r['placement_start'])),
+            ('Hours', r['placement_hours']), ('Supervisor', r['placement_supervisor'])]
+
+
 def applications(u):
     """Everything this person has applied for or sent in, most recent activity first, each with its status, progress
     steps and its conversation with the team (oldest first; `mine` marks their own replies). Internship applications and partner inquiries are sent without an account, so they're
     matched by email, and only once this account has confirmed it owns that email."""
-    def item(kind, row, title, meta, updates, link=None, action=None):
+    def item(kind, row, title, meta, updates, link=None, action=None, details=()):
         k = data.APPLICATION_KINDS[kind]
         return {'kind': kind, 'id': row['id'], 'label': k['label'], 'title': title, 'meta': meta, 'link': link, 'action': action,
+                'details': [(label, v) for label, v in details if v],
                 'status': row['status'], 'status_label': k['statuses'][row['status']], 'steps': data.progress(kind, row['status']),
                 'updates': updates, 'at': max([row['created_at'], *(x['at'] for x in updates)])}
 
@@ -237,8 +246,8 @@ def applications(u):
     if u['email_verified']:
         rows = all_('SELECT * FROM intern_applications WHERE lower(email)=?', (u['email'],))
         ups = updates('intern', [r['id'] for r in rows])
-        items += [item('intern', r, 'Intern with OpenAjar', f"Sent {data.nice_date(r['created_at'])}", ups.get(r['id'], []))
-                  for r in rows]
+        items += [item('intern', r, 'Intern with OpenAjar', f"Sent {data.nice_date(r['created_at'])}", ups.get(r['id'], []),
+                       details=placement(r)) for r in rows]
         rows = all_('SELECT * FROM partner_inquiries WHERE lower(email)=?', (u['email'],))
         ups = updates('partner', [r['id'] for r in rows])
         items += [item('partner', r, f"Hosting an intern at {r['business']}", f"Sent {data.nice_date(r['created_at'])}",

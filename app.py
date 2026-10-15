@@ -24,7 +24,7 @@ from werkzeug.security import generate_password_hash
 
 import data
 import mail
-from core import add_event, connect, current_user, expire_due, insert_opp, is_owner, load_user, new_id, same_program_rows, update_opp
+from core import add_event, connect, current_user, expire_due, insert_opp, is_owner, load_user, new_id, partner_img, same_program_rows, update_opp
 
 ROOT = Path(__file__).parent
 # Runs in <head> before the first paint, so animated sections start in their animated layout instead of jumping when
@@ -112,6 +112,8 @@ def create_app(test_config=None):
         if not app.config.get('TESTING'):
             start_maintenance(app)
         load_user()
+        if request.endpoint == 'admin.partner_profile':
+            request.max_content_length = 5 * 1024 * 1024  # a partner photo; every other form stays at 64 KB
         if request.method == 'POST':
             sent = request.form.get('csrf') or request.headers.get('X-CSRF-Token') or ''
             if not sent or not hmac.compare_digest(sent, session.get('csrf', '')):
@@ -167,7 +169,8 @@ def create_app(test_config=None):
 
     app.jinja_env.add_extension('jinja2.ext.do')
     app.jinja_env.tests['section_message'] = lambda m: ' ' in m[0]  # category like 'error profile'
-    app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url, is_owner=is_owner)
+    app.jinja_env.globals.update(deadline_info=data.deadline_info, grade_label=data.grade_label, page_url=page_url, is_owner=is_owner,
+                                  partner_img=partner_img)
     app.jinja_env.filters['fromjson'] = json.loads
     app.jinja_env.filters['day'] = lambda iso: (iso or '')[:10]
     app.jinja_env.filters['nice_date'] = data.nice_date
@@ -186,12 +189,23 @@ def init_db(path):
     db.executescript((ROOT / 'schema.sql').read_text())
     # Columns added after launch: CREATE TABLE IF NOT EXISTS won't add them to an existing database.
     for table, col, ddl in (('users', 'school', "TEXT NOT NULL DEFAULT ''"), ('tracked', 'found_here', 'INTEGER'),
-                            ('access_grants', 'approved_at', 'TEXT'), ('opportunities', 'job_category', 'TEXT')):
+                            ('access_grants', 'approved_at', 'TEXT'), ('opportunities', 'job_category', 'TEXT'),
+                            ('users', 'nickname', "TEXT NOT NULL DEFAULT ''"), ('users', 'staff_note', "TEXT NOT NULL DEFAULT ''"),
+                            ('intern_applications', 'placement_business', "TEXT NOT NULL DEFAULT ''"),
+                            ('intern_applications', 'placement_start', 'TEXT'),
+                            ('intern_applications', 'placement_hours', "TEXT NOT NULL DEFAULT ''"),
+                            ('intern_applications', 'placement_supervisor', "TEXT NOT NULL DEFAULT ''")):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
     # Values added to a CHECK constraint after launch (the text that shows the table is up to date)
-    for table, needed in (('intern_applications', "'accepted'"), ('application_updates', "'contact'"), ('users', "'moderator'")):
+    for table, needed in (('intern_applications', "'accepted'"), ('application_updates', "'contact'"), ('users', "'partner'")):
         rebuild_table(db, table, needed)
+    # The About page's partners: seeded once, then the owner edits them in admin (a flag, so deleting them all doesn't reseed)
+    if not db.execute("SELECT 1 FROM app_meta WHERE key='partners_seeded'").fetchone():
+        for i, p in enumerate(data.PARTNER_SEED):
+            vals = {'tier': 'partner', **p, 'id': new_id(), 'shown': 1, 'position': (i + 1) * 10, 'updated_at': data.now_iso()}
+            db.execute(f"INSERT INTO partner_profiles ({','.join(vals)}) VALUES ({','.join('?' * len(vals))})", list(vals.values()))
+        db.execute("INSERT INTO app_meta (key, value) VALUES ('partners_seeded', '1')")
     # Job categories are stored so filtering is fast; recomputing them here picks up edits to data.JOB_CATEGORIES.
     db.executemany('UPDATE opportunities SET job_category=? WHERE id=?',
                    [(data.job_category(r['org'], r['title']) if r['type'] == 'Job' else None, r['id'])

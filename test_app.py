@@ -1,4 +1,5 @@
 """End-to-end checks of the main flows. Run: python -m unittest"""
+import io
 import json
 import re
 import tempfile
@@ -248,6 +249,95 @@ class Flows(unittest.TestCase):
         self.assertIn('Welcome aboard!', page)  # admins see what was sent
         self.assertEqual(self.c.get('/admin/interns').status_code, 403)
 
+    def test_interns_are_declined_or_placed_and_always_told(self):
+        db = connect(self.app.config['DB_PATH'])
+        form = {'full_name': 'Sam Rivera', 'email': 'sam@example.org', 'statement': 'I want to learn how a small business runs.'}
+        self.post('/apply', form)
+        self.post('/apply', {**form, 'full_name': 'Kim Diaz', 'email': 'kim@example.org'})
+        sam, kim = (db.execute('SELECT id FROM intern_applications WHERE email=?', (e,)).fetchone()['id'] for e in ('sam@example.org', 'kim@example.org'))
+        admin = self.make_admin()
+        self.assertIn('value="declined"', admin.get('/admin/interns').get_data(as_text=True))  # a Decline button
+        mail.OUTBOX.clear()
+        self.post('/admin/interns', {'id': kim, 'status': 'new', 'quick': 'declined'}, admin)  # "email them" unticked
+        self.assertEqual([m['to'] for m in mail.OUTBOX], ['kim@example.org'])  # a decision is always emailed
+        self.assertIn('Not selected', mail.OUTBOX[0]['text'])
+
+        placement = {'id': sam, 'action': 'placement', 'placement_business': 'Moon Tea', 'placement_start': '2026-11-02',
+                     'placement_hours': '10 hours a week', 'placement_supervisor': 'Lee Chen, lee@example.org'}
+        self.post('/admin/interns', placement, admin)  # not accepted yet: nothing saved
+        self.assertEqual(db.execute('SELECT placement_business FROM intern_applications WHERE id=?', (sam,)).fetchone()[0], '')
+        mail.OUTBOX.clear()
+        self.post('/admin/interns', {'id': sam, 'status': 'new', 'quick': 'accepted'}, admin)
+        self.assertEqual([m['to'] for m in mail.OUTBOX], ['sam@example.org'])
+        self.post('/admin/interns', placement, admin)
+        self.post('/admin/interns', {**placement, 'placement_hours': '12 hours a week'}, admin)  # edited later
+        self.register()
+        db.execute("UPDATE users SET email_verified=1 WHERE email='sam@example.org'")
+        db.commit()
+        profile = self.c.get('/account').get_data(as_text=True)
+        for text in ('Moon Tea', 'Nov 2, 2026', '12 hours a week', 'Lee Chen'):
+            self.assertIn(text, profile)
+
+    def test_nicknames_admin_notes_and_private_notes(self):
+        owner, admin = self.make_admin('owner@example.org', 'owner'), self.make_admin()
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        uid = db.execute("SELECT id FROM users WHERE email='sam@example.org'").fetchone()['id']
+        self.post(f'/admin/users/{uid}/notes', {'nickname': 'Sammy', 'staff_note': 'Met at the career fair', 'private_note': 'Follow up in May'}, admin)
+        self.post(f'/admin/users/{uid}/notes', {'nickname': 'Sammy', 'staff_note': 'Met at the career fair', 'private_note': 'Owner thoughts'}, owner)
+        mine, theirs = (c.get(f'/admin/users/{uid}').get_data(as_text=True) for c in (admin, owner))
+        for page in (mine, theirs):
+            self.assertIn('Sammy', page)
+            self.assertIn('Met at the career fair', page)  # every admin sees the admin note
+        self.assertIn('Follow up in May', mine)
+        self.assertNotIn('Follow up in May', theirs)  # a private note is only for whoever wrote it
+        self.assertNotIn('Owner thoughts', mine)
+        self.assertIn('Sammy', admin.get('/admin/users?q=sammy').get_data(as_text=True))  # nicknames are searchable
+        self.assertNotIn('Sammy', self.c.get('/account').get_data(as_text=True))  # never shown to the person
+
+        self.post('/admin/users', {'id': uid, 'role': 'moderator'}, admin)
+        self.post('/login', {'email': 'sam@example.org', 'password': PW})
+        self.post(f'/admin/users/{uid}/notes', {'nickname': 'Changed', 'staff_note': 'x', 'private_note': 'Moderator note'})
+        row = db.execute('SELECT nickname FROM users WHERE id=?', (uid,)).fetchone()
+        self.assertEqual(row['nickname'], 'Sammy')  # moderators keep their own private note, change nothing else
+        self.assertEqual(db.execute('SELECT note FROM user_notes WHERE author_id=?', (uid,)).fetchone()['note'], 'Moderator note')
+        self.post('/admin/users/owner/notes', {'nickname': 'Boss', 'staff_note': '', 'private_note': ''}, admin)
+        self.assertEqual(db.execute("SELECT nickname FROM users WHERE id='owner'").fetchone()['nickname'], '')  # only the owner
+
+    def test_owner_makes_users_partners_and_edits_the_about_page(self):
+        owner, admin = self.make_admin('owner@example.org', 'owner'), self.make_admin()
+        self.register('shop@example.org')
+        db = connect(self.app.config['DB_PATH'])
+        uid = db.execute("SELECT id FROM users WHERE email='shop@example.org'").fetchone()['id']
+        self.assertEqual(self.post(f'/admin/users/{uid}/make-partner', client=admin).status_code, 403)  # the owner's job
+        self.assertEqual(admin.get('/admin/partner-profiles/new').status_code, 403)
+        self.assertEqual(admin.get('/admin/partner-profiles').status_code, 200)  # everyone on staff can look
+        r = self.post(f'/admin/users/{uid}/make-partner', client=owner)
+        p = db.execute('SELECT * FROM partner_profiles WHERE user_id=?', (uid,)).fetchone()
+        self.assertEqual((db.execute('SELECT role FROM users WHERE id=?', (uid,)).fetchone()['role'], p['shown']), ('partner', 0))
+        self.assertIn(f"/admin/partner-profiles/{p['id']}", r.headers['Location'])
+        self.assertNotIn('Sam Rivera', self.c.get('/about').get_data(as_text=True))  # hidden until shown
+
+        png = b'\x89PNG\r\n\x1a\n' + b'\0' * 64
+        form = {'name': 'Rivera Bakery', 'tier': 'supporter', 'position': '5', 'shown': '1', 'url': 'https://bakery.example.org',
+                'quote': 'Hosting a student this fall was a great experience for our whole team.', 'address': '1 Main St, Warren, NJ'}
+        self.post(f"/admin/partner-profiles/{p['id']}", {**form, 'photo': (io.BytesIO(b'not an image'), 'x.png')}, owner,
+                  content_type='multipart/form-data')
+        self.assertEqual(db.execute('SELECT name FROM partner_profiles WHERE id=?', (p['id'],)).fetchone()['name'], 'Sam Rivera')
+        self.post(f"/admin/partner-profiles/{p['id']}", {**form, 'photo': (io.BytesIO(png), 'logo.png')}, owner, content_type='multipart/form-data')
+        img = db.execute('SELECT img FROM partner_profiles WHERE id=?', (p['id'],)).fetchone()['img']
+        about = self.c.get('/about').get_data(as_text=True)
+        self.assertIn('Rivera Bakery', about.split('id="supporters-h"')[1])
+        self.assertIn(f'/media/{img}', about)
+        self.assertEqual(self.c.get(f'/media/{img}').data, png)
+        self.assertEqual(self.c.get('/media/../app.py').status_code, 404)
+
+        moon = db.execute("SELECT id FROM partner_profiles WHERE name='Moon Tea'").fetchone()['id']
+        self.post(f'/admin/partner-profiles/{moon}', {'action': 'delete'}, owner)
+        self.assertNotIn('Moon Tea', self.c.get('/about').get_data(as_text=True))
+        self.post(f"/admin/partner-profiles/{p['id']}", {'action': 'delete'}, owner)
+        self.assertEqual(self.c.get(f'/media/{img}').status_code, 404)  # its photo went with it
+
     def test_applicants_reply_from_their_profile(self):
         self.register()
         db = connect(self.app.config['DB_PATH'])
@@ -328,7 +418,7 @@ class Flows(unittest.TestCase):
         old = Path(self.tmp.name) / 'old.db'
         schema = (Path(__file__).parent / 'schema.sql').read_text()
         db = connect(str(old))  # the tables as they were before moderators and contact replies
-        db.executescript(schema.replace("'moderator',", '').replace(",'contact'", ''))
+        db.executescript(schema.replace("'partner','moderator',", '').replace(",'contact'", ''))
         db.execute("INSERT INTO users (id, email, password_hash, name, created_at) VALUES ('u1', 'a@example.org', 'x', 'A', '2026-01-01')")
         db.execute("INSERT INTO opportunities (id, title, org, type, summary, cost, format, commitment, created_at, updated_at) "
                    "VALUES ('o1', 'T', 'O', 'Job', 'S', 'Free', 'Online', 'Summer', '2026-01-01', '2026-01-01')")
@@ -339,6 +429,7 @@ class Flows(unittest.TestCase):
         init_db(str(old))  # safe to run again
         db = connect(str(old))
         db.execute("UPDATE users SET role='moderator' WHERE id='u1'")
+        db.execute("UPDATE users SET role='partner' WHERE id='u1'")
         self.assertEqual(db.execute('SELECT COUNT(*) n FROM saved').fetchone()['n'], 1)  # rebuilding users didn't cascade
         db.execute("DELETE FROM users WHERE id='u1'")
         self.assertEqual(db.execute('SELECT COUNT(*) n FROM saved').fetchone()['n'], 0)  # and references still work
@@ -428,7 +519,7 @@ class Flows(unittest.TestCase):
         self.assertIn('summary.csv', z.namelist())
         members = z.read('members.csv').decode('utf-8-sig')
         self.assertTrue(members.startswith('Name,Email,Role'))
-        self.assertRegex(members, r'Sam Rivera,sam@example.org,student,.*,No,Yes,No,\d{4}-\d{2}-\d{2} \d{2}:\d{2}')
+        self.assertRegex(members, r'Sam Rivera,sam@example.org,student,.*,No,Yes,No,,,\d{4}-\d{2}-\d{2} \d{2}:\d{2}')
         self.assertNotIn('scrypt', ''.join(z.read(n).decode('utf-8-sig') for n in z.namelist()))  # no password hashes
 
     def test_admins_can_download_a_backup(self):

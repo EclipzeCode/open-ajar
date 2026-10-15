@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   id               TEXT PRIMARY KEY,
   email            TEXT NOT NULL UNIQUE,
   password_hash    TEXT NOT NULL,
-  role             TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student','organization','counselor','moderator','admin')),
+  role             TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student','organization','counselor','partner','moderator','admin')),
   name             TEXT NOT NULL,
   disabled         INTEGER NOT NULL DEFAULT 0,
   email_verified   INTEGER NOT NULL DEFAULT 0,
@@ -14,7 +14,18 @@ CREATE TABLE IF NOT EXISTS users (
   interests        TEXT NOT NULL DEFAULT '[]',
   location         TEXT NOT NULL DEFAULT '',
   school           TEXT NOT NULL DEFAULT '',
+  nickname         TEXT NOT NULL DEFAULT '',   -- set by admins; only staff see it
+  staff_note       TEXT NOT NULL DEFAULT '',   -- the admin note: every admin and moderator sees it
   created_at       TEXT NOT NULL
+);
+
+-- Each staff member's private note about a user: only its author ever sees it.
+CREATE TABLE IF NOT EXISTS user_notes (
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  author_id  TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  note       TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (user_id, author_id)
 );
 
 CREATE TABLE IF NOT EXISTS opportunities (
@@ -124,6 +135,10 @@ CREATE TABLE IF NOT EXISTS intern_applications (
   link         TEXT,
   status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','accepted','placed','declined')),
   admin_note   TEXT NOT NULL DEFAULT '',
+  placement_business   TEXT NOT NULL DEFAULT '',   -- once accepted: where they're placed (shown on their profile)
+  placement_start      TEXT,
+  placement_hours      TEXT NOT NULL DEFAULT '',
+  placement_supervisor TEXT NOT NULL DEFAULT '',
   created_at   TEXT NOT NULL
 );
 
@@ -220,3 +235,28 @@ CREATE TABLE IF NOT EXISTS access_grants (
   updated_at      TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_grants_user ON access_grants(user_id);
+
+-- The partners on the About page, edited by the owner under Admin > Partner profiles. tier 'partner' is a full row with a
+-- photo; 'supporter' is a smaller card in the scrolling strip. Seeded once from data.PARTNER_SEED.
+CREATE TABLE IF NOT EXISTS partner_profiles (
+  id         TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  tier       TEXT NOT NULL DEFAULT 'partner' CHECK (tier IN ('partner','supporter')),
+  shown      INTEGER NOT NULL DEFAULT 0,      -- on the About page
+  position   INTEGER NOT NULL DEFAULT 100,    -- order on the page, smallest first
+  quote      TEXT NOT NULL DEFAULT '',
+  quote_by   TEXT NOT NULL DEFAULT '',
+  quote_role TEXT NOT NULL DEFAULT '',
+  img        TEXT NOT NULL DEFAULT '',        -- a file in static/img/partners/, or an upload (up-…) in the uploads folder
+  width      INTEGER,
+  height     INTEGER,
+  wide       INTEGER NOT NULL DEFAULT 0,      -- don't crop to the portrait frame
+  big        INTEGER NOT NULL DEFAULT 0,      -- a wider image column
+  logo       INTEGER NOT NULL DEFAULT 0,      -- frame a logo on white
+  url        TEXT NOT NULL DEFAULT '',
+  link_text  TEXT NOT NULL DEFAULT '',        -- instead of "Visit website"
+  address    TEXT NOT NULL DEFAULT '',
+  about      TEXT NOT NULL DEFAULT '',        -- a short description, for partners without an address
+  user_id    TEXT REFERENCES users(id) ON DELETE SET NULL,   -- the partner's account, when they have one
+  updated_at TEXT NOT NULL
+);
