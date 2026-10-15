@@ -28,6 +28,8 @@
         {% set locked = is_owner(u) and not is_owner(user) %}
         <tr>
           <td><a class="user-link" href="{{ url_for('admin.user_detail', uid=u.id) }}" data-user-modal><strong>{{ u.name }}</strong></a>{% if u.nickname %} <span class="muted small">“{{ u.nickname }}”</span>{% endif %}
+            {% if u.staff_note %}<span class="note-mark" title="{{ u.staff_note|truncate(160) }}">Admin note</span>{% endif %}
+            {% if u.has_my_note %}<span class="note-mark note-mark--mine" title="You have a private note on them">Your note</span>{% endif %}
             {% if is_owner(u) %}<span class="pill pill--approved">Owner</span>{% endif %}
             <br><span class="muted small">{{ u.email }}</span>
             <div class="user-badges">

@@ -1,5 +1,6 @@
 """Accounts: sign up / in / out, email verification, password reset, the account page and the tracker."""
 import hashlib
+import hmac
 import json
 import secrets
 import sqlite3
@@ -206,7 +207,79 @@ def account():
     counts = one('''SELECT (SELECT COUNT(*) FROM tracked WHERE user_id=:u) tracking, (SELECT COUNT(*) FROM saved WHERE user_id=:u) saved''', {'u': u['id']})
     apps = applications(u)
     return render_template('account.html', u=dict(u), interests=json.loads(u['interests']), quote=quote, applications=apps,
-                           counts=dict(counts, applications=len(apps)), errors={})
+                           counts=dict(counts, applications=len(apps)), errors={}, partner=partner_card(u))
+
+
+def partner_card(u):
+    """For a partner: their About-page profile and the interns placed with them (first name and schedule only)."""
+    p = one('SELECT * FROM partner_profiles WHERE user_id=?', (u['id'],)) if u['role'] == 'partner' else None
+    if not p:
+        return None
+    interns = [{'name': r['full_name'].split()[0], 'start': data.nice_date(r['placement_start']), 'hours': r['placement_hours']}
+               for r in all_(f"SELECT full_name, placement_start, placement_hours FROM intern_applications WHERE status IN {data.PLACED} "
+                             "AND lower(trim(placement_business)) = lower(trim(?)) ORDER BY placement_start", (p['name'],))]
+    return {'profile': p, 'interns': interns}
+
+
+@bp.post('/account/email')
+@login_required
+def change_email():
+    """Starts an email change: the new address gets a confirmation link, and the account keeps the old one until it's used."""
+    u = current_user()
+    if too_many_auth(u['id']):
+        abort(429, 'Too many attempts. Please wait a few minutes and try again.')
+    new = data.norm_email(request.form.get('new_email', ''))
+    if not check_password_hash(u['password_hash'], request.form.get('password', '')[:128]):
+        return back('email', 'That isn’t your current password.')
+    if not new:
+        return back('email', 'Enter a valid email address.')
+    if new == u['email']:
+        return back('email', 'That’s already your email address.')
+    if one('SELECT 1 FROM users WHERE email=?', (new,)):
+        return back('email', 'Another account already uses that email address.')
+    if limited('change-email:' + u['id'], 4, 3600):
+        return back('email', 'You’ve asked for several links recently. Check your inbox, or try again in an hour.')
+    run('UPDATE users SET pending_email=? WHERE id=?', (new, u['id']))
+    link = f"{current_app.config['APP_URL']}/confirm-email?token={issue_token(u, 'change_email', 24)}"
+    mail.later('email change', mail.change_email, current_app.config, u, new, link)
+    return back('email', f'We sent a link to {new}. Your account keeps using {u["email"]} until you open it.', ok=True)
+
+
+@bp.route('/confirm-email', methods=['GET', 'POST'])
+def confirm_email():
+    """GET shows a button; only the POST uses the link (email scanners open links on their own)."""
+    token = request.values.get('token', '')
+    if request.method != 'POST':  # GET, or HEAD from link scanners: never act on it
+        return render_template('auth/confirm_email.html', token=token)
+    if too_many_auth():
+        abort(429, 'Too many attempts. Please wait a few minutes and try again.')
+    uid = token_user(token, 'change_email', spend=True)
+    u = one('SELECT * FROM users WHERE id=?', (uid,)) if uid else None
+    if not u or not u['pending_email']:
+        return render_template('auth/confirm_email.html', token='', error=BAD_LINK), 400
+    new = u['pending_email']
+    if one('SELECT 1 FROM users WHERE email=? AND id<>?', (new, uid)):
+        run("UPDATE users SET pending_email='' WHERE id=?", (uid,))
+        return render_template('auth/confirm_email.html', token='', error='Another account started using that address in the meantime, so nothing was changed.'), 409
+    run("UPDATE users SET email=?, pending_email='', email_verified=1 WHERE id=?", (new, uid))
+    audit(uid, 'email_changed', f"{u['email']} to {new}")
+    mail.later('email changed notice', mail.email_changed, current_app.config, u['email'], u['name'], new)
+    flash(f'Your email is now {new}. Use it to sign in.')
+    return redirect(url_for('account.account') if current_user() else url_for('account.login'))
+
+
+@bp.route('/unsubscribe', methods=['GET', 'POST'])
+def unsubscribe():
+    """Turns off deadline emails from the link in one of them, without signing in. Mail apps' own Unsubscribe button posts
+    here directly (List-Unsubscribe-Post); people get a page with a button."""
+    uid, token = request.values.get('u', ''), request.values.get('t', '')
+    u = one('SELECT id, email FROM users WHERE id=?', (uid,))
+    if not u or not hmac.compare_digest(token, mail.unsubscribe_token(current_app.config, uid)):
+        return render_template('auth/unsubscribe.html', error='That unsubscribe link isn’t valid. You can turn reminders off on your account page.'), 400
+    if request.method != 'POST':
+        return render_template('auth/unsubscribe.html', u=uid, t=token, email=u['email'])
+    run('UPDATE users SET email_reminders=0 WHERE id=?', (uid,))
+    return render_template('auth/unsubscribe.html', done=True, email=u['email'])
 
 
 # review events on a listing that make up its conversation with the submitter (not edits, imports or the submitting itself)

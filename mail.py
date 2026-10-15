@@ -1,4 +1,6 @@
 """Email: sending (Resend, or an in-memory outbox in development), the three templates, and deadline reminders."""
+import hashlib
+import hmac
 import json
 import threading
 import urllib.request
@@ -26,15 +28,15 @@ def later(what, fn, config, *args):
         go()
 
 
-def send(config, to, subject, html, text, reply_to=None):
+def send(config, to, subject, html, text, reply_to=None, headers=None):
     if not config['RESEND_API_KEY']:
-        OUTBOX.insert(0, {'to': to, 'subject': subject, 'text': text})
+        OUTBOX.insert(0, {'to': to, 'subject': subject, 'text': text, 'headers': headers or {}})
         del OUTBOX[50:]
         return
     req = urllib.request.Request(
         'https://api.resend.com/emails', method='POST',
         data=json.dumps({'from': config['EMAIL_FROM'], 'to': [to], 'subject': subject, 'html': html, 'text': text,
-                         **({'reply_to': reply_to} if reply_to else {})}).encode(),
+                         **({'reply_to': reply_to} if reply_to else {}), **({'headers': headers} if headers else {})}).encode(),
         headers={'Authorization': f"Bearer {config['RESEND_API_KEY']}", 'Content-Type': 'application/json',
                  'User-Agent': 'open-ajar'})
     with urllib.request.urlopen(req, timeout=10) as r:
@@ -42,16 +44,20 @@ def send(config, to, subject, html, text, reply_to=None):
             raise RuntimeError(f'Resend answered {r.status}')
 
 
-def _layout(heading, paragraphs, button, link, footer, extra_html='', extra_text=''):
+def _layout(heading, paragraphs, button, link, footer, extra_html='', extra_text='', unsubscribe=None):
     ps = ''.join(f'<p style="font-size:16px;line-height:1.55;margin:0 0 16px">{escape(p)}</p>' for p in paragraphs)
+    unsub_html = (f'<p style="font-size:13px;color:#6B675E;margin:12px 0 0"><a href="{escape(unsubscribe)}" style="color:#6B675E">'
+                  'Unsubscribe from deadline emails</a></p>') if unsubscribe else ''
     html = f'''<!doctype html><html lang="en"><body style="margin:0;background:#FAF7F2;color:#1C1B18;font-family:Helvetica,Arial,sans-serif">
 <div style="max-width:520px;margin:0 auto;padding:32px 24px">
 <p style="font-size:20px;font-weight:700;margin:0 0 24px">OpenAjar</p>
 <h1 style="font-size:26px;line-height:1.2;margin:0 0 16px">{escape(heading)}</h1>{ps}{extra_html}
 <p style="margin:24px 0"><a href="{escape(link)}" style="background:#1F5C4A;color:#fff;text-decoration:none;padding:13px 20px;border-radius:8px;font-weight:600;display:inline-block">{escape(button)}</a></p>
 <p style="font-size:14px;color:#6B675E;margin:0 0 8px">Or paste this link into your browser:<br><span style="word-break:break-all">{escape(link)}</span></p>
-<p style="font-size:14px;color:#6B675E;margin:24px 0 0">{escape(footer)}</p></div></body></html>'''
+<p style="font-size:14px;color:#6B675E;margin:24px 0 0">{escape(footer)}</p>{unsub_html}</div></body></html>'''
     text = f"{heading}\n\n" + '\n\n'.join(paragraphs) + f"\n{extra_text}\n{button}: {link}\n\n{footer}\n\nOpenAjar"
+    if unsubscribe:
+        text += f'\n\nUnsubscribe from deadline emails: {unsubscribe}'
     return html, text
 
 
@@ -155,18 +161,65 @@ def _when(days):
     return 'due today' if days == 0 else 'due tomorrow' if days == 1 else f'due in {days} days'
 
 
-def deadline_digest(config, email, name, items):
-    one = len(items) == 1
-    subject = f"Reminder: {items[0]['title']} is {_when(items[0]['days'])}" if one else f'You have {len(items)} deadlines coming up'
+def unsubscribe_token(config, user_id):
+    """Signs a user id for the unsubscribe link, so the link works without signing in but can't be made up for someone else."""
+    return hmac.new(config['SECRET_KEY'].encode(), b'unsubscribe:' + user_id.encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def _unsubscribe(config, user_id):
+    """The unsubscribe link, and the headers that give mail apps their own one-click "Unsubscribe" button."""
+    url = f"{config['APP_URL']}/unsubscribe?u={user_id}&t={unsubscribe_token(config, user_id)}"
+    return url, {'List-Unsubscribe': f'<{url}>', 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'}
+
+
+def _deadline_list(config, items):
     li = ''.join(f'''<li style="margin:0 0 10px"><a href="{escape(config['APP_URL'])}/o/{escape(it['id'])}" style="color:#1C1B18;font-weight:600">{escape(it['title'])}</a><br>
 <span style="color:#6B675E;font-size:14px">{escape(_when(it['days']).capitalize())} · {escape(it['deadline'])}</span></li>''' for it in items)
     text = '\n'.join(f"- {it['title']} ({_when(it['days'])}, {it['deadline']})" for it in items)
+    return f'<ul style="padding-left:18px;margin:0 0 20px">{li}</ul>', text + '\n'
+
+
+def deadline_digest(config, email, name, items, user_id):
+    one = len(items) == 1
+    subject = f"Reminder: {items[0]['title']} is {_when(items[0]['days'])}" if one else f'You have {len(items)} deadlines coming up'
+    url, headers = _unsubscribe(config, user_id)
     send(config, email, subject, *_layout(
         f"{_first(name)}, {'a deadline is' if one else f'{len(items)} deadlines are'} coming up.",
         ['These are opportunities you’re tracking on OpenAjar. Confirm the exact deadline on the official page before you rely on it.'],
         'Open your tracker', config['APP_URL'] + '/tracker',
-        'You get these because you’re tracking these opportunities. Turn reminders off any time on your account page.',
-        f'<ul style="padding-left:18px;margin:0 0 20px">{li}</ul>', text + '\n'))
+        'You get these because you’re tracking these opportunities. Turn them off any time on your account page.',
+        *_deadline_list(config, items), unsubscribe=url), headers=headers)
+
+
+def weekly_digest(config, email, name, items, user_id):
+    """Monday's list of everything they're tracking that's due in the next 30 days."""
+    url, headers = _unsubscribe(config, user_id)
+    n = len(items)
+    send(config, email, f"Your deadlines this month: {n} coming up" if n > 1 else f"Your deadline this month: {items[0]['title']}", *_layout(
+        f"{_first(name)}, here’s your month ahead.",
+        [f"{'This is' if n == 1 else f'These {n} are'} what you’re tracking on OpenAjar with a deadline in the next 30 days. "
+         'Confirm each deadline on the official page before you rely on it.'],
+        'Open your tracker', config['APP_URL'] + '/tracker',
+        'You get this on Mondays when something you’re tracking is due within a month. Turn it off any time on your account page.',
+        *_deadline_list(config, items), unsubscribe=url), headers=headers)
+
+
+def change_email(config, user, new_email, link):
+    send(config, new_email, 'Confirm your new email for OpenAjar', *_layout(
+        'Confirm your new email address',
+        [f"Hi {_first(user['name'])}, you asked to change the email on your OpenAjar account to this address.",
+         'This link works once and expires in 24 hours. Until you confirm, your account keeps using your old address.'],
+        'Confirm this address', link, 'If you didn’t ask for this, ignore this email. Nothing will change.'))
+
+
+def email_changed(config, old_email, name, new_email):
+    """To the old address, so a change nobody asked for doesn't go unnoticed."""
+    send(config, old_email, 'Your OpenAjar email address was changed', *_layout(
+        'Your email address was changed',
+        [f"Hi {_first(name)}, the email address on your OpenAjar account is now {new_email}. You’ll sign in with it from now on.",
+         'If you didn’t make this change, reply to this email right away and we’ll help you get your account back.'],
+        'Open OpenAjar', config['APP_URL'], 'You get this email because it was the address on your account.'),
+        reply_to=config['CONTACT_EMAIL'])
 
 
 def reminder_key(deadline, days):
@@ -198,12 +251,43 @@ def run_reminders(db, config, today=None):
     for user_id, (email, name, items) in by_user.items():
         items.sort(key=lambda it: it['days'])
         try:
-            deadline_digest(config, email, name, items)
+            deadline_digest(config, email, name, items, user_id)
         except Exception as e:  # one bad address must not stop the rest
             print(f'[reminders] failed to email {email}: {e}')
             continue
         db.executemany('UPDATE tracked SET reminded_for=? WHERE user_id=? AND opportunity_id=?',
                        [(reminder_key(it['deadline'], it['days']), user_id, it['id']) for it in items])
+        db.commit()
+        sent += 1
+    return sent
+
+
+def run_digests(db, config, today=None):
+    """Mondays (from 8 am Eastern, like reminders): one email per student listing what they're tracking, not yet applied
+    to, with a deadline in the next 30 days. users.digest_week records the week it went out, so it goes once a week."""
+    today = today or data.today()
+    if not config['REMINDERS_ENABLED'] or today.weekday() != 0:
+        return 0
+    week = '%d-W%02d' % today.isocalendar()[:2]
+    rows = db.execute(f'''SELECT u.id, u.email, u.name, o.id oid, o.title, COALESCE(NULLIF(t.deadline, ''), o.deadline_date) deadline
+        FROM tracked t JOIN opportunities o ON o.id = t.opportunity_id AND o.status = 'approved' JOIN users u ON u.id = t.user_id
+        WHERE u.disabled = 0 AND u.email_verified = 1 AND u.email_reminders = 1 AND u.digest_week <> ? AND t.stage IN {data.TO_APPLY}''',
+        (week,)).fetchall()
+    by_user = {}
+    for r in rows:
+        d = parse_date((r['deadline'] or '')[:10])
+        if d and 0 <= (d - today).days <= 30:
+            by_user.setdefault(r['id'], (r['email'], r['name'], []))[2].append(
+                {'id': r['oid'], 'title': r['title'], 'deadline': d.isoformat(), 'days': (d - today).days})
+    sent = 0
+    for user_id, (email, name, items) in by_user.items():
+        items.sort(key=lambda it: it['days'])
+        try:
+            weekly_digest(config, email, name, items, user_id)
+        except Exception as e:  # one bad address must not stop the rest
+            print(f'[digest] failed to email {email}: {e}')
+            continue
+        db.execute('UPDATE users SET digest_week=? WHERE id=?', (week, user_id))
         db.commit()
         sent += 1
     return sent

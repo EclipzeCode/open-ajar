@@ -4,6 +4,7 @@ import json
 import re
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 from werkzeug.security import generate_password_hash
@@ -338,6 +339,106 @@ class Flows(unittest.TestCase):
         self.post(f"/admin/partner-profiles/{p['id']}", {'action': 'delete'}, owner)
         self.assertEqual(self.c.get(f'/media/{img}').status_code, 404)  # its photo went with it
 
+    def test_review_two_fixes(self):
+        db = connect(self.app.config['DB_PATH'])
+        owner, admin = self.make_admin('owner@example.org', 'owner'), self.make_admin()
+        self.register()
+        uid = db.execute("SELECT id FROM users WHERE email='sam@example.org'").fetchone()['id']
+
+        # an admin note changed by someone else isn't put back by a stale form
+        self.post(f'/admin/users/{uid}/notes', {'nickname': 'Sammy', 'nickname_was': '', 'staff_note': 'Old', 'staff_note_was': ''}, admin)
+        self.post(f'/admin/users/{uid}/notes', {'nickname': 'Sammy', 'nickname_was': 'Sammy', 'staff_note': 'New', 'staff_note_was': 'Old'}, owner)
+        self.post(f'/admin/users/{uid}/notes', {'nickname': 'Sammy', 'nickname_was': 'Sammy', 'staff_note': 'Old', 'staff_note_was': 'Old',
+                                                'private_note': 'mine'}, admin)  # only the private note changed
+        self.assertEqual(db.execute('SELECT staff_note FROM users WHERE id=?', (uid,)).fetchone()[0], 'New')
+        self.assertIn('Admin note', admin.get('/admin/users').get_data(as_text=True))  # marked in the list
+        self.assertIn('Your note', admin.get('/admin/users').get_data(as_text=True))
+
+        # a decision without a message still gets a kind one; becoming a partner doesn't sign anyone out
+        self.post('/apply', {'full_name': 'Sam Rivera', 'email': 'sam@example.org', 'statement': 'I want to learn how a small business runs.'})
+        aid = db.execute('SELECT id FROM intern_applications').fetchone()['id']
+        mail.OUTBOX.clear()
+        self.post('/admin/interns', {'id': aid, 'status': 'new', 'quick': 'declined'}, admin)
+        self.assertIn('hope you’ll keep exploring', mail.OUTBOX[0]['text'])
+        self.post('/admin/users', {'id': uid, 'role': 'partner'}, admin)
+        self.assertEqual(self.c.get('/account').status_code, 200)  # still signed in
+
+        # weekly digest: Mondays, once a week, with an unsubscribe link that works without signing in
+        oid = db.execute("INSERT INTO opportunities (id, title, org, type, summary, cost, format, commitment, status, deadline_date, created_at, updated_at) "
+                         "VALUES ('o1', 'Robotics Challenge', 'Org', 'Competition', 'S', 'Free', 'Online', 'Summer', 'approved', '2026-11-20', '2026-01-01', '2026-01-01')").lastrowid
+        db.execute("INSERT INTO tracked (user_id, opportunity_id, added_at) VALUES (?, 'o1', '2026-01-01')", (uid,))
+        db.execute('UPDATE users SET email_verified=1 WHERE id=?', (uid,))
+        db.commit()
+        from datetime import date
+        mail.OUTBOX.clear()
+        self.assertEqual(mail.run_digests(db, self.app.config, today=date(2026, 10, 27)), 0)  # a Tuesday
+        self.assertEqual(mail.run_digests(db, self.app.config, today=date(2026, 10, 26)), 1)
+        self.assertEqual(mail.run_digests(db, self.app.config, today=date(2026, 10, 26)), 0)  # once a week
+        sent = mail.OUTBOX[0]
+        self.assertIn('Robotics Challenge', sent['text'])
+        self.assertIn('List-Unsubscribe', sent['headers'])
+        link = re.search(r'/unsubscribe\?u=[\w-]+&t=\w+', sent['text']).group(0)
+        other = self.app.test_client()
+        self.assertEqual(other.get(link.replace('&t=', '&t=bad')).status_code, 400)
+        self.assertIn('Stop deadline emails?', other.get(link).get_data(as_text=True))  # opening it changes nothing
+        self.assertEqual(db.execute('SELECT email_reminders FROM users WHERE id=?', (uid,)).fetchone()[0], 1)
+        other.post(link, data={'List-Unsubscribe': 'One-Click'})  # a mail app's own button: no page, no token
+        self.assertEqual(db.execute('SELECT email_reminders FROM users WHERE id=?', (uid,)).fetchone()[0], 0)
+
+    def test_changing_your_email_needs_the_new_address_confirmed(self):
+        self.register()
+        self.register('taken@example.org', client=self.app.test_client())
+        mail.OUTBOX.clear()
+        self.assertIn('isn’t your current password', self.post('/account/email', {'new_email': 'new@example.org', 'password': 'wrong'},
+                                                                follow_redirects=True).get_data(as_text=True))
+        self.assertIn('already uses', self.post('/account/email', {'new_email': 'taken@example.org', 'password': PW},
+                                                follow_redirects=True).get_data(as_text=True))
+        self.post('/account/email', {'new_email': 'New@Example.org', 'password': PW})
+        db = connect(self.app.config['DB_PATH'])
+        self.assertEqual(db.execute("SELECT email FROM users WHERE pending_email='new@example.org'").fetchone()['email'], 'sam@example.org')
+        token = re.search(r'token=([\w-]+)', mail.OUTBOX[0]['text']).group(1)
+        self.assertEqual(mail.OUTBOX[0]['to'], 'new@example.org')
+        self.c.get(f'/confirm-email?token={token}')  # opening the link changes nothing
+        self.assertEqual(db.execute("SELECT email FROM users WHERE pending_email='new@example.org'").fetchone()['email'], 'sam@example.org')
+        mail.OUTBOX.clear()
+        self.post('/confirm-email', {'token': token})
+        self.assertEqual(db.execute("SELECT email, pending_email, email_verified FROM users WHERE email='new@example.org'").fetchone()[1:], ('', 1))
+        self.assertEqual(mail.OUTBOX[0]['to'], 'sam@example.org')  # the old address is told
+        self.assertEqual(self.post('/confirm-email', {'token': token}).status_code, 400)  # used up
+        self.post('/logout')
+        self.post('/login', {'email': 'new@example.org', 'password': PW})
+        self.assertEqual(self.c.get('/account').status_code, 200)
+
+    def test_partners_see_their_profile_and_interns(self):
+        owner = self.make_admin('owner@example.org', 'owner')
+        self.register('shop@example.org')
+        db = connect(self.app.config['DB_PATH'])
+        uid = db.execute("SELECT id FROM users WHERE email='shop@example.org'").fetchone()['id']
+        self.post(f'/admin/users/{uid}/make-partner', client=owner)
+        db.execute("UPDATE partner_profiles SET name='Rivera Bakery' WHERE user_id=?", (uid,))
+        db.execute("INSERT INTO intern_applications (id, full_name, email, statement, status, placement_business, placement_start, created_at) "
+                   "VALUES ('a1', 'Kim Diaz', 'kim@example.org', 'x', 'placed', 'rivera bakery ', '2026-11-02', '2026-01-01')")
+        db.commit()
+        page = self.c.get('/account').get_data(as_text=True)  # still signed in after becoming a partner
+        self.assertIn('Rivera Bakery', page)
+        self.assertIn('<strong>Kim</strong> · starts Nov 2, 2026', page)
+        self.assertNotIn('Diaz', page)  # first names only
+        self.assertNotIn('kim@example.org', page)
+
+    def test_partner_photos_keep_their_size(self):
+        owner = self.make_admin('owner@example.org', 'owner')
+        png = b'\x89PNG\r\n\x1a\n\0\0\0\rIHDR' + (1200).to_bytes(4, 'big') + (300).to_bytes(4, 'big') + b'\0' * 32
+        self.post('/admin/partner-profiles/new', {'name': 'Logo Co', 'tier': 'partner', 'position': '1', 'shown': '1',
+                                                  'photo': (io.BytesIO(png), 'logo.png')}, owner, content_type='multipart/form-data')
+        p = connect(self.app.config['DB_PATH']).execute("SELECT width, height, wide FROM partner_profiles WHERE name='Logo Co'").fetchone()
+        self.assertEqual(tuple(p), (1200, 300, 1))  # a landscape logo is never cropped to the portrait frame
+        self.assertIn('width="1200" height="300"', self.c.get('/about').get_data(as_text=True))
+        r = self.post('/admin/partner-profiles/new', {'name': 'Big', 'tier': 'partner', 'position': '1',
+                                                      'photo': (io.BytesIO(b'\x89PNG' + b'\0' * (5 * 1024 * 1024)), 'big.png')}, owner,
+                      content_type='multipart/form-data')
+        self.assertEqual(r.status_code, 413)
+        self.assertIn('too big to upload', r.get_data(as_text=True))
+
     def test_applicants_reply_from_their_profile(self):
         self.register()
         db = connect(self.app.config['DB_PATH'])
@@ -525,9 +626,14 @@ class Flows(unittest.TestCase):
     def test_admins_can_download_a_backup(self):
         self.register()
         self.assertEqual(self.c.get('/admin/backup').status_code, 403)
+        uploads = Path(self.app.config['DB_PATH']).parent / 'uploads'
+        uploads.mkdir()
+        (uploads / 'up-0123456789abcdef.png').write_bytes(b'\x89PNG photo')
         r = self.make_admin().get('/admin/backup')
-        self.assertTrue(r.data.startswith(b'SQLite format 3'))
         self.assertIn('attachment', r.headers['Content-Disposition'])
+        with zipfile.ZipFile(io.BytesIO(r.data)) as z:  # the database and the uploaded photos together
+            self.assertTrue(z.read('openajar.db').startswith(b'SQLite format 3'))
+            self.assertEqual(z.read('uploads/up-0123456789abcdef.png'), b'\x89PNG photo')
         r.close()
 
     def test_admin_lists_page_and_search_instead_of_stopping_at_a_limit(self):

@@ -446,7 +446,7 @@ def favicon():  # browsers and search engines ask for this address whatever the 
 
 @bp.get('/robots.txt')
 def robots():
-    lines = ['User-agent: *', *(f'Disallow: {p}' for p in ('/admin', '/account', '/tracker', '/verify', '/reset', '/dev/')),
+    lines = ['User-agent: *', *(f'Disallow: {p}' for p in ('/admin', '/account', '/tracker', '/verify', '/reset', '/confirm-email', '/unsubscribe', '/dev/')),
              f"Sitemap: {current_app.config['APP_URL']}/sitemap.xml"]
     return '\n'.join(lines) + '\n', {'Content-Type': 'text/plain; charset=utf-8'}
 

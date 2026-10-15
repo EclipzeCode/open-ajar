@@ -26,7 +26,7 @@ Tests: `.venv/bin/python -m unittest`
 | `admin.py` | Review queue, editing, approve/reject/request changes, users, activity, intern applications and partner inquiries (status and updates to applicants), community quotes |
 | `core.py` | Database helpers, the signed-in user, rate limits, listing search |
 | `data.py` | Categories (types, interests, states…), form validation, spreadsheet import mapping |
-| `mail.py` | Sending through Resend, the email templates, deadline reminders (a week ahead and the day before, from 8 am Eastern) |
+| `mail.py` | Sending through Resend, the email templates, deadline reminders (a week ahead and the day before, from 8 am Eastern) and the Monday digest of the month ahead, each with an unsubscribe link |
 | `schema.sql` | The database tables |
 | `templates/` | One HTML file per page. Support figures are edited right in `support.html` |
 | `static/` | `style.css`, `app.js` (small extras; every page works without it), images |

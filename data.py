@@ -73,6 +73,13 @@ INTERN_STATUSES = {'new': 'Received', 'contacted': 'In review', 'accepted': 'Acc
 PARTNER_STATUSES = {'new': 'Received', 'contacted': 'In conversation', 'partnered': 'Partnered', 'declined': 'Not a fit right now'}
 CONTACT_STATUSES = {'new': 'Received', 'replied': 'Answered', 'closed': 'Closed'}
 DECISIONS = {'intern': ('accepted', 'declined')}  # status changes that always email the applicant
+# what they're told when an admin accepts or declines without writing a message (also shown on their profile)
+DECISION_MESSAGES = {
+    ('intern', 'accepted'): 'Congratulations! We’d love to have you intern through OpenAjar. We’ll be in touch soon about '
+                            'where you’ll be placed and what happens next.',
+    ('intern', 'declined'): 'Thank you for applying to intern through OpenAjar. We aren’t able to offer you a placement this '
+                            'time, but we hope you’ll keep exploring opportunities on OpenAjar and apply again in the future.',
+}
 PLACED = ('accepted', 'placed')  # intern statuses that have placement details
 
 # The About page's partners when the site first starts with partner_profiles (app.init_db). After that they're edited

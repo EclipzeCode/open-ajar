@@ -51,10 +51,12 @@
   {% if supporters %}
   <section class="supporters" aria-labelledby="supporters-h">
     <h2 id="supporters-h">More businesses that support us</h2>
-    {# repeated so the strip is wider than any screen and loops without a gap; only the first set is read out #}
+    {# each half repeats the cards to at least 8 (about 2,800px, wider than any screen) so the loop never shows a gap;
+       only the first set is read out #}
+    {% set reps = (8 / supporters|length)|round(0, 'ceil')|int %}
     <div class="marquee">
       <div class="marquee__track">
-        {% for _ in range(2) %}{% set copy = loop.index0 %}{% for _ in range(3) %}{% set rep = loop.index0 %}{% for p in supporters %}{{ supporter_card(p, hidden=copy or rep) }}{% endfor %}{% endfor %}{% endfor %}
+        {% for _ in range(2) %}{% set copy = loop.index0 %}{% for _ in range(reps) %}{% set rep = loop.index0 %}{% for p in supporters %}{{ supporter_card(p, hidden=copy or rep) }}{% endfor %}{% endfor %}{% endfor %}
       </div>
     </div>
     <div class="marquee__nav">

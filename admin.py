@@ -193,8 +193,10 @@ def users():
             elif loses_admin and admins <= 1:
                 flash('That would leave no active admin.', 'error')
             elif (role, disabled) != (target['role'], target['disabled']):
-                # changing a role or disabling signs that person out everywhere, so new permissions apply immediately
-                run('UPDATE users SET role=?, disabled=?, session_version=session_version+1 WHERE id=?', (role, disabled, target['id']))
+                # gaining or losing admin access, or being disabled, signs that person out everywhere so it applies at once;
+                # other roles (student, partner…) change nothing they can do, so they stay signed in
+                bump = int(disabled != target['disabled'] or role in data.STAFF or target['role'] in data.STAFF)
+                run('UPDATE users SET role=?, disabled=?, session_version=session_version+? WHERE id=?', (role, disabled, bump, target['id']))
                 audit(me['id'], f"user_updated role={role} disabled={disabled}", target['email'])
                 flash(f"Updated {target['email']}.")
         return redirect(request.full_path)
@@ -216,7 +218,8 @@ def users():
     if f['joined_to']:
         where.append('substr(created_at, 1, 10) <= ?')
         args.append(f['joined_to'])
-    users, pg = paged('SELECT * FROM users' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
+    users, pg = paged('SELECT *, EXISTS (SELECT 1 FROM user_notes n WHERE n.user_id = users.id AND n.author_id = ?) has_my_note FROM users'
+                      + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', [me['id'], *args])
     return render_template('admin/users.html', users=users, pg=pg, f=f, statuses=USER_STATUSES,
                            filtered=any(f.values()))
 
@@ -267,14 +270,26 @@ def user_notes(uid):
     else:
         run('DELETE FROM user_notes WHERE user_id=? AND author_id=?', (uid, me['id']))
     if me['role'] == 'admin' and 'nickname' in request.form:
-        nickname = data.clean(request.form.get('nickname', ''))[:60]
-        staff_note = data.clean(request.form.get('staff_note', ''), multiline=True)[:2000]
-        if (nickname, staff_note) != (u['nickname'], u['staff_note']):
-            if is_owner(u) and not is_owner(me):
-                flash('Only the owner can change the owner’s nickname or admin note. Your private note was saved.', 'error')
-                return redirect(_back(url_for('admin.user_detail', uid=uid)))
-            run('UPDATE users SET nickname=?, staff_note=? WHERE id=?', (nickname, staff_note, uid))
+        # each field as it was when the form opened (`_was`): only what this admin changed is saved, so saving a private
+        # note never puts back an older nickname or admin note that someone else has changed since
+        changes, clash = {}, False
+        for key, multiline, limit in (('nickname', False, 60), ('staff_note', True, 2000)):
+            new, was = (data.clean(request.form.get(k, ''), multiline)[:limit] for k in (key, key + '_was'))
+            if new != was:
+                if u[key] != was:
+                    clash = True  # someone else changed it after this form was opened
+                else:
+                    changes[key] = new
+        if changes and is_owner(u) and not is_owner(me):
+            flash('Only the owner can change the owner’s nickname or admin note. Your private note was saved.', 'error')
+            return redirect(_back(url_for('admin.user_detail', uid=uid)))
+        if changes:
+            run(f"UPDATE users SET {', '.join(k + '=?' for k in changes)} WHERE id=?", (*changes.values(), uid))
             audit(me['id'], 'user_notes_updated', u['email'])
+        if clash:
+            flash('Another admin changed the nickname or admin note while you had this open, so your edit to it wasn’t saved. '
+                  'Open it again to see theirs. Everything else was saved.', 'error')
+            return redirect(_back(url_for('admin.user_detail', uid=uid)))
     flash(f"Notes saved for {u['name']}.")
     return redirect(_back(url_for('admin.user_detail', uid=uid)))
 
@@ -291,8 +306,8 @@ def make_partner(uid):
     if u['role'] in data.STAFF:
         flash('Admins and moderators can’t be made partners: it would remove their access. Change their role first.', 'error')
         return redirect(_back(url_for('admin.users')))
-    if u['role'] != 'partner':  # a new role signs them out everywhere, like any role change
-        run("UPDATE users SET role='partner', session_version=session_version+1 WHERE id=?", (uid,))
+    if u['role'] != 'partner':  # no new access comes with it, so they stay signed in
+        run("UPDATE users SET role='partner' WHERE id=?", (uid,))
         audit(me['id'], 'user_updated role=partner disabled=' + str(u['disabled']), u['email'])
     profile = one('SELECT id FROM partner_profiles WHERE user_id=?', (uid,))
     if not profile:
@@ -350,9 +365,12 @@ def partner_profile(pid=None):
          **{k: 1 if request.form.get(k) else 0 for k in ('shown', 'wide', 'big', 'logo')}}
     photo = request.files.get('photo')
     if photo and photo.filename:
-        name = save_upload(photo)
-        if name:
-            o.update(img=name, width=None, height=None)
+        saved = save_upload(photo)
+        if saved:
+            name, w, h = saved
+            o.update(img=name, width=w, height=h)
+            if w and h and w >= h * .9:  # landscape or square (a logo, a storefront): never crop it to the portrait frame
+                o['wide'] = 1
         else:
             f.errors['photo'] = 'Upload a PNG, JPEG or WebP image'
     elif request.form.get('remove_photo'):
@@ -360,6 +378,7 @@ def partner_profile(pid=None):
     if f.errors:
         if o.get('img', '').startswith('up-') and (not p or o['img'] != p['img']):
             _drop_upload(o['img'])  # the rest of the form didn't save, so neither does its photo
+            f.errors.setdefault('photo', 'Choose the photo again: it wasn’t kept because of the problem above')
         return render_template('admin/partner_profile.html', p={**(dict(p) if p else {}), **request.form.to_dict(), **{k: o[k] for k in ('shown', 'wide', 'big', 'logo')}},
                                errors=f.errors, linked=None), 422
     o['updated_at'] = data.now_iso()
@@ -509,17 +528,23 @@ def tab_badges():
 @bp.get('/backup')
 @admin_required
 def backup():
-    """A consistent copy of the whole database to keep somewhere safe. It holds everyone's data (password hashes too),
-    so store it privately."""
+    """Everything needed to restore the site, in one zip: a consistent copy of the database (everyone's data, password hashes
+    and private notes too, so store it privately) and the uploaded partner photos."""
     tmp = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
     tmp.close()
     out = sqlite3.connect(tmp.name)
     get_db().backup(out)  # safe while the site is being used, unlike copying the file
     out.close()
+    day = data.now_iso()[:10]
+    buf = tempfile.TemporaryFile()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as z:
+        z.write(tmp.name, 'openajar.db')
+        for f in sorted(uploads_dir().glob('up-*')) if uploads_dir().exists() else []:
+            z.write(f, 'uploads/' + f.name)
+    os.remove(tmp.name)
+    buf.seek(0)
     audit(current_user()['id'], 'database_backup_downloaded', 'database')
-    resp = send_file(tmp.name, as_attachment=True, download_name=f"openajar-{data.now_iso()[:10]}.db", mimetype='application/octet-stream')
-    resp.call_on_close(lambda: os.remove(tmp.name))
-    return resp
+    return send_file(buf, as_attachment=True, download_name=f'openajar-backup-{day}.zip', mimetype='application/zip')
 
 
 @bp.get('/export')
@@ -807,7 +832,17 @@ def save_placement():
     run('UPDATE intern_applications SET placement_business=?, placement_start=?, placement_hours=?, placement_supervisor=? WHERE id=?',
         (o['placement_business'], o['placement_start'], o['placement_hours'], o['placement_supervisor'], row['id']))
     audit(current_user()['id'], 'placement_updated', row['id'])
-    flash(f"Placement saved. {row['full_name'].split()[0]} sees it on their profile.")
+    first = row['full_name'].split()[0]
+    if request.form.get('notify'):
+        facts = [f'{label}: {v}' for label, v in (('Placed with', o['placement_business']), ('Starts', data.nice_date(o['placement_start'])),
+                                                  ('Hours', o['placement_hours']), ('Supervisor', o['placement_supervisor'])) if v]
+        message = 'Here are the details of your internship placement. ' + ' · '.join(facts)
+        record_update('intern', row['id'], None, message)
+        mail.later('placement update', mail.application_update, current_app.config, row['email'], row['full_name'], 'intern',
+                   'OpenAjar internships', None, message)
+        flash(f"Placement saved and emailed to {row['email']}.")
+    else:
+        flash(f'Placement saved. {first} sees it on their profile.')
     return back
 
 
@@ -844,8 +879,9 @@ def _inbox(table, statuses, template, cols, kind=None):
             changed = status != row['status']
             if kind and (changed or message):
                 label = data.APPLICATION_KINDS[kind]['statuses'][status] if changed else None
-                record_update(kind, row['id'], status if changed else None, message)
                 decided = changed and status in data.DECISIONS.get(kind, ())  # accepted or declined: they're always told
+                message = message or (data.DECISION_MESSAGES.get((kind, status), '') if decided else '')
+                record_update(kind, row['id'], status if changed else None, message)
                 if message or request.form.get('notify') or decided:
                     name, title = {'intern': lambda: (row['full_name'], 'OpenAjar internships'),
                                    'partner': lambda: (row['contact_name'], f"hosting an intern at {row['business']}"),

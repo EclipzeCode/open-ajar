@@ -45,7 +45,9 @@
       <div class="acct-nav__links">
         <a href="#profile">Profile</a>
         <a href="#applications">Applications</a>
+        {% if partner %}<a href="#partner">Partner</a>{% endif %}
         <a href="#story">Your story</a>
+        <a href="#email">Email</a>
         <a href="#security">Security</a>
         <a href="#delete" class="acct-nav__danger">Delete account</a>
       </div>
@@ -67,7 +69,7 @@
             <div class="field">
               <span class="label">Deadline reminders</span>
               <label class="switch"><input type="checkbox" name="email_reminders" value="1" {% if u.email_reminders %}checked{% endif %}>
-                <span class="switch__track" aria-hidden="true"></span><span>Email me a week before deadlines</span></label>
+                <span class="switch__track" aria-hidden="true"></span><span>Deadline reminders and a Monday digest of the month ahead</span></label>
             </div>
           </div>
           {{ m.checks('interests', 'Interests', D.INTERESTS, interests, errors) }}
@@ -127,6 +129,25 @@
         <p class="app__start muted small">Start something new: <a href="{{ url_for('site.apply') }}">intern with us</a> · <a href="{{ url_for('site.grants') }}">ask for an Access Grant</a> · <a href="{{ url_for('site.submit') }}">submit a listing</a></p>
       </section>
 
+      {% if partner %}
+      <section class="acct-card" id="partner" aria-labelledby="partner-h">
+        <div class="acct-card__head acct-card__head--row">
+          <div><h2 id="partner-h">Partner</h2><p>How you appear on our About page, and the interns placed with you.</p></div>
+          {% if partner.profile.shown %}<span class="pill pill--approved">On the About page</span>{% else %}<span class="pill">Not shown yet</span>{% endif %}
+        </div>
+        <div class="partner-card">
+          <h3>{{ partner.profile.name }}</h3>
+          {% if partner.profile.quote %}<blockquote>“{{ partner.profile.quote }}”</blockquote>{% else %}<p class="muted small">No quote yet.</p>{% endif %}
+          {% if partner.profile.shown %}<a class="small" href="{{ url_for('site.about') }}">See it on the About page →</a>{% endif %}
+        </div>
+        <h3 class="partner-card__h">Interns placed with you</h3>
+        {% if partner.interns %}
+          <ul class="partner-card__interns">{% for i in partner.interns %}<li><strong>{{ i.name }}</strong>{% if i.start %} · starts {{ i.start }}{% endif %}{% if i.hours %} · {{ i.hours }}{% endif %}</li>{% endfor %}</ul>
+        {% else %}<p class="muted small">None yet. When we place an intern with you, they show up here.</p>{% endif %}
+        <p class="muted small">To change your profile or ask about interns, <a href="{{ url_for('site.contact') }}">message us</a>.</p>
+      </section>
+      {% endif %}
+
       <section class="acct-card" id="story" aria-labelledby="story-h">
         <div class="acct-card__head acct-card__head--row">
           <div><h2 id="story-h">Your story</h2><p>A short quote about OpenAjar. Approved quotes appear on the home page.</p></div>
@@ -138,6 +159,20 @@
           {{ m.textarea('quote', 'Your quote', quote or {}, {}, required=True, max=400, rows=3) }}
           {{ m.input('role_label', 'How should we describe you?', quote or {}, {}, max=80, placeholder='e.g. Junior, Lincoln High') }}
           <div class="acct-card__foot"><button class="btn btn--ghost" type="submit">{{ 'Update quote' if quote else 'Send quote' }}</button></div>
+        </form>
+      </section>
+
+      <section class="acct-card" id="email" aria-labelledby="email-h">
+        <div class="acct-card__head"><h2 id="email-h">Email address</h2><p>You sign in with {{ u.email }}. We’ll send a link to the new address to make sure it’s yours.</p></div>
+        {{ note('email') }}
+        {% if u.pending_email %}<p class="acct-note acct-note--ok" role="status">Waiting for you to open the link we sent to {{ u.pending_email }}.</p>{% endif %}
+        <form class="form" method="post" action="{{ url_for('account.change_email') }}">
+          {{ m.csrf() }}
+          <div class="row2">
+            <div class="field"><label for="new_email">New email</label><input id="new_email" name="new_email" type="email" required maxlength="320" autocomplete="email"></div>
+            <div class="field"><label for="email_pw">Current password</label><input id="email_pw" name="password" type="password" required autocomplete="current-password"></div>
+          </div>
+          <div class="acct-card__foot"><button class="btn btn--ghost" type="submit">Send confirmation link</button></div>
         </form>
       </section>
 

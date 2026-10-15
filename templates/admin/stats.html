@@ -18,7 +18,7 @@
     <div class="admin-head__actions">
       {% if can_edit %}
       <a class="btn btn--sm" href="{{ url_for('admin.export') }}">Download data (CSV)</a>
-      <a class="small muted" href="{{ url_for('admin.backup') }}" title="The whole database as one file, for restoring the site. Keep it private.">Full backup file</a>
+      <a class="small muted" href="{{ url_for('admin.backup') }}" title="A zip of the whole database and the uploaded partner photos, for restoring the site. Keep it private: it holds everyone’s data, private notes included.">Full backup (zip)</a>
       {% endif %}
     </div>
   </header>
