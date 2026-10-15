@@ -52,6 +52,8 @@ OpenAjar is a free site where high-school students find internships, programs, s
 
 33. **Review fixes (Oct 13, 2026):** internship applications email the team and send the student a receipt; editing a listing's deadline moves an expiry left as it was (`data.follow_deadline`, also used by `apply-corrections`); approving a grant clears an old "needs info" note; a page number past the end shows the last page; listing pages put the facts and Apply first on phones; "Back to opportunities" keeps the search they came from (`site._back`); numbered pages on Opportunities/Jobs; touch screens use their own select and date pickers (custom ones stay on desktop); tracker notes save when you leave the page; the home interest tabs ask for just three cards (`X-Requested-With: fetch` → `_explore.html`); static files skip the user lookup and session cookie; Admin → Users details also list partner inquiries and messages; past deadlines are refused on submissions and grant requests.
 
+34. **Strategic Training Endeavors and a supporters strip (Oct 13, 2026):** Strategic Training Endeavors (logo, `'logo': True` frames it on white) is a partner row after Moon Tea. Ryujin and One Dollar Zone moved to a smaller "More businesses that support us" strip under the partner rows, in `supporters` in `templates/about.html`; it scrolls like Community voices, repeated so it never shows a gap. Partner order is now Moon Tea, Strategic Training Endeavors, Creator Colosseum, Partner Portal, Coders Over Borders.
+
 ## Current state (Oct 2026)
 
 - Live: about 460 opportunities and 380 jobs across 50 states (counts drift as deadlines pass). PRs #1–#38 are merged into `main`; nothing is open.

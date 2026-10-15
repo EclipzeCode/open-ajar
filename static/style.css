@@ -643,6 +643,12 @@ select.select--pill { width: auto; border-radius: 99px; padding: 8px 30px 8px 14
 .partner--big:nth-of-type(even) { grid-template-columns: 2fr 3fr; }
 .partner__img { width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; }
 .partner__img--wide { aspect-ratio: auto; }
+.partner__img--logo { background: #fff; border: 1px solid var(--line); padding: 28px 32px; }
+/* smaller supporters strip under the partner rows, scrolling like Community voices on the home page */
+.supporters { margin: 8px 0 72px; text-align: center; }
+.supporters h2 { font-size: 1.5rem; margin: 0; }
+.supporters .quote__avatar { background: var(--soft); }
+.supporters figcaption a { display: inline-block; margin-top: 4px; font: 500 .85rem var(--sans); color: var(--accent); }
 .partner__img--blank { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 600 3.2rem/1 var(--display); letter-spacing: .02em; }
 .partner h3 { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -.02em; margin: 0; }
 .partner__quote { margin: 18px 0 0; font-size: 1.3rem; line-height: 1.5; color: var(--ink); max-width: 60ch; }
