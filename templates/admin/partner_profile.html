@@ -35,8 +35,9 @@
       <legend>Photo or logo</legend>
       {% if p.img %}<img class="partner-form__img" src="{{ partner_img(p.img) }}" alt="Current photo" loading="lazy">{% endif %}
       <label class="sr-only" for="photo">Upload a new one</label>
-      <input id="photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp">
-      <p class="field__help">PNG, JPEG or WebP, up to 5 MB. About 800px wide (1200 for a wide column).</p>
+      <input id="photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp" data-resize>
+      <p class="field__help">PNG, JPEG or WebP. Big photos are shrunk to 1600px before uploading. Landscape photos and logos are
+        shown uncropped automatically; portrait ones fill a tall frame.</p>
       {{ m.err(errors, 'photo') }}
       {% if p.img %}<label class="check"><input type="checkbox" name="remove_photo" value="1"><span>Remove the photo (shows their initials)</span></label>{% endif %}
       <div class="checks">

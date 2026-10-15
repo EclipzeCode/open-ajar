@@ -31,7 +31,7 @@ ROOT = Path(__file__).parent
 # app.js arrives. If app.js hasn't loaded 4 s later, it's undone so nothing stays hidden. Allowed by the CSP via its hash.
 JS_FLAG = ("document.documentElement.classList.add('js');"
            "setTimeout(function(){if(!window.appReady)document.documentElement.classList.remove('js')},4000);")
-PRIVATE_PATHS = ('/account', '/tracker', '/admin', '/access-grants', '/verify', '/reset')
+PRIVATE_PATHS = ('/account', '/tracker', '/admin', '/access-grants', '/verify', '/reset', '/confirm-email', '/unsubscribe')
 JS_FLAG_HASH = base64.b64encode(hashlib.sha256(JS_FLAG.encode()).digest()).decode()
 
 
@@ -114,6 +114,9 @@ def create_app(test_config=None):
         load_user()
         if request.endpoint == 'admin.partner_profile':
             request.max_content_length = 5 * 1024 * 1024  # a partner photo; every other form stays at 64 KB
+        # one-click unsubscribe from an email client: the signed link proves who it is, and there's no page or token
+        if request.method == 'POST' and request.endpoint == 'account.unsubscribe' and request.form.get('List-Unsubscribe') == 'One-Click':
+            return
         if request.method == 'POST':
             sent = request.form.get('csrf') or request.headers.get('X-CSRF-Token') or ''
             if not sent or not hmac.compare_digest(sent, session.get('csrf', '')):
@@ -153,7 +156,11 @@ def create_app(test_config=None):
     @app.errorhandler(429)
     @app.errorhandler(500)
     def error(e):
-        return render_template('error.html', code=e.code, message=e.description if e.code in (400, 429) else None), e.code
+        message = e.description if e.code in (400, 429) else None
+        if e.code == 413:
+            message = ('That photo is too big to upload (the limit is 5 MB). Go back and choose a smaller one.'
+                       if request.endpoint == 'admin.partner_profile' else 'That was more than this form can take. Go back and shorten it.')
+        return render_template('error.html', code=e.code, message=message), e.code
 
     @app.context_processor
     def globals_():
@@ -194,11 +201,12 @@ def init_db(path):
                             ('intern_applications', 'placement_business', "TEXT NOT NULL DEFAULT ''"),
                             ('intern_applications', 'placement_start', 'TEXT'),
                             ('intern_applications', 'placement_hours', "TEXT NOT NULL DEFAULT ''"),
-                            ('intern_applications', 'placement_supervisor', "TEXT NOT NULL DEFAULT ''")):
+                            ('intern_applications', 'placement_supervisor', "TEXT NOT NULL DEFAULT ''"),
+                            ('users', 'pending_email', "TEXT NOT NULL DEFAULT ''"), ('users', 'digest_week', "TEXT NOT NULL DEFAULT ''")):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
     # Values added to a CHECK constraint after launch (the text that shows the table is up to date)
-    for table, needed in (('intern_applications', "'accepted'"), ('application_updates', "'contact'"), ('users', "'partner'")):
+    for table, needed in (('intern_applications', "'accepted'"), ('application_updates', "'contact'"), ('users', "'partner'"), ('auth_tokens', "'change_email'")):
         rebuild_table(db, table, needed)
     # The About page's partners: seeded once, then the owner edits them in admin (a flag, so deleting them all doesn't reseed)
     if not db.execute("SELECT 1 FROM app_meta WHERE key='partners_seeded'").fetchone():
@@ -266,6 +274,7 @@ def start_maintenance(app):
                     db.commit()
                     if datetime.now(data.STUDENT_TZ).hour >= 8:  # in the morning, not at midnight
                         mail.run_reminders(db, app.config)
+                        mail.run_digests(db, app.config)
                 finally:
                     db.close()
             except Exception as e:

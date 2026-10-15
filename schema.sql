@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
   school           TEXT NOT NULL DEFAULT '',
   nickname         TEXT NOT NULL DEFAULT '',   -- set by admins; only staff see it
   staff_note       TEXT NOT NULL DEFAULT '',   -- the admin note: every admin and moderator sees it
+  pending_email    TEXT NOT NULL DEFAULT '',   -- a new address waiting for its confirmation link
+  digest_week      TEXT NOT NULL DEFAULT '',   -- the week (e.g. 2026-W42) the last weekly deadline digest went out
   created_at       TEXT NOT NULL
 );
 
@@ -111,7 +113,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE TABLE IF NOT EXISTS auth_tokens (
   id         TEXT PRIMARY KEY,
   user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  purpose    TEXT NOT NULL CHECK (purpose IN ('verify_email','reset_password')),
+  purpose    TEXT NOT NULL CHECK (purpose IN ('verify_email','reset_password','change_email')),
   expires_at TEXT NOT NULL,
   used       INTEGER NOT NULL DEFAULT 0
 );

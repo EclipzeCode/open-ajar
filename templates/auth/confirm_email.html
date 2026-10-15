@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Confirm your new email{% endblock %}
+{% block body_class %}page-focus{% endblock %}
+{% block content %}
+<div class="wrap auth">
+  <h1>Confirm your new email.</h1>
+  {% if error %}
+    <div class="alert" role="alert">{{ error }}</div>
+    <p>You can ask for a new link from the Email section of your <a href="{{ url_for('account.account') }}#email">account page</a>.</p>
+  {% elif token %}
+    <p class="muted">Once you confirm, you’ll sign in with this address.</p>
+    <form method="post">{{ m.csrf() }}<input type="hidden" name="token" value="{{ token }}"><button class="btn btn--block" type="submit">Confirm my new email</button></form>
+  {% else %}
+    <p>That link is missing its code. Open the link from your email again.</p>
+  {% endif %}
+</div>
+{% endblock %}

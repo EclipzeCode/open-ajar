@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m with context %}
+{% block title %}Unsubscribe{% endblock %}
+{% block body_class %}page-focus{% endblock %}
+{% block content %}
+<div class="wrap auth">
+  {% if error %}
+    <h1>Unsubscribe</h1>
+    <div class="alert" role="alert">{{ error }}</div>
+  {% elif done %}
+    <h1>You’re unsubscribed.</h1>
+    <p class="muted">We won’t send deadline reminders or the Monday digest to {{ email }}. You can turn them back on from your account page any time.</p>
+  {% else %}
+    <h1>Stop deadline emails?</h1>
+    <p class="muted">We’ll stop sending deadline reminders and the Monday digest to {{ email }}. Your tracker stays as it is.</p>
+    <form method="post">{{ m.csrf() }}<input type="hidden" name="u" value="{{ u }}"><input type="hidden" name="t" value="{{ t }}">
+      <button class="btn btn--block" type="submit">Unsubscribe</button></form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -37,10 +37,12 @@
       {% set locked = is_owner(u) and not is_owner(user) %}
       {% if can_edit and not locked %}
         <div class="field"><label for="nick-{{ u.id }}">Nickname <span class="muted">(optional)</span></label>
-          <input id="nick-{{ u.id }}" name="nickname" value="{{ u.nickname }}" maxlength="60" placeholder="What the team calls them"></div>
+          <input id="nick-{{ u.id }}" name="nickname" value="{{ u.nickname }}" maxlength="60" placeholder="What the team calls them">
+          <input type="hidden" name="nickname_was" value="{{ u.nickname }}"></div>
         <div class="field"><label for="snote-{{ u.id }}">Admin note</label>
           <p class="field__help">Every admin and moderator sees this. The person themselves never does.</p>
-          <textarea id="snote-{{ u.id }}" name="staff_note" rows="3" maxlength="2000">{{ u.staff_note }}</textarea></div>
+          <textarea id="snote-{{ u.id }}" name="staff_note" rows="3" maxlength="2000">{{ u.staff_note }}</textarea>
+          <input type="hidden" name="staff_note_was" value="{{ u.staff_note }}"></div>
       {% else %}
         <dl class="user-detail__facts">
           <div><dt>Nickname</dt><dd>{{ u.nickname or '—' }}</dd></div>
@@ -48,7 +50,7 @@
         </dl>
       {% endif %}
       <div class="field"><label for="pnote-{{ u.id }}">Your private note</label>
-        <p class="field__help">Only you can see this, not other admins or moderators.</p>
+        <p class="field__help">Other admins and moderators don’t see this here. It is in the full backup file, which admins can download.</p>
         <textarea id="pnote-{{ u.id }}" name="private_note" rows="3" maxlength="2000">{{ my_note }}</textarea></div>
       <button class="btn btn--sm" type="submit">Save notes</button>
     </form>

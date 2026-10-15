@@ -846,3 +846,35 @@ document.querySelectorAll('form[data-autosave]').forEach((form) => {
     fetch(form.getAttribute('action'), { method: 'POST', body, keepalive: true, headers: { 'X-Requested-With': 'fetch' } });
   });
 });
+
+// Photo uploads (Admin → Partner profiles): big photos are shrunk to 1600px in the browser before they're sent, so the
+// About page never serves a multi-megabyte photo and uploads stay under the 5 MB limit. PNGs stay PNG (logos keep their
+// transparent background); photos become JPEG. Anything still over the limit is caught here instead of failing on the server.
+document.querySelectorAll('input[type=file][data-resize]').forEach((input) => {
+  const LIMIT = 5 * 1024 * 1024, MAX = 1600;
+  input.addEventListener('change', async () => {
+    input.setCustomValidity('');
+    clearError(input);
+    const file = input.files[0];
+    if (!file) return;
+    const img = /^image\/(png|jpeg|webp)$/.test(file.type) ? await createImageBitmap(file).catch(() => null) : null;
+    const scale = img ? Math.min(1, MAX / Math.max(img.width, img.height)) : 1;
+    if (img && (scale < 1 || file.size > 1024 * 1024)) {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, type, 0.85));
+      if (blob && blob.size < file.size) {
+        const files = new DataTransfer();
+        files.items.add(new File([blob], file.name.replace(/\.\w+$/, type === 'image/png' ? '.png' : '.jpg'), { type }));
+        input.files = files.files;
+      }
+    }
+    if (input.files[0].size > LIMIT) {
+      input.setCustomValidity('That photo is over 5 MB even after shrinking it. Choose a smaller one.');
+      showError(input, input.validationMessage);
+    }
+  });
+});

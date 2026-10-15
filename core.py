@@ -362,16 +362,43 @@ def uploads_dir():
 
 
 def save_upload(file):
-    """Saves an uploaded PNG, JPEG or WebP under a random name. Returns the name, or None if it isn't one of those."""
-    head = file.stream.read(12)
-    ext = next((e for magic, e in UPLOAD_TYPES.items() if head.startswith(magic)), None)
-    if not ext or (ext == 'webp' and head[8:12] != b'WEBP'):
+    """Saves an uploaded PNG, JPEG or WebP under a random name. Returns (name, width, height), or None if it isn't one of
+    those. The size lets the page reserve the image's space before it loads."""
+    body = file.stream.read()
+    ext = next((e for magic, e in UPLOAD_TYPES.items() if body.startswith(magic)), None)
+    if not ext or (ext == 'webp' and body[8:12] != b'WEBP'):
         return None
     name = f'up-{secrets.token_hex(8)}.{ext}'
     uploads_dir().mkdir(parents=True, exist_ok=True)
-    file.stream.seek(0)
-    file.save(uploads_dir() / name)
-    return name
+    (uploads_dir() / name).write_bytes(body)
+    return (name, *image_size(body))
+
+
+def image_size(b):
+    """(width, height) read from the start of PNG, JPEG or WebP bytes, or (None, None)."""
+    n = lambda i, j, order='big': int.from_bytes(b[i:j], order)
+    try:
+        if b[:4] == b'\x89PNG':
+            return n(16, 20), n(20, 24)
+        if b[:4] == b'RIFF':
+            kind = b[12:16]
+            if kind == b'VP8X':
+                return 1 + n(24, 27, 'little'), 1 + n(27, 30, 'little')
+            if kind == b'VP8 ':
+                return n(26, 28, 'little') & 0x3fff, n(28, 30, 'little') & 0x3fff
+            if kind == b'VP8L':
+                bits = n(21, 25, 'little')
+                return (bits & 0x3fff) + 1, ((bits >> 14) & 0x3fff) + 1
+        if b[:2] == b'\xff\xd8':  # JPEG: walk the segments to the frame header, which holds the size
+            i = 2
+            while i + 9 < len(b) and b[i] == 0xFF:
+                marker = b[i + 1]
+                if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+                    return n(i + 7, i + 9), n(i + 5, i + 7)
+                i += 2 + n(i + 2, i + 4)
+    except IndexError:
+        pass
+    return None, None
 
 
 def partner_img(name):
