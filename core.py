@@ -76,6 +76,12 @@ def load_user():
             session.clear()
 
 
+def support_numbers():
+    """Dollars raised and used, shown on the Support us page. The owner sets them under Admin → Overview."""
+    meta = {r['key']: int(r['value']) for r in all_("SELECT key, value FROM app_meta WHERE key IN ('support:raised', 'support:used')")}
+    return {'raised': meta.get('support:raised', 4367), 'used': meta.get('support:used', 3199)}
+
+
 def is_owner(user):
     """The owner is an admin with the email in OWNER_EMAIL."""
     return bool(user) and user['role'] == 'admin' and user['email'] == current_app.config['OWNER_EMAIL']

@@ -55,7 +55,7 @@
       <button class="btn btn--sm" type="submit">Save notes</button>
     </form>
 
-    {% if is_owner(user) %}
+    {% if can_edit %}
     <div class="user-detail__partner">
       {% if profile %}
         <p class="small">Partner profile: <a href="{{ url_for('admin.partner_profile', pid=profile.id) }}">{{ profile.name }}</a>{% if not profile.shown %} <span class="muted">(hidden)</span>{% endif %}</p>

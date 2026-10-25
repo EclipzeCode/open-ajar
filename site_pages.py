@@ -10,7 +10,7 @@ import data
 import mail
 from core import (PUBLIC, add_event, all_, audit, client_ip, current_user, facets, get_db, get_opp, get_public, grant_room,
                   insert_opp, limited, login_required, new_id, now_iso, one, run, safe_next, save_opp, search_public, track_opp,
-                  update_opp, uploads_dir)
+                  support_numbers, update_opp, uploads_dir)
 
 bp = Blueprint('site', __name__)
 PAGE = 24  # divides evenly into 1, 2, 3 or 4 columns, so full pages never leave a ragged last row
@@ -426,7 +426,7 @@ def team():  # the team page was removed; old links land on About
 
 @bp.get('/support')
 def support():
-    return render_template('support.html', grants_paid=grants_paid())
+    return render_template('support.html', grants_paid=grants_paid(), money=support_numbers())
 
 
 @bp.get('/privacy')

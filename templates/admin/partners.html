@@ -4,7 +4,8 @@
 {% block title %}Partner inquiries{% endblock %}
 {% block content %}
 <div class="wrap">
-  <header class="page-head"><p class="eyebrow">Admin</p><h1>Partner inquiries</h1></header>
+  <header class="page-head"><p class="eyebrow">Admin</p><h1>Partners</h1>
+    <p class="muted">Businesses that offered to host an intern. Their About page profiles are under the next tab.</p></header>
   {% include 'admin/_nav.html' %}
   <nav class="stages" aria-label="Status">
     <a href="{{ url_for('admin.partners') }}" {% if not status %}aria-current="page"{% endif %}>All <span>{{ counts.values()|sum }}</span></a>

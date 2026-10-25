@@ -1,0 +1,12 @@
+{# Left column: the numbers behind the page you're on. Each links to that slice of the list where one exists. #}
+{% set heading, rows = quick %}
+<aside class="quick" aria-label="{{ heading }} at a glance">
+  <h2 class="quick__h">{{ heading }}</h2>
+  <ul class="quick__list">
+    {% for label, n, href in rows %}
+    <li>{% if href %}<a class="quick__item" href="{{ href }}">{% else %}<span class="quick__item">{% endif %}
+      <span class="quick__n">{{ '{:,}'.format(n) if n is number else n }}</span><span class="quick__label">{{ label }}</span>
+    {% if href %}</a>{% else %}</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+</aside>

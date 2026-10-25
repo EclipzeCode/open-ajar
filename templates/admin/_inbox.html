@@ -1,0 +1,20 @@
+{# Right column: contact messages nobody has answered yet. "Expand" widens it to read them in full (app.js remembers
+   the choice); replying happens on the Messages page. #}
+<aside class="inbox" aria-labelledby="inbox-h">
+  <div class="inbox__head">
+    <h2 id="inbox-h" class="quick__h"><a href="{{ url_for('admin.messages') }}" {% if request.endpoint == 'admin.messages' %}aria-current="page"{% endif %}>Messages</a>
+      {% if badges.messages %}<span class="tabs__n" aria-label="{{ badges.messages }} new">{{ badges.messages }}</span>{% endif %}</h2>
+    <button class="inbox__toggle" type="button" data-inbox-toggle aria-pressed="false" hidden>Expand</button>
+  </div>
+  {% for msg in inbox %}
+    <a class="inbox__item" href="{{ url_for('admin.messages', status='new') }}#a-{{ msg.id }}">
+      <strong>{{ msg.topic }}</strong>
+      <span class="inbox__meta">{{ msg.name }} · {{ msg.created_at|nice_date }}</span>
+      <span class="inbox__text">{{ msg.message }}</span>
+    </a>
+  {% else %}
+    <p class="inbox__empty">No new messages. You’re all caught up.</p>
+  {% endfor %}
+  {% if badges.messages > inbox|length %}<p class="small muted">{{ badges.messages - inbox|length }} more waiting.</p>{% endif %}
+  <a class="inbox__all small" href="{{ url_for('admin.messages') }}">Open all messages →</a>
+</aside>

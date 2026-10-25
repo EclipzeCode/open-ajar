@@ -59,7 +59,10 @@
   {% if page_messages %}<div class="wrap">{% for cat, m in page_messages %}
     <p class="flash{% if cat == 'error' %} flash--error{% endif %}" role="{{ 'alert' if cat == 'error' else 'status' }}">{{ m }}</p>
   {% endfor %}</div>{% endif %}
+  {# Admin pages sit between two columns: the page's numbers on the left (admin.quick_numbers), new messages on the right #}
+  {% if quick is defined %}<div class="admin-shell" data-admin-shell>{% include 'admin/_quick.html' %}<div class="admin-shell__main">{% endif %}
   {% block content %}{% endblock %}
+  {% if quick is defined %}</div>{% include 'admin/_inbox.html' %}</div>{% endif %}
 </main>
 
 <footer class="footer">
