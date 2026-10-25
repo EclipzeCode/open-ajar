@@ -167,7 +167,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   message     TEXT NOT NULL,
   status      TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','replied','closed')),
   admin_note  TEXT NOT NULL DEFAULT '',
-  created_at  TEXT NOT NULL
+  created_at  TEXT NOT NULL,
+  dismissed   INTEGER NOT NULL DEFAULT 0  -- set aside without answering: grayed out and listed last
 );
 
 -- The conversation about an application: the team's updates (a status change, a message, or both; emailed) and the

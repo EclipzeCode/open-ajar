@@ -911,7 +911,8 @@ if (inboxToggle) {
   const set = (wide) => {
     shell.classList.toggle('admin-shell--wide', wide);
     inboxToggle.setAttribute('aria-pressed', wide);
-    inboxToggle.textContent = wide ? 'Collapse' : 'Expand';
+    inboxToggle.setAttribute('aria-label', wide ? 'Collapse messages' : 'Expand messages');
+    inboxToggle.title = wide ? 'Collapse' : 'Expand';
     try { localStorage.setItem('inboxWide', wide ? '1' : ''); } catch {}
   };
   let saved = false;

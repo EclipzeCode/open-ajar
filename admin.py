@@ -536,12 +536,14 @@ def tab_badges():
     badges = dict(one('''SELECT
         (SELECT COUNT(*) FROM opportunities WHERE status='pending_review') listings,
         (SELECT COUNT(*) FROM intern_applications WHERE status='new') interns,
-        (SELECT COUNT(*) FROM contact_messages WHERE status='new') messages,
+        (SELECT COUNT(*) FROM contact_messages WHERE status='new' AND dismissed=0) messages,
         (SELECT COUNT(*) FROM partner_inquiries WHERE status='new') partners,
         (SELECT COUNT(*) FROM access_grants WHERE status='new') grants,
         (SELECT COUNT(*) FROM testimonials WHERE status='pending') voices'''))
     return {'badges': badges, 'quick': quick_numbers(request.endpoint, badges),
-            'inbox': all_("SELECT id, name, topic, message, created_at FROM contact_messages WHERE status='new' ORDER BY created_at DESC LIMIT 12")}
+            # unanswered messages, dismissed ones last (like Gmail's read mail, they stay but step back)
+            'inbox': all_("SELECT id, name, topic, message, created_at, dismissed FROM contact_messages WHERE status='new' ORDER BY dismissed, created_at DESC LIMIT 20"),
+            'inbox_total': one("SELECT COUNT(*) n FROM contact_messages WHERE status='new'")['n']}
 
 
 def quick_numbers(ep, badges):
@@ -598,7 +600,8 @@ def quick_numbers(ep, badges):
     if ep == 'admin.messages':
         c = by('contact_messages')
         return 'Messages', [('All', sum(c.values()), url_for('admin.messages'))] + [
-            (label, c.get(k, 0), url_for('admin.messages', status=k)) for k, label in data.CONTACT_STATUSES.items()]
+            (label, c.get(k, 0), url_for('admin.messages', status=k)) for k, label in data.CONTACT_STATUSES.items()] + [
+            ('Dismissed, unanswered', n("SELECT COUNT(*) n FROM contact_messages WHERE status='new' AND dismissed=1"), None)]
     return 'Waiting on the team', [  # the overview: what each tab has waiting
         ('Listings to review', badges['listings'], url_for('admin.queue')),
         ('Intern applications', badges['interns'], url_for('admin.interns', status='new')),
@@ -768,7 +771,18 @@ ACTION_NAMES = {
 @admin_required
 def messages():
     return _inbox('contact_messages', list(data.CONTACT_STATUSES), 'admin/messages.html', ('name', 'email', 'topic', 'message'),
-                  kind='contact')
+                  kind='contact', order="(status='new' AND dismissed=1), created_at DESC")
+
+
+@bp.post('/messages/<mid>/dismiss')
+@admin_required
+def dismiss_message(mid):
+    """Sets a message aside without answering it (or brings it back). It stays unanswered; a follow-up from the sender
+    brings it back on its own."""
+    if not one('SELECT 1 FROM contact_messages WHERE id=?', (mid,)):
+        abort(404)
+    run('UPDATE contact_messages SET dismissed=? WHERE id=?', (1 if request.form.get('dismissed') else 0, mid))
+    return redirect(_back(url_for('admin.messages')))
 
 
 @bp.route('/partners', methods=['GET', 'POST'])
@@ -947,7 +961,7 @@ def updates_for(kind, ids):
     return out
 
 
-def _inbox(table, statuses, template, cols, kind=None):
+def _inbox(table, statuses, template, cols, kind=None, order='created_at DESC'):
     """The admin inboxes: list rows newest first by status and search; save a row's status and private note. For an
     application (kind), a status change or a message is also saved as an update and emailed to the applicant."""
     if request.method == 'POST':
@@ -985,7 +999,7 @@ def _inbox(table, statuses, template, cols, kind=None):
     if cond:
         where.append(cond)
         args += cargs
-    rows, pg = paged(f'SELECT * FROM {table}' + (' WHERE ' + ' AND '.join(where) if where else '') + ' ORDER BY created_at DESC', args)
+    rows, pg = paged(f'SELECT * FROM {table}' + (' WHERE ' + ' AND '.join(where) if where else '') + f' ORDER BY {order}', args)
     counts = {r['status']: r['n'] for r in all_(f'SELECT status, COUNT(*) n FROM {table} GROUP BY status')}
     return render_template(template, rows=rows, pg=pg, counts=counts, status=status, statuses=statuses, q=request.args.get('q', ''),
                            updates=updates_for(kind, [r['id'] for r in rows]) if kind else {},

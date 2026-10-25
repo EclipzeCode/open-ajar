@@ -202,7 +202,8 @@ def init_db(path):
                             ('intern_applications', 'placement_start', 'TEXT'),
                             ('intern_applications', 'placement_hours', "TEXT NOT NULL DEFAULT ''"),
                             ('intern_applications', 'placement_supervisor', "TEXT NOT NULL DEFAULT ''"),
-                            ('users', 'pending_email', "TEXT NOT NULL DEFAULT ''"), ('users', 'digest_week', "TEXT NOT NULL DEFAULT ''")):
+                            ('users', 'pending_email', "TEXT NOT NULL DEFAULT ''"), ('users', 'digest_week', "TEXT NOT NULL DEFAULT ''"),
+                            ('contact_messages', 'dismissed', 'INTEGER NOT NULL DEFAULT 0')):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
     # Values added to a CHECK constraint after launch (the text that shows the table is up to date)

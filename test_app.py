@@ -517,6 +517,31 @@ class Flows(unittest.TestCase):
         self.assertEqual(db.execute('SELECT status FROM contact_messages').fetchone()['status'], 'new')  # back in the team's pile
         self.assertIn('Reply from Sam Rivera', admin.get('/admin/messages').get_data(as_text=True))
 
+    def test_admins_dismiss_messages_without_answering(self):
+        self.register()
+        db = connect(self.app.config['DB_PATH'])
+        db.execute('UPDATE users SET email_verified=1')
+        db.commit()
+        for mid, topic, at in (('m1', 'Old question', '2026-01-01T00:00:00'), ('m2', 'New question', '2026-02-01T00:00:00')):
+            db.execute('INSERT INTO contact_messages (id, name, email, topic, message, created_at) VALUES (?,?,?,?,?,?)',
+                       (mid, 'Sam Rivera', 'sam@example.org', topic, 'Could you help me with this?', at))
+        db.commit()
+        mid = 'm2'  # the newer one, dismissed below
+        admin = self.make_admin()
+        self.post(f'/admin/messages/{mid}/dismiss', {'dismissed': '1'}, admin)
+        row = db.execute('SELECT status, dismissed FROM contact_messages WHERE id=?', (mid,)).fetchone()
+        self.assertEqual((row['status'], row['dismissed']), ('new', 1))  # still unanswered
+        page = admin.get('/admin/stats').get_data(as_text=True)
+        self.assertIn('aria-label="1 new"', page)  # the badge only counts what's not dismissed
+        side = page.split('class="inbox"')[1]
+        self.assertLess(side.index('Old question'), side.index('New question'))  # dismissed ones go last, even when newer
+        self.assertIn('inbox__item--dismissed', side)
+        self.post(f'/account/applications/contact/{mid}', {'message': 'Any update?'})
+        self.assertEqual(db.execute('SELECT dismissed FROM contact_messages WHERE id=?', (mid,)).fetchone()['dismissed'], 0)  # a follow-up brings it back
+        self.post(f'/admin/messages/{mid}/dismiss', {'dismissed': '1'}, admin)
+        self.post(f'/admin/messages/{mid}/dismiss', {}, admin)
+        self.assertEqual(db.execute('SELECT dismissed FROM contact_messages WHERE id=?', (mid,)).fetchone()['dismissed'], 0)
+
     def test_older_databases_are_upgraded_without_losing_anything(self):
         from app import init_db
         old = Path(self.tmp.name) / 'old.db'
