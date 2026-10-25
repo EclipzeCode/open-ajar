@@ -368,7 +368,7 @@ def reply(kind, item_id):
         link = {'intern': '/admin/interns', 'partner': '/admin/partners', 'grant': '/admin/grants',
                 'contact': '/admin/messages'}[kind] + '?' + urlencode({'q': u['email']})
         if kind == 'contact':  # a follow-up puts the message back in the team's waiting pile
-            run("UPDATE contact_messages SET status='new' WHERE id=?", (item_id,))
+            run("UPDATE contact_messages SET status='new', dismissed=0 WHERE id=?", (item_id,))
     mail.later('reply notice', mail.applicant_reply, current_app.config, u['name'], u['email'], kind, a['title'], message, link)
     return redirect(url_for('account.account') + f'#app-{kind}-{item_id}')
 

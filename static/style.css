@@ -1170,27 +1170,49 @@ pre.mail { white-space: pre-wrap; font: .9rem/1.5 ui-monospace, monospace; backg
 .admin-shell--wide { grid-template-columns: 200px minmax(0, 1fr) 460px; }
 .admin-shell__main .wrap { width: 100%; }
 .quick, .inbox { position: sticky; top: 96px; margin-top: 56px; max-height: calc(100vh - 112px); overflow-y: auto; }
-.quick__h { font: 600 .8rem/1.3 var(--sans); letter-spacing: .02em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.quick__h { font: 600 .9rem/1.3 var(--sans); letter-spacing: .02em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
 .quick__h a { color: inherit; text-decoration: none; }
 .quick__h a:hover, .quick__h a[aria-current="page"] { color: var(--ink-strong); }
 .quick__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.quick__item { display: flex; flex-direction: column; padding: 9px 12px; border-radius: 12px; color: var(--ink); text-decoration: none; }
+.quick__item { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 12px; color: var(--ink); text-decoration: none; }
 a.quick__item:hover { background: var(--soft); }
-.quick__n { font: 700 1.45rem/1.15 var(--display); letter-spacing: -.02em; color: var(--ink-strong); }
-.quick__label { font-size: .82rem; color: var(--muted); }
+.quick__n { font: 700 1.8rem/1.15 var(--display); letter-spacing: -.02em; color: var(--ink-strong); }
+.quick__label { font-size: .95rem; color: var(--muted); }
 .inbox { display: flex; flex-direction: column; gap: 8px; }
 .inbox__head { display: flex; justify-content: space-between; align-items: baseline; }
 .inbox__head .quick__h { margin: 0; }
-.inbox__toggle { border: 1px solid var(--line-strong); background: #fff; color: var(--ink-strong); border-radius: 7px; padding: 3px 10px; font: 500 .8rem var(--sans); cursor: pointer; }
+.inbox__toggle { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--line-strong); background: #fff; color: var(--ink-strong); border-radius: 8px; cursor: pointer; }
+.inbox__toggle[hidden] { display: none; }
 .inbox__toggle:hover { background: var(--soft); }
-.inbox__item { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-decoration: none; font-size: .88rem; }
+.inbox__toggle svg, .inbox__act svg, .inbox__all svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.inbox__toggle[aria-pressed="true"] .inbox__grow, .inbox__toggle[aria-pressed="false"] .inbox__shrink { display: none; }
+/* each message: the topic links to it (the link covers the whole card), the small button top right dismisses it */
+.inbox__item { position: relative; display: grid; gap: 2px; padding: 12px 40px 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); font-size: .88rem; transition: background .15s, border-color .15s, opacity .15s; }
 .inbox__item:hover { border-color: var(--line-strong); background: var(--soft); }
-.inbox__item strong { color: var(--ink-strong); }
+.inbox__link { color: var(--ink-strong); text-decoration: none; }
+.inbox__link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.inbox__act { position: absolute; top: 8px; right: 8px; z-index: 1; margin: 0; }
+.inbox__act button { display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 7px; background: none; color: var(--muted); cursor: pointer; opacity: 0; transition: opacity .15s, background .15s; }
+.inbox__item:hover .inbox__act button, .inbox__act button:focus-visible, .inbox__item--dismissed .inbox__act button { opacity: 1; }
+.inbox__act button:hover { background: var(--line); color: var(--ink-strong); }
+.inbox__item--dismissed { background: var(--soft); border-color: var(--soft); opacity: .6; }
+.inbox__item--dismissed:hover { opacity: .85; }
+.inbox__item--dismissed .inbox__link { color: var(--muted); font-weight: 400; }
+@media (hover: none) { .inbox__act button { opacity: 1; } }
 .inbox__meta { font-size: .78rem; color: var(--muted); }
 .inbox__text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
 .admin-shell--wide .inbox__text { -webkit-line-clamp: unset; }
 .inbox__empty { font-size: .88rem; color: var(--muted); padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: 14px; margin: 0; }
-.inbox__all { margin-top: 4px; }
+.inbox__all { display: flex; align-items: center; gap: 10px; margin-top: 4px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff;
+  color: var(--ink-strong); font-size: .9rem; font-weight: 500; text-decoration: none; box-shadow: 0 1px 2px rgba(28, 25, 23, .05); transition: background .15s, border-color .15s; }
+.inbox__all:hover { background: var(--soft); border-color: #A8A29E; }
+.inbox__all svg { color: var(--accent); }
+.inbox__arrow { margin-left: auto; color: var(--muted); transition: transform .15s; }
+.inbox__all:hover .inbox__arrow { transform: translateX(3px); color: var(--ink-strong); }
+/* Messages page: a dismissed, unanswered message, grayed like read mail */
+.review-app--dismissed { background: var(--soft); }
+.review-app--dismissed .review-app__main { opacity: .6; }
+.review-app__dismiss { margin: 0 0 0 auto; }
 @media (max-width: 1280px) {
   .admin-shell, .admin-shell--wide { grid-template-columns: minmax(0, 1fr); gap: 0; width: min(1120px, 100% - 32px); }
   .quick, .inbox { position: static; max-height: none; overflow: visible; }

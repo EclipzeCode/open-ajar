@@ -1,20 +1,39 @@
-{# Right column: contact messages nobody has answered yet. "Expand" widens it to read them in full (app.js remembers
-   the choice); replying happens on the Messages page. #}
+{# Right column: contact messages nobody has answered yet, newest first. A dismissed one stays unanswered but steps back:
+   grayed out and listed last (it comes back by itself if the sender follows up). The expand button widens the column
+   to read them in full (app.js remembers the choice); replying happens on the Messages page. #}
+{% import '_macros.html' as m with context %}
+{% macro dismiss(msg) %}{% if can_edit %}
+  <form class="inbox__act" method="post" action="{{ url_for('admin.dismiss_message', mid=msg.id) }}">{{ m.csrf() }}
+    {% if msg.dismissed %}
+      <button type="submit" title="Bring back" aria-label="Bring back “{{ msg.topic }}”"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg></button>
+    {% else %}
+      <input type="hidden" name="dismissed" value="1">
+      <button type="submit" title="Dismiss without answering" aria-label="Dismiss “{{ msg.topic }}” without answering"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    {% endif %}
+  </form>
+{% endif %}{% endmacro %}
 <aside class="inbox" aria-labelledby="inbox-h">
   <div class="inbox__head">
     <h2 id="inbox-h" class="quick__h"><a href="{{ url_for('admin.messages') }}" {% if request.endpoint == 'admin.messages' %}aria-current="page"{% endif %}>Messages</a>
       {% if badges.messages %}<span class="tabs__n" aria-label="{{ badges.messages }} new">{{ badges.messages }}</span>{% endif %}</h2>
-    <button class="inbox__toggle" type="button" data-inbox-toggle aria-pressed="false" hidden>Expand</button>
+    <button class="inbox__toggle" type="button" data-inbox-toggle aria-pressed="false" aria-label="Expand messages" title="Expand" hidden>
+      <svg class="inbox__grow" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg>
+      <svg class="inbox__shrink" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11h-6V5M13 11l7-7M5 13h6v6M11 13l-7 7"/></svg>
+    </button>
   </div>
   {% for msg in inbox %}
-    <a class="inbox__item" href="{{ url_for('admin.messages', status='new') }}#a-{{ msg.id }}">
-      <strong>{{ msg.topic }}</strong>
-      <span class="inbox__meta">{{ msg.name }} · {{ msg.created_at|nice_date }}</span>
+    <div class="inbox__item{% if msg.dismissed %} inbox__item--dismissed{% endif %}">
+      <a class="inbox__link" href="{{ url_for('admin.messages', status='new') }}#a-{{ msg.id }}"><strong>{{ msg.topic }}</strong></a>
+      <span class="inbox__meta">{{ msg.name }} · {{ msg.created_at|nice_date }}{% if msg.dismissed %} · dismissed{% endif %}</span>
       <span class="inbox__text">{{ msg.message }}</span>
-    </a>
+      {{ dismiss(msg) }}
+    </div>
   {% else %}
     <p class="inbox__empty">No new messages. You’re all caught up.</p>
   {% endfor %}
-  {% if badges.messages > inbox|length %}<p class="small muted">{{ badges.messages - inbox|length }} more waiting.</p>{% endif %}
-  <a class="inbox__all small" href="{{ url_for('admin.messages') }}">Open all messages →</a>
+  {% if inbox_total > inbox|length %}<p class="small muted">{{ inbox_total - inbox|length }} more unanswered.</p>{% endif %}
+  <a class="inbox__all" href="{{ url_for('admin.messages') }}">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
+    <span>Open all messages</span><span class="inbox__arrow" aria-hidden="true">→</span>
+  </a>
 </aside>

@@ -12,9 +12,17 @@
   </nav>
   {% with placeholder='Search name, email or message' %}{% include 'admin/_find.html' %}{% endwith %}
   {% for p in rows %}
-    <article class="panel review-app" id="a-{{ p.id }}">
+    {% set set_aside = p.dismissed and p.status == 'new' %}
+    <article class="panel review-app{% if set_aside %} review-app--dismissed{% endif %}" id="a-{{ p.id }}">
       <div class="review-app__main">
-        <div class="review-app__head"><h2>{{ p.topic }}</h2><span class="pill pill--{{ p.status }}">{{ labels[p.status] }}</span></div>
+        <div class="review-app__head"><h2>{{ p.topic }}</h2><span class="pill pill--{{ p.status }}">{{ labels[p.status] }}</span>
+          {% if set_aside %}<span class="pill pill--closed">Dismissed</span>{% endif %}
+          {% if can_edit and p.status == 'new' %}
+          <form class="review-app__dismiss" method="post" action="{{ url_for('admin.dismiss_message', mid=p.id) }}">{{ m.csrf() }}
+            {% if not set_aside %}<input type="hidden" name="dismissed" value="1">{% endif %}
+            <button class="btn btn--sm btn--ghost" type="submit">{{ 'Bring back' if set_aside else 'Dismiss' }}</button>
+          </form>
+          {% endif %}</div>
         <p class="muted small">{{ p.name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a> · sent {{ p.created_at|nice_date }}</p>
         <p class="review-app__statement">{{ p.message }}</p>
         {{ app.history(updates.get(p.id), labels) }}
