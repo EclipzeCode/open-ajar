@@ -16,7 +16,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 import data
 import mail
 from core import (add_event, admin_required, all_, audit, current_user, events_for, expire_due, get_db, get_opp, grant_room,
-                  is_owner, new_id, one, run, save_upload, update_opp, uploads_dir, _like)
+                  is_owner, new_id, one, run, save_upload, support_numbers, update_opp, uploads_dir, _like)
 
 bp = Blueprint('admin', __name__)
 PER_PAGE = 100
@@ -297,10 +297,8 @@ def user_notes(uid):
 @bp.post('/users/<uid>/make-partner')
 @admin_required
 def make_partner(uid):
-    """Owner only: gives the person the partner role and a partner profile (hidden until the owner fills it in and shows it)."""
+    """Gives the person the partner role and a partner profile (hidden until an admin fills it in and shows it)."""
     me, u = current_user(), one('SELECT * FROM users WHERE id=?', (uid,))
-    if not is_owner(me):
-        abort(403)
     if not u:
         abort(404)
     if u['role'] in data.STAFF:
@@ -324,7 +322,7 @@ def make_partner(uid):
 @bp.get('/partner-profiles')
 @admin_required
 def partner_profiles():
-    """The About page's partners and supporters, in page order. Only the owner edits them."""
+    """The About page's partners and supporters, in page order. Admins edit them; moderators only look."""
     return render_template('admin/partner_profiles.html', profiles=all_('''SELECT p.*, u.email user_email FROM partner_profiles p
         LEFT JOIN users u ON u.id = p.user_id ORDER BY p.tier, p.position, p.name'''))
 
@@ -334,7 +332,7 @@ def partner_profiles():
 @admin_required
 def partner_profile(pid=None):
     me = current_user()
-    if not is_owner(me):
+    if me['role'] != 'admin':
         abort(403)
     p = one('SELECT * FROM partner_profiles WHERE id=?', (pid,)) if pid else None
     if pid and not p:
@@ -430,16 +428,35 @@ def stats():
     weeks = []  # the last 12 weeks, oldest first
     for i in reversed(range(12)):
         end, start = today - timedelta(days=7 * i), today - timedelta(days=7 * (i + 1))
-        weeks.append({'label': (start + timedelta(days=1)).strftime('%b %-d'),
+        weeks.append({'label': (start + timedelta(days=1)).strftime('%b %-d'), 'end': end.strftime('%b %-d'),
                       'signups': n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) > ? AND substr(created_at,1,10) <= ?', (start.isoformat(), end.isoformat())),
                       'active': n('SELECT COUNT(DISTINCT user_id) n FROM user_days WHERE day > ? AND day <= ?', (start.isoformat(), end.isoformat()))})
     stage_n = {r['stage']: r['n'] for r in all_('SELECT stage, COUNT(*) n FROM tracked GROUP BY stage')}
-    return render_template('admin/stats.html', s=s, adj=adj, weeks=weeks, labels=STAT_LABELS, nice=_nice_top,
+    return render_template('admin/stats.html', s=s, adj=adj, weeks=weeks, labels=STAT_LABELS, nice=_nice_top, support=support_numbers(),
         stages=[(st, stage_n.get(st, 0)) for st in data.STAGES],
         found=[('Found on OpenAjar', s['won_here']), ('Found elsewhere', s['won_elsewhere']),
                ('Not answered yet', s['won'] - s['won_here'] - s['won_elsewhere'])],
         types=_top_and_other([(('Teen jobs' if r['type'] == 'Job' else r['type']), r['n']) for r in
                all_("SELECT type, COUNT(*) n FROM opportunities WHERE status='approved' GROUP BY type ORDER BY n DESC")]))
+
+
+@bp.post('/support-numbers')
+@admin_required
+def support_numbers_save():
+    """Owner only: the money raised and used on the Support us page (remaining is worked out from them)."""
+    me = current_user()
+    if not is_owner(me):
+        abort(403)
+    vals = {k: request.form.get(k, '').strip().replace(',', '').replace('$', '') for k in ('raised', 'used')}
+    if not all(v.isdigit() and int(v) <= 10_000_000 for v in vals.values()):
+        flash('Enter whole dollar amounts, like 4367.', 'error')
+    else:
+        old = support_numbers()
+        for k, v in vals.items():
+            run("INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", ('support:' + k, int(v)))
+        audit(me['id'], f"support_numbers raised ${old['raised']} to ${vals['raised']}, used ${old['used']} to ${vals['used']}", 'Support us page')
+        flash('Support page numbers saved.')
+    return redirect(url_for('admin.stats') + '#support')
 
 
 def _top_and_other(items, keep=7):
@@ -516,13 +533,79 @@ def tab_badges():
     """How many things are waiting on each admin tab, for the number badges in the admin menu."""
     if not current_user() or current_user()['role'] not in data.STAFF:
         return {}
-    return {'badges': dict(one('''SELECT
+    badges = dict(one('''SELECT
         (SELECT COUNT(*) FROM opportunities WHERE status='pending_review') listings,
         (SELECT COUNT(*) FROM intern_applications WHERE status='new') interns,
         (SELECT COUNT(*) FROM contact_messages WHERE status='new') messages,
         (SELECT COUNT(*) FROM partner_inquiries WHERE status='new') partners,
         (SELECT COUNT(*) FROM access_grants WHERE status='new') grants,
-        (SELECT COUNT(*) FROM testimonials WHERE status='pending') voices'''))}
+        (SELECT COUNT(*) FROM testimonials WHERE status='pending') voices'''))
+    return {'badges': badges, 'quick': quick_numbers(request.endpoint, badges),
+            'inbox': all_("SELECT id, name, topic, message, created_at FROM contact_messages WHERE status='new' ORDER BY created_at DESC LIMIT 12")}
+
+
+def quick_numbers(ep, badges):
+    """(heading, [(label, number, link or None)]) for the left column: the counts behind the page you're on."""
+    n = lambda sql, args=(): one(sql, args)['n']
+    week = (date.fromisoformat(data.now_iso()[:10]) - timedelta(days=6)).isoformat()  # the last 7 days, today included
+    by = lambda table: {r['status']: r['n'] for r in all_(f'SELECT status, COUNT(*) n FROM {table} GROUP BY status')}
+    if ep in ('admin.users', 'admin.user_detail', 'admin.voices'):
+        roles = {r['role']: r['n'] for r in all_('SELECT role, COUNT(*) n FROM users GROUP BY role')}
+        u = lambda **kw: url_for('admin.users', **kw)
+        return 'People', [
+            ('Users', sum(roles.values()), u()),
+            ('New this week', n('SELECT COUNT(*) n FROM users WHERE substr(created_at,1,10) >= ?', (week,)), u(joined_from=week)),
+            ('Students', roles.get('student', 0), u(role='student')),
+            ('Interns placed', n("SELECT COUNT(*) n FROM intern_applications WHERE status='placed'"), url_for('admin.interns', status='placed')),
+            ('Partners', roles.get('partner', 0), u(role='partner')),
+            ('Admins and moderators', sum(roles.get(r, 0) for r in data.STAFF), None),
+            ('Email not confirmed', n('SELECT COUNT(*) n FROM users WHERE email_verified=0'), u(status='unconfirmed')),
+            ('Quotes waiting', badges['voices'], url_for('admin.voices'))]
+    if ep in ('admin.queue', 'admin.review'):
+        c, soon = by('opportunities'), (date.fromisoformat(data.now_iso()[:10]) + timedelta(days=14)).isoformat()
+        q = lambda s: url_for('admin.queue', status=s)
+        return 'Listings', [
+            ('Waiting for review', c.get('pending_review', 0), q('pending_review')),
+            ('Live', c.get('approved', 0), q('approved')),
+            ('Expiring in 14 days', n("SELECT COUNT(*) n FROM opportunities WHERE status='approved' AND expires_at <= ?", (soon,)), None),
+            ('Changes requested', c.get('changes_requested', 0), q('changes_requested')),
+            ('Rejected or expired', c.get('rejected', 0) + c.get('expired', 0), q('all'))]
+    if ep == 'admin.interns':
+        c = by('intern_applications')
+        return 'Intern applications', [('All', sum(c.values()), url_for('admin.interns'))] + [
+            (label, c.get(k, 0), url_for('admin.interns', status=k)) for k, label in data.INTERN_STATUSES.items()]
+    if ep in ('admin.partners', 'admin.partner_profiles', 'admin.partner_profile'):
+        c = by('partner_inquiries')
+        shown = {r['shown']: r['n'] for r in all_('SELECT shown, COUNT(*) n FROM partner_profiles GROUP BY shown')}
+        return 'Partners', [('Inquiries', sum(c.values()), url_for('admin.partners'))] + [
+            (label, c.get(k, 0), url_for('admin.partners', status=k)) for k, label in data.PARTNER_STATUSES.items()] + [
+            ('On the About page', shown.get(1, 0), url_for('admin.partner_profiles')),
+            ('Hidden profiles', shown.get(0, 0), url_for('admin.partner_profiles'))]
+    if ep == 'admin.grants':
+        c = by('access_grants')
+        t = one("""SELECT COALESCE(SUM(CASE WHEN status='paid' THEN paid_amount END), 0) paid,
+                          COALESCE(SUM(CASE WHEN status='approved' THEN approved_amount END), 0) committed FROM access_grants""")
+        g = lambda s: url_for('admin.grants', status=s)
+        return 'Access Grants', [
+            ('Requests', sum(c.values()), url_for('admin.grants')), ('Waiting', c.get('new', 0), g('new')),
+            ('Needs info', c.get('needs_info', 0), g('needs_info')), ('Approved, unpaid', f"${t['committed']:,}", g('approved')),
+            ('Paid out', f"${t['paid']:,}", g('paid'))]
+    if ep == 'admin.activity':
+        acts = lambda since: n("""SELECT (SELECT COUNT(*) FROM review_events WHERE substr(created_at,1,10) >= :d)
+                                     + (SELECT COUNT(*) FROM audit_log WHERE substr(created_at,1,10) >= :d) n""", {'d': since})
+        return 'Activity', [('Today', acts(data.now_iso()[:10]), url_for('admin.activity', **{'from': data.now_iso()[:10]})),
+                            ('Last 7 days', acts(week), url_for('admin.activity', **{'from': week}))]
+    if ep == 'admin.messages':
+        c = by('contact_messages')
+        return 'Messages', [('All', sum(c.values()), url_for('admin.messages'))] + [
+            (label, c.get(k, 0), url_for('admin.messages', status=k)) for k, label in data.CONTACT_STATUSES.items()]
+    return 'Waiting on the team', [  # the overview: what each tab has waiting
+        ('Listings to review', badges['listings'], url_for('admin.queue')),
+        ('Intern applications', badges['interns'], url_for('admin.interns', status='new')),
+        ('Partner inquiries', badges['partners'], url_for('admin.partners', status='new')),
+        ('Access Grants', badges['grants'], url_for('admin.grants', status='new')),
+        ('Messages', badges['messages'], url_for('admin.messages', status='new')),
+        ('Quotes', badges['voices'], url_for('admin.voices'))]
 
 
 @bp.get('/backup')
@@ -677,7 +760,7 @@ ACTION_NAMES = {
     'message': 'Sent a listing submitter an update', 'reply': 'Replied about their listing',
     'placement_updated': 'Saved an intern’s placement', 'user_notes_updated': 'Changed a user’s nickname or admin note',
     'partner_profile_created': 'Made a user a partner', 'partner_profile_saved': 'Saved a partner profile',
-    'partner_profile_deleted': 'Deleted a partner profile',
+    'partner_profile_deleted': 'Deleted a partner profile', 'support_numbers': 'Changed the Support us page numbers',
 }
 
 

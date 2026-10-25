@@ -305,15 +305,18 @@ class Flows(unittest.TestCase):
         self.post('/admin/users/owner/notes', {'nickname': 'Boss', 'staff_note': '', 'private_note': ''}, admin)
         self.assertEqual(db.execute("SELECT nickname FROM users WHERE id='owner'").fetchone()['nickname'], '')  # only the owner
 
-    def test_owner_makes_users_partners_and_edits_the_about_page(self):
+    def test_admins_make_users_partners_and_edit_the_about_page(self):
         owner, admin = self.make_admin('owner@example.org', 'owner'), self.make_admin()
         self.register('shop@example.org')
         db = connect(self.app.config['DB_PATH'])
         uid = db.execute("SELECT id FROM users WHERE email='shop@example.org'").fetchone()['id']
-        self.assertEqual(self.post(f'/admin/users/{uid}/make-partner', client=admin).status_code, 403)  # the owner's job
-        self.assertEqual(admin.get('/admin/partner-profiles/new').status_code, 403)
-        self.assertEqual(admin.get('/admin/partner-profiles').status_code, 200)  # everyone on staff can look
-        r = self.post(f'/admin/users/{uid}/make-partner', client=owner)
+        self.assertEqual(admin.get('/admin/partner-profiles/new').status_code, 200)  # any admin, not just the owner
+        db.execute("UPDATE users SET role='moderator' WHERE id='owner'")
+        db.commit()
+        self.assertEqual(owner.get('/admin/partner-profiles/new').status_code, 403)  # moderators only look
+        self.assertEqual(owner.get('/admin/partner-profiles').status_code, 200)
+        r = self.post(f'/admin/users/{uid}/make-partner', client=admin)
+        owner = admin
         p = db.execute('SELECT * FROM partner_profiles WHERE user_id=?', (uid,)).fetchone()
         self.assertEqual((db.execute('SELECT role FROM users WHERE id=?', (uid,)).fetchone()['role'], p['shown']), ('partner', 0))
         self.assertIn(f"/admin/partner-profiles/{p['id']}", r.headers['Location'])
@@ -666,6 +669,20 @@ class Flows(unittest.TestCase):
         self.assertIn('+3 by hand</span> · database count 0', page)  # always shown next to the real count
         self.assertIn('Adjusted a stat by hand', other.get('/admin/activity?kind=stat_adjusted').get_data(as_text=True))
 
+    def test_the_owner_sets_the_support_page_money(self):
+        owner, other = self.make_admin('owner@example.org', 'owner1'), self.make_admin()
+        self.assertIn('$4,367', self.c.get('/support').get_data(as_text=True))  # the numbers before anyone sets them
+        self.assertEqual(self.post('/admin/support-numbers', {'raised': '9000', 'used': '1'}, other).status_code, 403)
+        self.assertNotIn(b'name="raised"', other.get('/admin/stats').data)
+        self.post('/admin/support-numbers', {'raised': 'lots', 'used': '10'}, owner)
+        self.assertIn('$4,367', self.c.get('/support').get_data(as_text=True))  # bad input changes nothing
+        self.post('/admin/support-numbers', {'raised': '$5,000', 'used': '6000'}, owner)
+        page = self.c.get('/support').get_data(as_text=True)
+        self.assertIn('$5,000', page)
+        self.assertIn('$6,000', page)
+        self.assertIn('$0</p><p>Remaining', page)  # never negative
+        self.assertIn('Changed the Support us page numbers', owner.get('/admin/activity').get_data(as_text=True))
+
     def test_admins_confirm_emails_filter_users_and_see_a_persons_applications(self):
         self.register()
         admin = self.make_admin()
@@ -915,8 +932,8 @@ class Flows(unittest.TestCase):
         self.assertEqual(n('Acceptances found on OpenAjar'), '1')
         self.assertEqual(n('Engaged (saved or tracked a listing)'), '1')
         self.assertEqual(n('Active in the last 30 days'), '2')  # Sam and the admin
-        self.assertIn('Found on OpenAjar: 1 of 1', page)  # the donut slice
-        self.assertIn('Accepted: 1', page)  # the stage bars
+        self.assertIn('Found on OpenAjar\n1 of 1 acceptances', page)  # the donut slice's hover card
+        self.assertIn('Accepted\n1 tracked application', page)  # the stage bars
         self.assertEqual(self.c.get('/admin/stats').status_code, 403)
 
     def test_reminders_send_once(self):

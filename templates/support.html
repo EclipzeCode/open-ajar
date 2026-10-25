@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Support OpenAjar{% endblock %}
-{# Keep these honest: real dollars raised and spent. Remaining is computed. Paste your GoFundMe link into donate_url. #}
-{% set raised = 4367 %}
-{% set used = 3199 %}
+{# Keep these honest: real dollars raised and spent, set by the owner under Admin → Overview. Remaining is computed.
+   Paste your GoFundMe link into donate_url. #}
+{% set raised, used = money.raised, money.used %}
 {% set donate_url = '' %}
 {% set donate = donate_url or 'mailto:' ~ contact_email ~ '?subject=I%20want%20to%20support%20Open%20Ajar' %}
 {% block content %}

@@ -878,3 +878,45 @@ document.querySelectorAll('input[type=file][data-resize]').forEach((input) => {
     }
   });
 });
+
+// Admin overview charts: each mark's <title> (one fact per line) becomes a hover card that follows the pointer. The
+// title is moved into data-tip so the browser's own slow tooltip doesn't show as well.
+document.querySelectorAll('.chart title, .donut__svg title').forEach((t) => {
+  t.parentElement.dataset.tip = t.textContent.trim();
+  t.remove();
+});
+if (document.querySelector('[data-tip]')) {
+  const tip = document.createElement('div');
+  tip.className = 'chart-tip';
+  tip.hidden = true;
+  document.body.append(tip);
+  document.addEventListener('pointermove', (e) => {
+    const mark = e.target.closest?.('[data-tip]');
+    if (!mark) { tip.hidden = true; return; }
+    const [head, ...rest] = mark.dataset.tip.split('\n').map((l) => l.trim()).filter(Boolean);
+    const strong = document.createElement('strong');
+    strong.textContent = head;
+    tip.replaceChildren(strong, ...rest.map((l) => Object.assign(document.createElement('span'), { textContent: l })));
+    tip.hidden = false;
+    const x = e.clientX + 14 + tip.offsetWidth > innerWidth ? e.clientX - 14 - tip.offsetWidth : e.clientX + 14;
+    tip.style.left = `${x}px`;
+    tip.style.top = `${Math.max(8, e.clientY - tip.offsetHeight - 12)}px`;
+  });
+}
+
+// Admin: "Expand" widens the messages column to read them in full. Remembered on this browser.
+const inboxToggle = document.querySelector('[data-inbox-toggle]');
+if (inboxToggle) {
+  const shell = inboxToggle.closest('[data-admin-shell]');
+  const set = (wide) => {
+    shell.classList.toggle('admin-shell--wide', wide);
+    inboxToggle.setAttribute('aria-pressed', wide);
+    inboxToggle.textContent = wide ? 'Collapse' : 'Expand';
+    try { localStorage.setItem('inboxWide', wide ? '1' : ''); } catch {}
+  };
+  let saved = false;
+  try { saved = localStorage.getItem('inboxWide') === '1'; } catch {}
+  set(saved);
+  inboxToggle.hidden = false;
+  inboxToggle.addEventListener('click', () => set(!shell.classList.contains('admin-shell--wide')));
+}

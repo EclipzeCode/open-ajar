@@ -3,7 +3,7 @@
 {% block title %}{{ p.name or 'New partner' }}{% endblock %}
 {% block content %}
 <div class="wrap">
-  <header class="page-head"><p class="eyebrow">Admin · <a href="{{ url_for('admin.partner_profiles') }}">Partner profiles</a></p><h1>{{ p.name or 'New partner' }}</h1></header>
+  <header class="page-head"><p class="eyebrow">Admin · <a href="{{ url_for('admin.partner_profiles') }}">About page profiles</a></p><h1>{{ p.name or 'New partner' }}</h1></header>
   {% include 'admin/_nav.html' %}
   <form class="panel partner-form" method="post" enctype="multipart/form-data">
     {{ m.csrf() }}
@@ -33,13 +33,15 @@
     </div>
     <fieldset class="field{% if errors.get('photo') %} has-error{% endif %}">
       <legend>Photo or logo</legend>
-      {% if p.img %}<img class="partner-form__img" src="{{ partner_img(p.img) }}" alt="Current photo" loading="lazy">{% endif %}
+      {% if p.img %}<div class="partner-form__current">
+        <img class="partner-form__img" src="{{ partner_img(p.img) }}" alt="Current photo" loading="lazy">
+        <label class="switch switch--danger"><input type="checkbox" name="remove_photo" value="1"><span class="switch__track" aria-hidden="true"></span><span>Remove the photo (shows their initials)</span></label>
+      </div>{% endif %}
       <label class="sr-only" for="photo">Upload a new one</label>
-      <input id="photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp" data-resize>
+      <input class="file" id="photo" type="file" name="photo" accept="image/png,image/jpeg,image/webp" data-resize>
       <p class="field__help">PNG, JPEG or WebP. Big photos are shrunk to 1600px before uploading. Landscape photos and logos are
         shown uncropped automatically; portrait ones fill a tall frame.</p>
       {{ m.err(errors, 'photo') }}
-      {% if p.img %}<label class="check"><input type="checkbox" name="remove_photo" value="1"><span>Remove the photo (shows their initials)</span></label>{% endif %}
       <div class="checks">
         <label class="check"><input type="checkbox" name="wide" value="1" {% if p.wide %}checked{% endif %}><span>Wide image: don’t crop it to a portrait frame</span></label>
         <label class="check"><input type="checkbox" name="big" value="1" {% if p.big %}checked{% endif %}><span>Wider image column</span></label>

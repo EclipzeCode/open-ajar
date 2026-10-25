@@ -1,5 +1,10 @@
 {# Small SVG charts for the admin overview, drawn on the server (the CSP allows no chart libraries). Colors and type come
-   from style.css (.chart ...). Hover any mark for its exact value (<title>). nice() rounds an axis top up. #}
+   from style.css (.chart ...). Hover any mark for a few lines about it (<title>, one fact per line; app.js shows it
+   as a tooltip). nice() rounds an axis top up. #}
+
+{# "+3 (+20%) on the week before", or nothing for the first week #}
+{% macro _change(rows, key, i) %}{% if i %}{% set was = rows[i - 1][key] %}{% set d = rows[i][key] - was %}
+{% if d %}{{ '{:+,}'.format(d) }}{% if was %} ({{ '{:+.0f}'.format(100 * d / was) }}%){% endif %} on the week before{% else %}Same as the week before{% endif %}{% endif %}{% endmacro %}
 
 {# Rounded top on a column, square at the baseline #}
 {% macro _col(x, y, w, base) %}{% set r = [4, base - y]|min %}M{{ x }},{{ base }}V{{ y + r }}Q{{ x }},{{ y }} {{ x + r }},{{ y }}H{{ x + w - r }}Q{{ x + w }},{{ y }} {{ x + w }},{{ y + r }}V{{ base }}Z{% endmacro %}
@@ -20,7 +25,11 @@
   <svg class="chart" viewBox="0 0 {{ W }} {{ H }}" role="img" aria-label="{{ what }}, last {{ rows|length }} weeks">
     {{ _grid(top, L, R, T, B) }}
     {% for r in rows %}{% set x = L + slot * loop.index0 + (slot - bw) / 2 %}{% set y = B - (B - T) * r[key] / top %}
-      <g class="chart__hit"><title>Week of {{ r.label }}: {{ r[key] }} {{ what|lower }}</title>
+      {% set total = rows|sum(attribute=key) %}
+      <g class="chart__hit"><title>{{ r.label }} – {{ r.end }}
+{{ '{:,}'.format(r[key]) }} {{ what|lower }}
+{{ _change(rows, key, loop.index0)|trim }}
+{% if total %}{{ (100 * r[key] / total)|round|int }}% of the {{ '{:,}'.format(total) }} in {{ rows|length }} weeks{% endif %}</title>
         <rect class="chart__target" x="{{ L + slot * loop.index0 }}" y="{{ T }}" width="{{ slot }}" height="{{ B - T }}"/>
         {% if r[key] %}<path class="chart__bar{% if loop.last %} chart__bar--now{% endif %}" d="{{ _col(x, y, bw, B) }}"/>{% endif %}
         {% if loop.last %}<text class="chart__value" x="{{ x + bw / 2 }}" y="{{ y - 6 }}" text-anchor="middle">{{ r[key] }}</text>{% endif %}
@@ -41,7 +50,10 @@
     <path class="chart__area" d="M{{ L }},{{ B }}{% for x, y in pts %} L{{ x }},{{ y }}{% endfor %} L{{ R }},{{ B }}Z"/>
     <polyline class="chart__line" points="{% for x, y in pts %}{{ x }},{{ y }} {% endfor %}"/>
     {% for r in rows %}{% set x, y = pts[loop.index0] %}
-      <g class="chart__hit"><title>Week of {{ r.label }}: {{ r[key] }} {{ what|lower }}</title>
+      <g class="chart__hit"><title>{{ r.label }} – {{ r.end }}
+{{ '{:,}'.format(r[key]) }} {{ what|lower }}
+{{ _change(rows, key, loop.index0)|trim }}
+{{ '{:,.1f}'.format(rows|sum(attribute=key) / rows|length) }} a week on average over {{ rows|length }} weeks</title>
         <rect class="chart__target" x="{{ x - step / 2 }}" y="{{ T }}" width="{{ step }}" height="{{ B - T }}"/>
         <circle class="chart__dot{% if not loop.last %} chart__dot--quiet{% endif %}" cx="{{ x }}" cy="{{ y }}" r="4"/>
       </g>
@@ -52,13 +64,17 @@
 {% endmacro %}
 
 {# Horizontal bars for a handful of named counts, biggest first or in their natural order; the value sits at each tip. #}
-{% macro bars(items, what, empty='Nothing yet.') %}
+{% macro bars(items, what, empty='Nothing yet.', of='', ranked=True) %}
   {% if items and items|map(attribute=1)|max %}
-  {% set top = items|map(attribute=1)|max %}
+  {% set top = items|map(attribute=1)|max %}{% set total = items|map(attribute=1)|sum %}
+  {% set sizes = items|map(attribute=1)|sort(reverse=True)|list %}
   {% set W, L, R, row = 560, 168, 516, 30 %}
   <svg class="chart" viewBox="0 0 {{ W }} {{ items|length * row + 4 }}" role="img" aria-label="{{ what }}">
     {% for label, n in items %}{% set y = 4 + row * loop.index0 %}{% set w = (R - L) * n / top %}
-      <g class="chart__hit"><title>{{ label }}: {{ '{:,}'.format(n) }}</title>
+      <g class="chart__hit"><title>{{ label }}
+{{ '{:,}'.format(n) }}{% if of %} {{ of }}{% endif %}
+{{ (100 * n / total)|round(1) }}% of {{ '{:,}'.format(total) }}{% if of %} {{ of }}{% endif %}
+{% if ranked and label != 'Other' %}{{ 'The largest' if n == top else ('#' ~ (sizes.index(n) + 1) ~ ' of ' ~ items|length) }}{% endif %}</title>
         <rect class="chart__target" x="0" y="{{ y }}" width="{{ W }}" height="{{ row }}"/>
         <text class="chart__label" x="{{ L - 12 }}" y="{{ y + 18 }}" text-anchor="end">{{ label|truncate(24, True) }}</text>
         {% if n %}{% set r = [4, w]|min %}<path class="chart__bar" d="M{{ L }},{{ y + 6 }}H{{ L + w - r }}Q{{ L + w }},{{ y + 6 }} {{ L + w }},{{ y + 6 + r }}V{{ y + 22 - r }}Q{{ L + w }},{{ y + 22 }} {{ L + w - r }},{{ y + 22 }}H{{ L }}Z"/>{% endif %}
@@ -81,7 +97,9 @@
       {% set ns = namespace(at=0) %}
       {% for label, n in parts %}{% if n %}{% set len = C * n / total %}
         <circle class="donut__slice donut__slice--{{ loop.index }}" cx="70" cy="70" r="{{ r }}" transform="rotate(-90 70 70)"
-          stroke-dasharray="{{ [len - 2, 0.1]|max }} {{ C }}" stroke-dashoffset="{{ -ns.at }}"><title>{{ label }}: {{ n }} of {{ total }}</title></circle>
+          stroke-dasharray="{{ [len - 2, 0.1]|max }} {{ C }}" stroke-dashoffset="{{ -ns.at }}"><title>{{ label }}
+{{ n }} of {{ total }} {{ center }}
+{{ (100 * n / total)|round(1) }}%</title></circle>
         {% set ns.at = ns.at + len %}
       {% endif %}{% endfor %}
       <text class="donut__n" x="70" y="72" text-anchor="middle">{{ total }}</text>

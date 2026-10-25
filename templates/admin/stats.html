@@ -36,10 +36,22 @@
     <section class="chart-card"><h2>Active members per week</h2>{{ c.line(weeks, 'active', 'Active members') }}</section>
     <section class="chart-card"><h2>Where accepted students found it</h2>
       {{ c.donut(found, 'acceptances', 'No acceptances tracked yet. Students mark one by moving a tracked listing to Accepted.') }}</section>
-    <section class="chart-card"><h2>Tracked applications by stage</h2>{{ c.bars(stages, 'Tracked applications by stage') }}</section>
-    <section class="chart-card"><h2>Live listings by type</h2>{{ c.bars(types, 'Live listings by type') }}</section>
-    <section class="chart-card"><h2>Top schools</h2>{{ c.bars(s.top_schools, 'Members by school', 'No schools yet. Members can add theirs at signup or on their account page.') }}</section>
+    <section class="chart-card"><h2>Tracked applications by stage</h2>{{ c.bars(stages, 'Tracked applications by stage', of='tracked applications', ranked=False) }}</section>
+    <section class="chart-card"><h2>Live listings by type</h2>{{ c.bars(types, 'Live listings by type', of='live listings') }}</section>
+    <section class="chart-card"><h2>Top schools</h2>{{ c.bars(s.top_schools, 'Members by school', 'No schools yet. Members can add theirs at signup or on their account page.', of='members in the top schools') }}</section>
   </div>
+
+  {% if is_owner(user) %}
+  <section class="panel support-edit" id="support">
+    <h2>Support us page</h2>
+    <p class="muted small">The money shown on <a href="{{ url_for('site.support') }}">Support us</a>. Remaining is worked out from these (now ${{ '{:,}'.format([support.raised - support.used, 0]|max) }}). Changes are recorded in Activity.</p>
+    <form class="inline-form support-edit__form" method="post" action="{{ url_for('admin.support_numbers_save') }}">{{ m.csrf() }}
+      <label for="sup-raised">Raised $</label><input id="sup-raised" name="raised" value="{{ support.raised }}" inputmode="numeric" maxlength="9" required>
+      <label for="sup-used">Used $</label><input id="sup-used" name="used" value="{{ support.used }}" inputmode="numeric" maxlength="9" required>
+      <button class="btn btn--sm" type="submit">Save</button>
+    </form>
+  </section>
+  {% endif %}
 
   <section class="panel more" id="more">
     <h2>All numbers</h2>
