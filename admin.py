@@ -405,22 +405,23 @@ def _drop_upload(name):
 @bp.route('/stats', methods=['GET', 'POST'])
 @admin_required
 def stats():
-    """The overview: headline numbers, a few charts, and every other count in one table. Straight counts from the
-    database; the owner can add a hand adjustment to a number (for things the site can't see, like a placement arranged
-    offline), which is always shown next to the real count and recorded in Activity."""
+    """The overview: headline numbers, a few charts, and every other count in one table. Counts come from the
+    database; the owner can set the number shown (for things the site can't see, like members carried over from the old
+    site). That's stored as the difference from the database count, so later sign-ups still add to it; each change is
+    recorded in Activity, and the export's summary keeps both."""
     if request.method == 'POST':
         me, key = current_user(), request.form.get('key', '')
-        value = request.form.get('adjust', '').strip().replace('+', '')
+        value = request.form.get('value', '').strip().replace(',', '').replace('$', '')
         if not is_owner(me):
             abort(403)
-        if key not in STAT_LABELS or not value.lstrip('-').isdigit() or abs(int(value)) > 100000:
-            flash('Enter a whole number, like 3 or -2.', 'error')
+        if key not in STAT_LABELS or not value.isdigit() or int(value) > 10_000_000:
+            flash('Enter the number to show, like 176.', 'error')
         else:
-            old = stat_adjustments().get(key, 0)
+            old, new = stat_adjustments().get(key, 0), int(value) - _stat_numbers()[key]
             run("INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-                ('stat_adj:' + key, int(value)))
-            audit(me['id'], f'stat_adjusted {key} {old:+d} to {int(value):+d}', key)
-            flash('Adjustment saved.')
+                ('stat_adj:' + key, new))
+            audit(me['id'], f'stat_adjusted {key} {old:+d} to {new:+d}', key)
+            flash(f'{STAT_LABELS[key]} now shows {int(value):,}.')
         return redirect(url_for('admin.stats') + '#more')
     s, adj = _stat_numbers(), stat_adjustments()
     today = date.fromisoformat(data.now_iso()[:10])

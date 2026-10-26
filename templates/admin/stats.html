@@ -3,13 +3,13 @@
 {% import 'admin/_charts.html' as c with context %}
 {% block title %}Overview{% endblock %}
 {% block content %}
-{# A number as shown: the database count plus any hand adjustment #}
+{# A number as shown: the database count plus the owner's correction, if any #}
 {% macro num(key) %}{{ '{:,}'.format(s[key] + adj.get(key, 0)) }}{% endmacro %}
 {% macro tile(key, label, sub) %}
   <div class="kpi">
     <p class="kpi__label">{{ label }}</p>
     <p class="kpi__n">{{ num(key) }}</p>
-    <p class="kpi__sub">{{ sub }}{% if adj.get(key) %} · <span class="kpi__adj">{{ '{:+,}'.format(adj[key]) }} by hand</span>{% endif %}</p>
+    <p class="kpi__sub">{{ sub }}</p>
   </div>
 {% endmacro %}
 <div class="wrap">
@@ -55,19 +55,18 @@
 
   <section class="panel more" id="more">
     <h2>All numbers</h2>
-    <p class="muted small">Straight counts from the database{% if is_owner(user) %}. As the owner you can add or subtract by hand for things the site can’t see (like a placement arranged offline); it’s always shown next to the real count and recorded in Activity{% endif %}.</p>
+    <p class="muted small">Counts from the database{% if is_owner(user) %}. As the owner you can set the number shown for things the site can’t see (like members from the old site). New activity still adds to it, and changes are recorded in Activity{% endif %}.</p>
     <table class="table more__table">
       <tbody>
         {% for key, label in labels.items() %}
         <tr>
           <th scope="row">{{ label }}</th>
           <td class="more__n">{{ num(key) }}</td>
-          <td class="small">{% if adj.get(key) %}<span class="kpi__adj">{{ '{:+,}'.format(adj[key]) }} by hand</span> · database count {{ '{:,}'.format(s[key]) }}{% endif %}</td>
           {% if is_owner(user) %}
           <td class="more__edit">
             <form class="inline-form" method="post">{{ m.csrf() }}<input type="hidden" name="key" value="{{ key }}">
-              <label class="sr-only" for="adj-{{ key }}">Add or subtract for {{ label }}</label>
-              <input id="adj-{{ key }}" name="adjust" value="{{ '{:+d}'.format(adj[key]) if adj.get(key) else '' }}" placeholder="±0" inputmode="numeric" maxlength="7">
+              <label class="sr-only" for="adj-{{ key }}">Number to show for {{ label }}</label>
+              <input id="adj-{{ key }}" name="value" value="{{ s[key] + adj.get(key, 0) }}" inputmode="numeric" maxlength="10" required>
               <button class="btn btn--sm btn--ghost" type="submit">Save</button>
             </form>
           </td>
