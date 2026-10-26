@@ -687,11 +687,15 @@ class Flows(unittest.TestCase):
         r = self.post('/admin/users', {'id': 'owner1', 'role': 'student'}, other, follow_redirects=True)
         self.assertIn('Only the owner can change'.encode(), r.data)
         self.assertEqual(db.execute("SELECT role FROM users WHERE id='owner1'").fetchone()['role'], 'admin')
-        self.assertEqual(self.post('/admin/stats', {'key': 'placed', 'adjust': '+3'}, other).status_code, 403)
-        self.assertNotIn(b'name="adjust"', other.get('/admin/stats').data)  # no adjust controls for other admins
-        self.post('/admin/stats', {'key': 'placed', 'adjust': '+3'}, owner)
+        self.assertEqual(self.post('/admin/stats', {'key': 'placed', 'value': '3'}, other).status_code, 403)
+        self.assertNotIn(b'name="value"', other.get('/admin/stats').data)  # no editing controls for other admins
+        self.post('/admin/stats', {'key': 'placed', 'value': '3'}, owner)  # the owner sets the exact number shown
         page = other.get('/admin/stats').get_data(as_text=True)
-        self.assertIn('+3 by hand</span> · database count 0', page)  # always shown next to the real count
+        self.assertRegex(page, r'Students placed as interns</th>\s*<td class="more__n">3<')
+        self.assertNotIn('by hand', page)
+        db.execute("INSERT INTO intern_applications (id, full_name, email, statement, status, created_at) VALUES ('p1', 'Ada L', 'ada@example.org', 'I want to learn how a small business runs.', 'placed', '2026-01-01')")  # a real placement later still adds to it
+        db.commit()
+        self.assertRegex(other.get('/admin/stats').get_data(as_text=True), r'Students placed as interns</th>\s*<td class="more__n">4<')
         self.assertIn('Adjusted a stat by hand', other.get('/admin/activity?kind=stat_adjusted').get_data(as_text=True))
 
     def test_the_owner_sets_the_support_page_money(self):
