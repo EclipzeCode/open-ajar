@@ -16,6 +16,7 @@
     </div>
     {{ m.select('topic', 'Topic', D.CONTACT_TOPICS, values, errors, required=True, placeholder='Choose a topic') }}
     {{ m.textarea('message', 'Message', values, errors, required=True, max=4000, rows=5) }}
+    {{ m.heard_from(values, errors) }}
     <button class="btn btn--block" type="submit">Send message</button>
   </form>
   <p class="auth__alt">Have a business that could host an intern? <a href="{{ url_for('site.partner') }}">Partner with us</a></p>

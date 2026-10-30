@@ -86,6 +86,7 @@
           {{ m.select('relationship', 'How are you connected to it?', D.RELATIONSHIPS, values, errors, required=True) }}
           {{ m.input('contact_email', 'Email a reviewer can reach', values if values.get('contact_email') else {'contact_email': user.email}, errors, type='email', required=True, auto='email') }}
         </div>
+        {{ m.heard_from(values, errors) }}
         <div class="form-submit">
           <p class="form-submit__note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>You can follow its review on your account page.</p>
           <button class="btn" type="submit">{{ 'Send for review again' if existing else 'Submit for review' }} <span class="arrow" aria-hidden="true">→</span></button>

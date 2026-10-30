@@ -54,6 +54,9 @@
 {% if errors %}<div class="alert" role="alert"><strong>Please fix the highlighted fields.</strong>{% if errors.get('_') %} {{ errors['_'] }}{% endif %}</div>{% endif %}
 {% endmacro %}
 
+{# "Where did you hear about us?" on every form. Accounts that already answered aren't asked again. #}
+{% macro heard_from(values, errors) %}{% if not (user and user.heard_from) %}{{ select('heard_from', 'Where did you hear about us?', D.HEARD_FROM, values, errors) }}{% endif %}{% endmacro %}
+
 {% macro csrf() %}<input type="hidden" name="csrf" value="{{ csrf_token }}">{% endmacro %}
 
 {# The listing fields shared by the public submit form and the admin editor. #}

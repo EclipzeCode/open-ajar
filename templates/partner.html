@@ -20,6 +20,7 @@
       {{ m.input('location', 'City or area', values, errors, max=160, placeholder='e.g. Austin, TX') }}
     </div>
     {{ m.textarea('message', 'What could an intern help with?', values, errors, required=True, max=2000, rows=4, help='A sentence or two is plenty: the kind of work, and roughly how many hours a week.') }}
+    {{ m.heard_from(values, errors) }}
     <button class="btn btn--block" type="submit">Send</button>
   </form>
   <p class="auth__alt">Rather email? Write to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>

@@ -52,6 +52,7 @@
         <div class="acct-card__head"><h2 id="statement-h">Your statement</h2><p>A few honest sentences go a long way.</p></div>
         {{ m.textarea('statement', 'Why do you want to intern?', values, errors, required=True, max=2000, rows=5, help='What do you hope to get out of it?') }}
         {{ m.input('link', 'A link', values, errors, type='url', max=300, placeholder='https://', help='A portfolio, résumé, LinkedIn, or anything that shows who you are.') }}
+        {{ m.heard_from(values, errors) }}
         <div class="form-submit">
           <p class="form-submit__note"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>We’ll only use this to find you an internship.</p>
           <button class="btn" type="submit">Send application <span class="arrow" aria-hidden="true">→</span></button>

@@ -38,6 +38,7 @@
       {{ c.donut(found, 'acceptances', 'No acceptances tracked yet. Students mark one by moving a tracked listing to Accepted.') }}</section>
     <section class="chart-card"><h2>Tracked applications by stage</h2>{{ c.bars(stages, 'Tracked applications by stage', of='tracked applications', ranked=False) }}</section>
     <section class="chart-card"><h2>Live listings by type</h2>{{ c.bars(types, 'Live listings by type', of='live listings') }}</section>
+    <section class="chart-card"><h2>Where people heard about us</h2>{{ c.bars(heard, 'Where people heard about us', 'No answers yet. Every form asks “Where did you hear about us?”', of='answers') }}</section>
     <section class="chart-card"><h2>Top schools</h2>{{ c.bars(s.top_schools, 'Members by school', 'No schools yet. Members can add theirs at signup or on their account page.', of='members in the top schools') }}</section>
   </div>
 

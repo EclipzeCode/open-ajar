@@ -16,7 +16,7 @@
     <article class="panel review-app" id="a-{{ p.id }}">
       <div class="review-app__main">
         <div class="review-app__head"><h2>{{ p.business }}</h2><span class="pill pill--{{ p.status }}">{{ labels[p.status] }}</span></div>
-        <p class="muted small">{{ p.contact_name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a>{% if p.phone %} · {{ p.phone }}{% endif %}{% if p.location %} · {{ p.location }}{% endif %} · sent {{ p.created_at|nice_date }}</p>
+        <p class="muted small">{{ p.contact_name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a>{% if p.phone %} · {{ p.phone }}{% endif %}{% if p.location %} · {{ p.location }}{% endif %}{% if p.heard_from %} · heard about us: {{ p.heard_from }}{% endif %} · sent {{ p.created_at|nice_date }}</p>
         <h3 class="review-app__h">What an intern could help with</h3>
         <p class="review-app__statement">{{ p.message }}</p>
         {{ app.history(updates.get(p.id), labels) }}

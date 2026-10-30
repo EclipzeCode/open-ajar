@@ -26,7 +26,7 @@ def healthz():
 def home():
     items, total = search_public({'sector': 'opportunities'}, limit=3)
     jobs = search_public({'sector': 'jobs'}, limit=1)[1]
-    states = one(f'SELECT COUNT(DISTINCT o.state) n FROM opportunities o WHERE {PUBLIC} AND o.state IS NOT NULL', (now_iso(),))['n']
+    states = one(f"SELECT COUNT(DISTINCT o.state) n FROM opportunities o WHERE {PUBLIC} AND o.state IS NOT NULL AND o.state != 'DC'", (now_iso(),))['n']
     # user_id IS NULL means the account was deleted before quotes were removed with it: never show those
     voices = all_("SELECT name, role_label, quote FROM testimonials WHERE status='approved' AND user_id IS NOT NULL ORDER BY updated_at DESC LIMIT 6")
     return render_template('home.html', featured=items, total=total, jobs=jobs, states=states, voices=voices, saved=_saved_ids(),
@@ -250,7 +250,15 @@ def submit(opp_id=None):
         opp_id = insert_opp(db, clean, status='pending_review', source='submission', submitted_by=u['id'])
         db.commit()
         add_event(opp_id, u['id'], 'submitted', 'pending_review')
+    save_heard_from(u)
     return render_template('submitted.html', title=clean['title'])
+
+
+def save_heard_from(u):
+    """Accounts are asked "Where did you hear about us?" until they answer: on sign-up, then the submit and grant forms."""
+    v = request.form.get('heard_from', '')
+    if v in data.HEARD_FROM:
+        run("UPDATE users SET heard_from=? WHERE id=? AND heard_from=''", (v, u['id']))
 
 
 # ---------------------------------------------------------------- intern applications
@@ -273,16 +281,17 @@ def apply():
     f.text('availability', 'Availability', max=300, required=False)
     f.text('statement', 'Why you want to intern', min=10, max=2000, multiline=True)
     f.url('link')
+    f.heard_from()
     if not f.errors and limited('apply:' + client_ip(), 8, 3600):
         f.errors['_'] = 'You’ve submitted a few applications recently. Please try again later.'
     if f.errors:
         return render_template('apply.html', values={**request.form.to_dict(), 'interests': request.form.getlist('interests')},
                                errors=f.errors), 422
     o = f.out
-    run('''INSERT INTO intern_applications (id, full_name, email, grade, school, location, interests, skills, availability, statement, link, created_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
+    run('''INSERT INTO intern_applications (id, full_name, email, grade, school, location, interests, skills, availability, statement, link, heard_from, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)''',
         (new_id(), o['full_name'], o['email'], o['grade'], o['school'], o['location'], json.dumps(f.many('interests', data.INTERESTS)),
-         o['skills'], o['availability'], o['statement'], o['link'], data.now_iso()))
+         o['skills'], o['availability'], o['statement'], o['link'], o['heard_from'], data.now_iso()))
     mail.later('intern application notice', mail.intern_application, current_app.config, o)  # saved already; admin shows it
     mail.later('intern application receipt', mail.intern_received, current_app.config, o)
     # they can follow it on their profile once signed in with this email, confirmed
@@ -301,13 +310,14 @@ def partner():
     f.text('phone', 'Phone', max=40, required=False)
     f.text('location', 'City or area', max=160, required=False)
     f.text('message', 'What an intern could help with', min=10, max=2000, multiline=True)
+    f.heard_from()
     if not f.errors and limited('partner:' + client_ip(), 8, 3600):
         f.errors['_'] = 'You’ve sent a few inquiries recently. Please try again later.'
     if f.errors:
         return render_template('partner.html', values=request.form.to_dict(), errors=f.errors), 422
     inq = {**f.out, 'id': new_id(), 'created_at': data.now_iso()}
-    run('INSERT INTO partner_inquiries (id, business, contact_name, email, phone, location, message, created_at) VALUES (?,?,?,?,?,?,?,?)',
-        tuple(inq[k] for k in ('id', 'business', 'contact_name', 'email', 'phone', 'location', 'message', 'created_at')))
+    run('INSERT INTO partner_inquiries (id, business, contact_name, email, phone, location, message, heard_from, created_at) VALUES (?,?,?,?,?,?,?,?,?)',
+        tuple(inq[k] for k in ('id', 'business', 'contact_name', 'email', 'phone', 'location', 'message', 'heard_from', 'created_at')))
     mail.later('partner inquiry notice', mail.partner_inquiry, current_app.config, inq)  # saved already; admin shows it
     return render_template('partner_sent.html')
 
@@ -323,13 +333,14 @@ def contact():
     f.email('email')
     f.one_of('topic', data.CONTACT_TOPICS, 'a topic')
     f.text('message', 'Message', min=10, max=4000, multiline=True)
+    f.heard_from()
     if not f.errors and limited('contact:' + client_ip(), 6, 3600):
         f.errors['_'] = 'You’ve sent a few messages recently. Please try again later.'
     if f.errors:
         return render_template('contact.html', values=request.form.to_dict(), errors=f.errors), 422
     msg = {**f.out, 'id': new_id(), 'created_at': data.now_iso()}
-    run('INSERT INTO contact_messages (id, name, email, topic, message, created_at) VALUES (?,?,?,?,?,?)',
-        tuple(msg[k] for k in ('id', 'name', 'email', 'topic', 'message', 'created_at')))
+    run('INSERT INTO contact_messages (id, name, email, topic, message, heard_from, created_at) VALUES (?,?,?,?,?,?,?)',
+        tuple(msg[k] for k in ('id', 'name', 'email', 'topic', 'message', 'heard_from', 'created_at')))
     mail.later('contact message notice', mail.contact_message, current_app.config, msg)  # saved already; admin shows it
     return render_template('contact_sent.html')
 
@@ -386,6 +397,7 @@ def grants():
             'due_date', 'accepted', 'asked_program', 'reason', 'created_at', 'updated_at')
     run(f"INSERT INTO access_grants ({', '.join(cols)}) VALUES ({','.join('?' * len(cols))})", tuple(g[k] for k in cols))
     mail.later('access grant notice', mail.grant_request, current_app.config, g)  # saved already; admin shows it
+    save_heard_from(u)
     flash('Request sent. We’ll email you and your parent or guardian when there’s a decision.')
     return redirect(url_for('site.grants'))
 
