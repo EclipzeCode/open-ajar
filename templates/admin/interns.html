@@ -15,7 +15,7 @@
     <article class="panel review-app" id="a-{{ a.id }}">
       <div class="review-app__main">
         <div class="review-app__head"><h2>{{ a.full_name }}</h2><span class="pill pill--{{ a.status }}">{{ labels[a.status] }}</span></div>
-        <p class="muted small"><a href="mailto:{{ a.email }}">{{ a.email }}</a>{% if a.grade %} · Grade {{ a.grade }}{% endif %}{% if a.school %} · {{ a.school }}{% endif %}{% if a.location %} · {{ a.location }}{% endif %} · applied {{ a.created_at|nice_date }}</p>
+        <p class="muted small"><a href="mailto:{{ a.email }}">{{ a.email }}</a>{% if a.grade %} · Grade {{ a.grade }}{% endif %}{% if a.school %} · {{ a.school }}{% endif %}{% if a.location %} · {{ a.location }}{% endif %}{% if a.heard_from %} · heard about us: {{ a.heard_from }}{% endif %} · applied {{ a.created_at|nice_date }}</p>
         <dl class="review-app__facts">
           {% set ints = a.interests|fromjson %}{% if ints %}<div><dt>Interests</dt><dd>{{ ints|join(', ') }}</dd></div>{% endif %}
           {% if a.availability %}<div><dt>Availability</dt><dd>{{ a.availability }}</dd></div>{% endif %}

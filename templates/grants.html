@@ -80,6 +80,7 @@
               <span>My parent or guardian knows I’m asking for this grant.</span></label>
             {{ m.err(errors, 'consent') }}
           </div>
+          {{ m.heard_from(values, errors) }}
           <button class="btn btn--block" type="submit">Send request</button>
         </form>
       {% elif not user %}

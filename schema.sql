@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
   staff_note       TEXT NOT NULL DEFAULT '',   -- the admin note: every admin and moderator sees it
   pending_email    TEXT NOT NULL DEFAULT '',   -- a new address waiting for its confirmation link
   digest_week      TEXT NOT NULL DEFAULT '',   -- the week (e.g. 2026-W42) the last weekly deadline digest went out
+  heard_from       TEXT NOT NULL DEFAULT '',   -- "Where did you hear about us?" (data.HEARD_FROM), asked once
   created_at       TEXT NOT NULL
 );
 
@@ -141,6 +142,7 @@ CREATE TABLE IF NOT EXISTS intern_applications (
   placement_start      TEXT,
   placement_hours      TEXT NOT NULL DEFAULT '',
   placement_supervisor TEXT NOT NULL DEFAULT '',
+  heard_from   TEXT NOT NULL DEFAULT '',
   created_at   TEXT NOT NULL
 );
 
@@ -154,6 +156,7 @@ CREATE TABLE IF NOT EXISTS partner_inquiries (
   location     TEXT NOT NULL DEFAULT '',
   message      TEXT NOT NULL,
   status       TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','partnered','declined')),
+  heard_from   TEXT NOT NULL DEFAULT '',
   admin_note   TEXT NOT NULL DEFAULT '',
   created_at   TEXT NOT NULL
 );
@@ -168,7 +171,8 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   status      TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','replied','closed')),
   admin_note  TEXT NOT NULL DEFAULT '',
   created_at  TEXT NOT NULL,
-  dismissed   INTEGER NOT NULL DEFAULT 0  -- set aside without answering: grayed out and listed last
+  dismissed   INTEGER NOT NULL DEFAULT 0, -- set aside without answering: grayed out and listed last
+  heard_from  TEXT NOT NULL DEFAULT ''
 );
 
 -- The conversation about an application: the team's updates (a status change, a message, or both; emailed) and the

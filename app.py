@@ -180,6 +180,7 @@ def create_app(test_config=None):
                                   partner_img=partner_img)
     app.jinja_env.filters['fromjson'] = json.loads
     app.jinja_env.filters['day'] = lambda iso: (iso or '')[:10]
+    app.jinja_env.filters['utc'] = lambda iso: f'{iso[:10]} {iso[11:19]} UTC' if iso else ''  # stored times are UTC
     app.jinja_env.filters['nice_date'] = data.nice_date
 
     register_cli(app)
@@ -203,7 +204,8 @@ def init_db(path):
                             ('intern_applications', 'placement_hours', "TEXT NOT NULL DEFAULT ''"),
                             ('intern_applications', 'placement_supervisor', "TEXT NOT NULL DEFAULT ''"),
                             ('users', 'pending_email', "TEXT NOT NULL DEFAULT ''"), ('users', 'digest_week', "TEXT NOT NULL DEFAULT ''"),
-                            ('contact_messages', 'dismissed', 'INTEGER NOT NULL DEFAULT 0')):
+                            ('contact_messages', 'dismissed', 'INTEGER NOT NULL DEFAULT 0'),
+                            *((t, 'heard_from', "TEXT NOT NULL DEFAULT ''") for t in ('users', 'intern_applications', 'partner_inquiries', 'contact_messages'))):
         if col not in {r['name'] for r in db.execute(f'PRAGMA table_info({table})')}:
             db.execute(f'ALTER TABLE {table} ADD COLUMN {col} {ddl}')
     # Values added to a CHECK constraint after launch (the text that shows the table is up to date)

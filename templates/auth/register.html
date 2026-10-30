@@ -19,6 +19,7 @@
       <input id="password" name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password" {% if errors.get('password') %}aria-invalid="true" aria-describedby="password-err"{% endif %}>
       {{ m.err(errors, 'password') }}
     </div>
+    {{ m.heard_from(values, errors) }}
     <p class="muted small">By creating an account you agree to the <a href="{{ url_for('site.terms') }}">Terms</a> and <a href="{{ url_for('site.privacy') }}">Privacy Policy</a>. You must be 13 or older.</p>
     <button class="btn btn--block" type="submit">Create account</button>
   </form>

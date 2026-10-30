@@ -26,6 +26,7 @@
       <div><dt>Grade</dt><dd>{{ u.grade or '—' }}</dd></div>
       <div><dt>School</dt><dd>{{ u.school or '—' }}</dd></div>
       <div><dt>Location</dt><dd>{{ u.location or '—' }}</dd></div>
+      <div><dt>Heard about us</dt><dd>{{ u.heard_from or '—' }}</dd></div>
       <div><dt>Interests</dt><dd>{{ (u.interests|fromjson)|join(', ') or '—' }}</dd></div>
       <div><dt>Tracker</dt><dd>{{ counts.tracked }} tracked · {{ counts.saved }} saved</dd></div>
       <div><dt>Reminder emails</dt><dd>{{ 'On' if u.email_reminders else 'Off' }}</dd></div>

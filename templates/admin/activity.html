@@ -18,7 +18,7 @@
   <ol class="history history--wide">
     {% for e in items %}
       {% set k = e.action.split(' ')[0] %}
-      <li><span class="muted small">{{ e.at|day }}</span> <strong>{{ e.actor }}</strong> · {{ names.get(k, k|replace('_', ' ')|capitalize) }}{% if ' ' in e.action %} <span class="muted small">({{ e.action.split(' ', 1)[1] }})</span>{% endif %}:
+      <li><time class="muted small" datetime="{{ e.at }}">{{ e.at|utc }}</time> <strong>{{ e.actor }}</strong> · {{ names.get(k, k|replace('_', ' ')|capitalize) }}{% if ' ' in e.action %} <span class="muted small">({{ e.action.split(' ', 1)[1] }})</span>{% endif %}:
         {% if e.opp_id %}<a href="{{ url_for('admin.review', opp_id=e.opp_id) }}">{{ e.title }}</a>{% else %}{{ e.title }}{% endif %}
         {% if e.message %}<br><span class="muted small">{{ e.message|truncate(200) }}</span>{% endif %}</li>
     {% else %}

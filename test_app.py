@@ -542,6 +542,25 @@ class Flows(unittest.TestCase):
         self.post(f'/admin/messages/{mid}/dismiss', {}, admin)
         self.assertEqual(db.execute('SELECT dismissed FROM contact_messages WHERE id=?', (mid,)).fetchone()['dismissed'], 0)
 
+    def test_forms_ask_where_people_heard_about_us(self):
+        self.assertIn('name="heard_from"', self.c.get('/register').get_data(as_text=True))
+        self.post('/register', {'name': 'Sam Rivera', 'email': 'sam@example.org', 'password': PW, 'heard_from': 'TikTok'})
+        self.assertNotIn('name="heard_from"', self.c.get('/contact').get_data(as_text=True))  # accounts answer once
+        other = self.app.test_client()
+        self.post('/contact', {'name': 'Jo Park', 'email': 'jo@example.org', 'topic': 'A question', 'message': 'Do you list summer programs?',
+                               'heard_from': 'Not on the list'}, other)
+        self.post('/partner', {'business': 'Corner Bakery', 'contact_name': 'Lee Kim', 'email': 'lee@example.org',
+                               'message': 'An intern could help with our social media.', 'heard_from': 'TikTok'}, other)
+        db = connect(self.app.config['DB_PATH'])
+        self.assertEqual(db.execute("SELECT heard_from FROM contact_messages").fetchone()['heard_from'], '')  # off-list answers are dropped
+        admin = self.make_admin()
+        page = admin.get('/admin/stats').get_data(as_text=True)
+        self.assertIn('Where people heard about us', page)
+        self.assertIn('TikTok\n2 answers', page)  # the account and the partner inquiry
+        db.execute("INSERT INTO audit_log (actor_id, action, target, created_at) VALUES ('admin1', 'user_updated', 'x', '2026-10-29T14:03:12+00:00')")
+        db.commit()
+        self.assertIn('2026-10-29 14:03:12 UTC', admin.get('/admin/activity').get_data(as_text=True))
+
     def test_older_databases_are_upgraded_without_losing_anything(self):
         from app import init_db
         old = Path(self.tmp.name) / 'old.db'

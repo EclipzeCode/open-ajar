@@ -49,6 +49,9 @@ def job_category(org, title):
                 return cat
     return JOB_CATEGORY_FALLBACK
 
+# "Where did you hear about us?" on every form; optional. Accounts answer it once (users.heard_from).
+HEARD_FROM = ['A friend or classmate', 'A teacher or counselor', 'A parent or family member', 'Instagram', 'TikTok', 'LinkedIn',
+              'A Google search', 'A school or club newsletter', 'Something else']
 CONTACT_TOPICS = ['A question', 'A listing', 'My account', 'Partnering with us', 'Something else']
 GRANT_CAP = 250  # dollars per student per calendar year, approved or paid
 GRANT_COVERS = ['Application fee', 'Program fee or tuition', 'Test or exam fee', 'Materials or travel', 'Something else']
@@ -216,6 +219,10 @@ class Form:
             self.out[key] = v
         else:
             self.errors[key] = f'Choose {label}'
+
+    def heard_from(self):  # optional: anything off the list is dropped
+        v = self.src.get('heard_from', '')
+        self.out['heard_from'] = v if v in HEARD_FROM else ''
 
     def many(self, key, choices):
         return [v for v in dict.fromkeys(self.src.getlist(key)) if v in choices]

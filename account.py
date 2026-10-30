@@ -73,6 +73,7 @@ def register():
     f.text('name', 'Your name', min=1, max=80)
     f.email('email')
     f.text('school', 'School', max=120, required=False)
+    f.heard_from()
     problem = data.password_problem(request.form.get('password', ''), f.out.get('email', ''))
     if problem:
         f.errors['password'] = problem
@@ -84,8 +85,9 @@ def register():
         return render_template('auth/register.html', values=request.form, errors=f.errors), 422
     uid = new_id()  # self-registration is always a student; roles are only changed by admins
     try:
-        run('INSERT INTO users (id, email, password_hash, name, school, created_at) VALUES (?,?,?,?,?,?)',
-            (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], f.out.get('school', ''), data.now_iso()))
+        run('INSERT INTO users (id, email, password_hash, name, school, heard_from, created_at) VALUES (?,?,?,?,?,?,?)',
+            (uid, f.out['email'], generate_password_hash(request.form['password']), f.out['name'], f.out.get('school', ''),
+             f.out['heard_from'], data.now_iso()))
     except sqlite3.IntegrityError:  # the same email signed up a moment ago (a double click)
         return render_template('auth/register.html', values=request.form,
                                errors={'email': 'That email may already be registered. Try signing in.'}), 422

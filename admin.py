@@ -438,7 +438,12 @@ def stats():
         found=[('Found on OpenAjar', s['won_here']), ('Found elsewhere', s['won_elsewhere']),
                ('Not answered yet', s['won'] - s['won_here'] - s['won_elsewhere'])],
         types=_top_and_other([(('Teen jobs' if r['type'] == 'Job' else r['type']), r['n']) for r in
-               all_("SELECT type, COUNT(*) n FROM opportunities WHERE status='approved' GROUP BY type ORDER BY n DESC")]))
+               all_("SELECT type, COUNT(*) n FROM opportunities WHERE status='approved' GROUP BY type ORDER BY n DESC")]),
+        # every "Where did you hear about us?" answer: one per account, intern application, partner inquiry and message
+        heard=sorted(((r['heard_from'], r['n']) for r in all_(
+            "SELECT heard_from, COUNT(*) n FROM (" + ' UNION ALL '.join(
+                f"SELECT heard_from FROM {t}" for t in ('users', 'intern_applications', 'partner_inquiries', 'contact_messages'))
+            + ") WHERE heard_from != '' GROUP BY heard_from")), key=lambda x: -x[1]))
 
 
 @bp.post('/support-numbers')

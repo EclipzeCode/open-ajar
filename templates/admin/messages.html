@@ -23,7 +23,7 @@
             <button class="btn btn--sm btn--ghost" type="submit">{{ 'Bring back' if set_aside else 'Dismiss' }}</button>
           </form>
           {% endif %}</div>
-        <p class="muted small">{{ p.name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a> · sent {{ p.created_at|nice_date }}</p>
+        <p class="muted small">{{ p.name }} · <a href="mailto:{{ p.email }}">{{ p.email }}</a>{% if p.heard_from %} · heard about us: {{ p.heard_from }}{% endif %} · sent {{ p.created_at|nice_date }}</p>
         <p class="review-app__statement">{{ p.message }}</p>
         {{ app.history(updates.get(p.id), labels) }}
       </div>
